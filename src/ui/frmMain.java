@@ -5,6 +5,10 @@
 package ui;
 
 import javax.swing.JFrame;
+import javax.swing.Box;
+import javax.swing.SwingConstants;
+
+
 
 /**
  *
@@ -20,12 +24,22 @@ public class frmMain extends javax.swing.JFrame {
     public frmMain() {
         initComponents();
         FormShow();
+        BarMenu();
     }
     
     private void FormShow(){
      this.setLocationRelativeTo(null);
     this.setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
+    
+    private void BarMenu() {
+    jMenu1.setHorizontalAlignment(SwingConstants.CENTER);
+    jMenu2.setHorizontalAlignment(SwingConstants.CENTER);
+    jMenu3.setHorizontalAlignment(SwingConstants.CENTER);
+}
+    
+    
+    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -42,12 +56,30 @@ public class frmMain extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         jPanel5 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
+        jPanel6 = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
+        jMenuItem2 = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
+        jMenuItem4 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
+        jMenuItem5 = new javax.swing.JMenuItem();
+        jMenuItem6 = new javax.swing.JMenuItem();
+        jMenuItem7 = new javax.swing.JMenuItem();
+        jMenuItem8 = new javax.swing.JMenuItem();
+        jMenuItem9 = new javax.swing.JMenuItem();
         jMenu3 = new javax.swing.JMenu();
+        jMenuItem10 = new javax.swing.JMenuItem();
+        jMenuItem11 = new javax.swing.JMenuItem();
+        jMenuItem12 = new javax.swing.JMenuItem();
+        jMenuItem13 = new javax.swing.JMenuItem();
+        jMenuItem14 = new javax.swing.JMenuItem();
+        jMenuItem15 = new javax.swing.JMenuItem();
+        jMenuItem16 = new javax.swing.JMenuItem();
         jMenu4 = new javax.swing.JMenu();
+        jMenuItem17 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -55,7 +87,7 @@ public class frmMain extends javax.swing.JFrame {
 
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Penjualan"));
 
-        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Transfer"));
+        jPanel4.setBorder(javax.swing.BorderFactory.createTitledBorder("Total"));
         jPanel4.setPreferredSize(new java.awt.Dimension(152, 56));
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -78,7 +110,7 @@ public class frmMain extends javax.swing.JFrame {
                 .addGap(0, 0, 0))
         );
 
-        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Tunai"));
+        jPanel5.setBorder(javax.swing.BorderFactory.createTitledBorder("Transfer"));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -89,7 +121,7 @@ public class frmMain extends javax.swing.JFrame {
         jPanel5Layout.setHorizontalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
-                .addContainerGap(27, Short.MAX_VALUE)
+                .addContainerGap(49, Short.MAX_VALUE)
                 .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -100,25 +132,52 @@ public class frmMain extends javax.swing.JFrame {
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
+        jPanel6.setBorder(javax.swing.BorderFactory.createTitledBorder("Tunai"));
+
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel3.setText("Rp 10.000.000");
+
+        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel6Layout.createSequentialGroup()
+                .addContainerGap(27, Short.MAX_VALUE)
+                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
+        );
+        jPanel6Layout.setVerticalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 33, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addContainerGap(9, Short.MAX_VALUE)
+                .addContainerGap()
+                .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(12, 12, 12)
                 .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(6, 6, 6))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, 74, Short.MAX_VALUE)
+                    .addComponent(jPanel5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jPanel6, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
+
+        jPanel5.getAccessibleContext().setAccessibleName("Transfer");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -127,28 +186,28 @@ public class frmMain extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(18, 18, 18)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(257, Short.MAX_VALUE))
+                .addContainerGap(68, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(30, 30, 30)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(304, Short.MAX_VALUE))
+                .addContainerGap(261, Short.MAX_VALUE))
         );
 
+        jMenuBar1.setBackground(new java.awt.Color(0, 102, 0));
         jMenuBar1.setAlignmentX(1.0F);
         jMenuBar1.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        jMenuBar1.setPreferredSize(new java.awt.Dimension(300, 33));
+        jMenuBar1.setPreferredSize(new java.awt.Dimension(300, 40));
 
-        jMenu1.setText("Master");
-        jMenu1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
-        jMenu1.setHorizontalTextPosition(javax.swing.SwingConstants.LEFT);
-        jMenu1.setPreferredSize(new java.awt.Dimension(100, 22));
+        jMenu1.setForeground(new java.awt.Color(255, 255, 255));
+        jMenu1.setText("      Master");
+        jMenu1.setPreferredSize(new java.awt.Dimension(90, 22));
 
         jMenuItem1.setText("Obat");
         jMenuItem1.setMinimumSize(new java.awt.Dimension(100, 30));
-        jMenuItem1.setPreferredSize(new java.awt.Dimension(100, 30));
+        jMenuItem1.setPreferredSize(new java.awt.Dimension(85, 30));
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem1ActionPerformed(evt);
@@ -156,16 +215,90 @@ public class frmMain extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem1);
 
+        jMenuItem2.setText("Supplier");
+        jMenuItem2.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu1.add(jMenuItem2);
+
+        jMenuItem3.setText("Customer");
+        jMenuItem3.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu1.add(jMenuItem3);
+
+        jMenuItem4.setText("Dokter");
+        jMenuItem4.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu1.add(jMenuItem4);
+
         jMenuBar1.add(jMenu1);
 
-        jMenu2.setText("Transaksi");
+        jMenu2.setForeground(new java.awt.Color(255, 255, 255));
+        jMenu2.setText("     Transaksi");
+        jMenu2.setPreferredSize(new java.awt.Dimension(100, 22));
+
+        jMenuItem5.setText("Penjualan");
+        jMenuItem5.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        jMenuItem5.setPreferredSize(new java.awt.Dimension(90, 30));
+        jMenu2.add(jMenuItem5);
+
+        jMenuItem6.setText("Pembelian");
+        jMenuItem6.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu2.add(jMenuItem6);
+
+        jMenuItem7.setText("Hutang");
+        jMenuItem7.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu2.add(jMenuItem7);
+
+        jMenuItem8.setText("Piutang");
+        jMenuItem8.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu2.add(jMenuItem8);
+
+        jMenuItem9.setText("Cashflow");
+        jMenuItem9.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu2.add(jMenuItem9);
+
         jMenuBar1.add(jMenu2);
 
-        jMenu3.setText("Laporan");
+        jMenu3.setForeground(new java.awt.Color(255, 255, 255));
+        jMenu3.setText("      Laporan");
         jMenu3.setToolTipText("");
+        jMenu3.setPreferredSize(new java.awt.Dimension(100, 22));
+
+        jMenuItem10.setText("Pembelian");
+        jMenuItem10.setPreferredSize(new java.awt.Dimension(90, 30));
+        jMenu3.add(jMenuItem10);
+
+        jMenuItem11.setText("Penjualan");
+        jMenuItem11.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu3.add(jMenuItem11);
+
+        jMenuItem12.setText("Hutang");
+        jMenuItem12.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu3.add(jMenuItem12);
+
+        jMenuItem13.setText("Piutang");
+        jMenuItem13.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu3.add(jMenuItem13);
+
+        jMenuItem14.setText("Cashflow");
+        jMenuItem14.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu3.add(jMenuItem14);
+
+        jMenuItem15.setText("Cust");
+        jMenuItem15.setToolTipText("");
+        jMenuItem15.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu3.add(jMenuItem15);
+
+        jMenuItem16.setText("Keuangan");
+        jMenuItem16.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenu3.add(jMenuItem16);
+
         jMenuBar1.add(jMenu3);
 
-        jMenu4.setText("Pengaturan");
+        jMenu4.setForeground(new java.awt.Color(255, 255, 255));
+        jMenu4.setText("    Pengaturan");
+        jMenu4.setPreferredSize(new java.awt.Dimension(85, 30));
+
+        jMenuItem17.setText("Konfigurasi");
+        jMenu4.add(jMenuItem17);
+
         jMenuBar1.add(jMenu4);
 
         setJMenuBar(jMenuBar1);
@@ -216,15 +349,33 @@ public class frmMain extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem10;
+    private javax.swing.JMenuItem jMenuItem11;
+    private javax.swing.JMenuItem jMenuItem12;
+    private javax.swing.JMenuItem jMenuItem13;
+    private javax.swing.JMenuItem jMenuItem14;
+    private javax.swing.JMenuItem jMenuItem15;
+    private javax.swing.JMenuItem jMenuItem16;
+    private javax.swing.JMenuItem jMenuItem17;
+    private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JMenuItem jMenuItem5;
+    private javax.swing.JMenuItem jMenuItem6;
+    private javax.swing.JMenuItem jMenuItem7;
+    private javax.swing.JMenuItem jMenuItem8;
+    private javax.swing.JMenuItem jMenuItem9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
     // End of variables declaration//GEN-END:variables
 }
