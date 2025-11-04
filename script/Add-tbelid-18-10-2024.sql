@@ -1,0 +1,13 @@
+CREATE TABLE `tbelid` (
+    `IDBeliD` INT(11) NOT NULL AUTO_INCREMENT,
+    `IDBeliH` INT(11) NOT NULL,
+    `Kode` VARCHAR(50) NOT NULL COLLATE 'latin1_swedish_ci',
+    `Quantity` INT(11) NOT NULL,
+    `Price` DECIMAL(10,2) NOT NULL,
+    `Subtotal` DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (`IDBeliD`) USING BTREE,
+    INDEX `IDBeliH` (`IDBeliH`) USING BTREE,
+    CONSTRAINT `tbelid_ibfk_1` FOREIGN KEY (`IDBeliH`) REFERENCES `tbelih` (`IDBeliH`) ON UPDATE RESTRICT ON DELETE CASCADE
+)
+COLLATE='latin1_swedish_ci'
+ENGINE=InnoDB;
