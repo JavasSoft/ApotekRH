@@ -7,6 +7,7 @@ package ui;
 import javax.swing.JFrame;
 import javax.swing.Box;
 import javax.swing.SwingConstants;
+import ui.Master.frmMstDokter;
 
 
 
@@ -177,8 +178,6 @@ public class frmMain extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
-        jPanel5.getAccessibleContext().setAccessibleName("Transfer");
-
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -225,6 +224,11 @@ public class frmMain extends javax.swing.JFrame {
 
         jMenuItem4.setText("Dokter");
         jMenuItem4.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem4);
 
         jMenuBar1.add(jMenu1);
@@ -320,6 +324,12 @@ public class frmMain extends javax.swing.JFrame {
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem1ActionPerformed
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        // TODO add your handling code here:
+        frmMstDokter frmMstDokter = new frmMstDokter();
+                frmMstDokter.setVisible(true);
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
 
     /**
      * @param args the command line arguments
