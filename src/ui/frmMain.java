@@ -7,7 +7,10 @@ package ui;
 import javax.swing.JFrame;
 import javax.swing.Box;
 import javax.swing.SwingConstants;
-import ui.Master.frmMstDokter;
+import ui.Master.frmMstCust;
+import ui.Master.frmMstSupplier;
+import ui.Master.frmMstDokter1;
+
 
 
 
@@ -216,10 +219,20 @@ public class frmMain extends javax.swing.JFrame {
 
         jMenuItem2.setText("Supplier");
         jMenuItem2.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem2ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem2);
 
         jMenuItem3.setText("Customer");
         jMenuItem3.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
         jMenu1.add(jMenuItem3);
 
         jMenuItem4.setText("Dokter");
@@ -327,9 +340,20 @@ public class frmMain extends javax.swing.JFrame {
 
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
         // TODO add your handling code here:
-        frmMstDokter frmMstDokter = new frmMstDokter();
-                frmMstDokter.setVisible(true);
+        frmMstDokter1 frmMstDokter1 = new frmMstDokter1();
+                frmMstDokter1.setVisible(true);
     }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        // TODO add your handling code here:
+        frmMstCust frmMstCust = new frmMstCust();
+                frmMstCust.setVisible(true);
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
+
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+         frmMstSupplier frmMstSupplier = new frmMstSupplier();
+                frmMstSupplier.setVisible(true);       // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem2ActionPerformed
 
     /**
      * @param args the command line arguments

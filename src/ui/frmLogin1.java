@@ -65,6 +65,7 @@ public class frmLogin1 extends javax.swing.JFrame {
         Image.SCALE_SMOOTH);
     jLabel1.setIcon(new ImageIcon(img));
     }
+    
     private void PtxtUsernameFocusGained() {                                        
         // TODO add your handling code here:
      if (txtUsername.getText().equals("Username")) {

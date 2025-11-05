@@ -23,7 +23,14 @@ public class frmMstDokter extends javax.swing.JFrame {
         jToolBar1.setFloatable(false);
         jToolBar2.setFloatable(false);
         awal();
+        FrmProjec();
     }
+    
+    private void FrmProjec(){
+    this.setLocationRelativeTo(null);
+    this.setResizable(false);
+    }
+    
     private void navaktif(){
      btnAwal.setEnabled(true);
      btnPrevious.setEnabled(true);
