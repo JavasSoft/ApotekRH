@@ -97,6 +97,23 @@ public class frmMstDokter extends javax.swing.JFrame {
         jTextField1 = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
         jTextField2 = new javax.swing.JTextField();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel6 = new javax.swing.JPanel();
+        txtNama = new javax.swing.JTextField();
+        lblKode3 = new javax.swing.JLabel();
+        lblKode4 = new javax.swing.JLabel();
+        txtAlamat = new javax.swing.JTextField();
+        lblKode5 = new javax.swing.JLabel();
+        txtTelephone = new javax.swing.JTextField();
+        lblKode6 = new javax.swing.JLabel();
+        txtKota = new javax.swing.JTextField();
+        jPanel7 = new javax.swing.JPanel();
+        lblKode7 = new javax.swing.JLabel();
+        txtNama1 = new javax.swing.JTextField();
+        lblKode8 = new javax.swing.JLabel();
+        txtNama2 = new javax.swing.JTextField();
+        lblKode9 = new javax.swing.JLabel();
+        txtNama3 = new javax.swing.JTextField();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -271,7 +288,7 @@ public class frmMstDokter extends javax.swing.JFrame {
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
                 .addComponent(cmbAktif)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 220, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnSimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -300,15 +317,243 @@ public class frmMstDokter extends javax.swing.JFrame {
 
         jTextField2.setMinimumSize(new java.awt.Dimension(33, 22));
 
+        jTabbedPane1.addAncestorListener(new javax.swing.event.AncestorListener() {
+            public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
+            }
+            public void ancestorMoved(javax.swing.event.AncestorEvent evt) {
+            }
+            public void ancestorRemoved(javax.swing.event.AncestorEvent evt) {
+                jTabbedPane1AncestorRemoved(evt);
+            }
+        });
+
+        txtNama.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtNama.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtNama.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtNama.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                txtNamaFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtNamaFocusLost(evt);
+            }
+        });
+
+        lblKode3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        lblKode3.setText("Email :");
+        lblKode3.setMaximumSize(new java.awt.Dimension(33, 22));
+        lblKode3.setMinimumSize(new java.awt.Dimension(33, 22));
+        lblKode3.setPreferredSize(new java.awt.Dimension(33, 22));
+
+        lblKode4.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        lblKode4.setText("Alamat :");
+        lblKode4.setMaximumSize(new java.awt.Dimension(33, 22));
+        lblKode4.setMinimumSize(new java.awt.Dimension(33, 22));
+        lblKode4.setPreferredSize(new java.awt.Dimension(33, 22));
+
+        txtAlamat.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtAlamat.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtAlamat.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtAlamat.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                txtAlamatFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtAlamatFocusLost(evt);
+            }
+        });
+
+        lblKode5.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        lblKode5.setText("Telephone :");
+        lblKode5.setMaximumSize(new java.awt.Dimension(33, 22));
+        lblKode5.setMinimumSize(new java.awt.Dimension(33, 22));
+        lblKode5.setPreferredSize(new java.awt.Dimension(33, 22));
+
+        txtTelephone.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtTelephone.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtTelephone.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtTelephone.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                txtTelephoneFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtTelephoneFocusLost(evt);
+            }
+        });
+
+        lblKode6.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        lblKode6.setText("Kota :");
+        lblKode6.setMaximumSize(new java.awt.Dimension(33, 22));
+        lblKode6.setMinimumSize(new java.awt.Dimension(33, 22));
+        lblKode6.setPreferredSize(new java.awt.Dimension(33, 22));
+
+        txtKota.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtKota.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtKota.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtKota.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                txtKotaFocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtKotaFocusLost(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel6Layout.createSequentialGroup()
+                        .addComponent(lblKode4, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtAlamat, javax.swing.GroupLayout.PREFERRED_SIZE, 313, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel6Layout.createSequentialGroup()
+                            .addComponent(lblKode5, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(txtTelephone, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel6Layout.createSequentialGroup()
+                            .addComponent(lblKode6, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                            .addComponent(txtKota, javax.swing.GroupLayout.PREFERRED_SIZE, 162, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(17, Short.MAX_VALUE))
+        );
+        jPanel6Layout.setVerticalGroup(
+            jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addGap(31, 31, 31)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblKode4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtAlamat, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblKode5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtTelephone, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblKode6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtKota, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(82, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Detail", jPanel6);
+
+        lblKode7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        lblKode7.setText("Bank :");
+        lblKode7.setMaximumSize(new java.awt.Dimension(33, 22));
+        lblKode7.setMinimumSize(new java.awt.Dimension(33, 22));
+        lblKode7.setPreferredSize(new java.awt.Dimension(33, 22));
+
+        txtNama1.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtNama1.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtNama1.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtNama1.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                txtNama1FocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtNama1FocusLost(evt);
+            }
+        });
+
+        lblKode8.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        lblKode8.setText("No.Rek :");
+        lblKode8.setMaximumSize(new java.awt.Dimension(33, 22));
+        lblKode8.setMinimumSize(new java.awt.Dimension(33, 22));
+        lblKode8.setPreferredSize(new java.awt.Dimension(33, 22));
+
+        txtNama2.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtNama2.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtNama2.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtNama2.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                txtNama2FocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtNama2FocusLost(evt);
+            }
+        });
+
+        lblKode9.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        lblKode9.setText("Nama");
+        lblKode9.setMaximumSize(new java.awt.Dimension(33, 22));
+        lblKode9.setMinimumSize(new java.awt.Dimension(33, 22));
+        lblKode9.setPreferredSize(new java.awt.Dimension(33, 22));
+
+        txtNama3.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtNama3.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtNama3.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtNama3.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                txtNama3FocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                txtNama3FocusLost(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel7Layout = new javax.swing.GroupLayout(jPanel7);
+        jPanel7.setLayout(jPanel7Layout);
+        jPanel7Layout.setHorizontalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(lblKode7, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtNama1, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(lblKode8, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtNama2, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel7Layout.createSequentialGroup()
+                        .addComponent(lblKode9, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtNama3, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(59, Short.MAX_VALUE))
+        );
+        jPanel7Layout.setVerticalGroup(
+            jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel7Layout.createSequentialGroup()
+                .addGap(22, 22, 22)
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblKode7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtNama1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblKode8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtNama2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(lblKode9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtNama3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(120, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("Rekening", jPanel7);
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jTabbedPane1)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -318,8 +563,8 @@ public class frmMstDokter extends javax.swing.JFrame {
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -334,9 +579,11 @@ public class frmMstDokter extends javax.swing.JFrame {
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(192, 192, 192)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jTabbedPane1)
+                .addGap(18, 18, 18)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(21, 21, 21))
+                .addGap(20, 20, 20))
         );
 
         jMenu1.setText("System");
@@ -358,7 +605,9 @@ public class frmMstDokter extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(0, 0, 0))
         );
 
         pack();
@@ -373,6 +622,66 @@ public class frmMstDokter extends javax.swing.JFrame {
         // TODO add your handling code here:
         ubah();
     }//GEN-LAST:event_btnUbahActionPerformed
+
+    private void txtNamaFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNamaFocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNamaFocusGained
+
+    private void txtNamaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNamaFocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNamaFocusLost
+
+    private void txtAlamatFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtAlamatFocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtAlamatFocusGained
+
+    private void txtAlamatFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtAlamatFocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtAlamatFocusLost
+
+    private void txtTelephoneFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtTelephoneFocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtTelephoneFocusGained
+
+    private void txtTelephoneFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtTelephoneFocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtTelephoneFocusLost
+
+    private void txtKotaFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtKotaFocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtKotaFocusGained
+
+    private void txtKotaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtKotaFocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtKotaFocusLost
+
+    private void jTabbedPane1AncestorRemoved(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_jTabbedPane1AncestorRemoved
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTabbedPane1AncestorRemoved
+
+    private void txtNama1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama1FocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNama1FocusGained
+
+    private void txtNama1FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama1FocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNama1FocusLost
+
+    private void txtNama2FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama2FocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNama2FocusGained
+
+    private void txtNama2FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama2FocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNama2FocusLost
+
+    private void txtNama3FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama3FocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNama3FocusGained
+
+    private void txtNama3FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama3FocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNama3FocusLost
 
     /**
      * @param args the command line arguments
@@ -442,9 +751,26 @@ public class frmMstDokter extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JTextField jTextField1;
     private javax.swing.JTextField jTextField2;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JLabel lblKode3;
+    private javax.swing.JLabel lblKode4;
+    private javax.swing.JLabel lblKode5;
+    private javax.swing.JLabel lblKode6;
+    private javax.swing.JLabel lblKode7;
+    private javax.swing.JLabel lblKode8;
+    private javax.swing.JLabel lblKode9;
+    private javax.swing.JTextField txtAlamat;
+    private javax.swing.JTextField txtKota;
+    private javax.swing.JTextField txtNama;
+    private javax.swing.JTextField txtNama1;
+    private javax.swing.JTextField txtNama2;
+    private javax.swing.JTextField txtNama3;
+    private javax.swing.JTextField txtTelephone;
     // End of variables declaration//GEN-END:variables
 }
