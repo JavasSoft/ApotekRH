@@ -152,7 +152,7 @@ private void awal(){
             // Proceed to the next screen or functionality
             PanelLogin.setVisible(false);
             jMenuBar1.setVisible(true);
-            jLabel6.setText(user.getUsername() + " - " + user.getEmail());
+//            jLabel6.setText(user.getUsername() + " - " + user.getEmail());
             jLabel6.setVisible(true);
         } else {
             JOptionPane.showMessageDialog(this, "Invalid username or password.");
