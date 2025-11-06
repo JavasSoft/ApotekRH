@@ -4,7 +4,7 @@ CREATE TABLE `mdokter` (
 	`Nama` VARCHAR(50) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
 	`Email` VARCHAR(50) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
 	`Alamat` VARCHAR(50) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
-	`Telepon` VARCHAR(50) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
+	`Telephone` VARCHAR(50) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
 	`Kota` VARCHAR(50) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
 	`Bank` VARCHAR(50) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
 	`NomorRekening` VARCHAR(50) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',

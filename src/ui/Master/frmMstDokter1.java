@@ -3,27 +3,75 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package ui.Master;
+import java.sql.Statement;
+import dao.DokterDAO;
 import dao.Koneksi;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import javax.swing.JOptionPane;
+import model.Dokter;
+import model.User;
 /**
  *
  * @author Admin
  */
 public class frmMstDokter1 extends javax.swing.JFrame {
+    
+    private DokterDAO dokterDAO;
+    private Connection conn;
+    private Statement stat;
+    private ResultSet rs;
+    private String sql;
+    private User user;
+    private List<Dokter> dokterList;
+    private int currentRecordIndex;
+    private int totalInputs;
 
     /**
      * Creates new form ParentTrans
      */
+    
     public frmMstDokter1() {
         initComponents();
+        initializeDatabase();
+        dokterDAO = new DokterDAO(conn);
         jToolBar1.setFloatable(false);
         jToolBar2.setFloatable(false);
+        btnALL();
         awal();
         FrmProjec();
+    }
+    
+    private void FormShow(){
+    }
+      
+    private void initializeDatabase() {
+                try {
+            conn = Koneksi.getConnection();
+            if (conn != null) {
+                stat = conn.createStatement();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to establish connection to the database.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error initializing database connection: " + e.getMessage());
+        }
+    }
+    
+    private void btnALL() {
+        btnSimpan.addActionListener(evt -> simpan());
+         btnExit.addActionListener(evr -> dispose());
+         btnTambah.addActionListener(evt -> tambah());
+         btnUbah.addActionListener(evt -> ubah());
+        // btnAwal.addActionListener(evt -> data_awal());
+       //  btnPrevious.addActionListener(evt -> previous());
+      //   btnNext.addActionListener(evt -> next());
+       //  btnAkhir.addActionListener(evt -> data_terakhir());
+        
     }
     
     private void FrmProjec(){
@@ -69,6 +117,106 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         btnExit.setEnabled(true);
         navaktif();
     }
+    
+    // ===========================================
+// ============ CRUD DOKTER ==================
+// ===========================================
+private void simpan() {
+    String action = jLabel1.getText(); // Mendapatkan teks dari JLabel
+
+    if (action.equals("[Tambah]")) {
+        saveDokter();
+    } else if (action.equals("[Ubah]")) {
+        updateDokter();
+    } else {
+        JOptionPane.showMessageDialog(null, "Aksi tidak dikenali: " + action);
+    }
+
+    awal(); // Reset form / state awal
+}
+
+// ===========================================
+// ============ SIMPAN DOKTER =================
+// ===========================================
+private void saveDokter() {
+    String kode = jtKode.getText();
+    String nama = txtNama.getText();
+    String email = txtEmail.getText();
+    String alamat = txtAlamat.getText();
+    String telephone = txtTelephone.getText();
+    String kota = txtKota.getText();
+    String bank = txtBank.getText();
+    String nomorRekening = txtNomorRekening.getText();
+    String namaRekening = txtNamaRekening.getText();
+    int aktif = cmbAktif.isSelected() ? 1 : 0; // <-- Diganti ke 1 atau 0
+
+    // Validasi input
+    if (kode.isEmpty() || nama.isEmpty() || email.isEmpty() || alamat.isEmpty() ||
+        telephone.isEmpty() || kota.isEmpty() || bank.isEmpty() || 
+        nomorRekening.isEmpty() || namaRekening.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Data tidak lengkap. Harap lengkapi semua field.");
+        return;
+    }
+
+    Dokter dokter = new Dokter();
+    dokter.setKode(kode);
+    dokter.setNama(nama);
+    dokter.setEmail(email);
+    dokter.setAlamat(alamat);
+    dokter.setTelephone(telephone);
+    dokter.setKota(kota);
+    dokter.setBank(bank);
+    dokter.setNomorRekening(nomorRekening);
+    dokter.setNamaRekening(namaRekening);
+    dokter.setAktif(aktif);
+
+    if (dokterDAO.insertDokter(dokter)) {
+        JOptionPane.showMessageDialog(this, "Data Dokter berhasil disimpan.");
+    } else {
+        JOptionPane.showMessageDialog(this, "Gagal menyimpan data Dokter.");
+    }
+}
+
+// ===========================================
+// ============ UPDATE DOKTER =================
+// ===========================================
+private void updateDokter() {
+    int id = Integer.parseInt(txtIDDokter.getText());
+    String kode = jtKode.getText();
+    String nama = txtNama.getText();
+    String email = txtEmail.getText();
+    String alamat = txtAlamat.getText();
+    String telephone = txtTelephone.getText();
+    String kota = txtKota.getText();
+    String bank = txtBank.getText();
+    String nomorRekening = txtNomorRekening.getText();
+    String namaRekening = txtNamaRekening.getText();
+    int aktif = cmbAktif.isSelected() ? 1 : 0; // <-- Diganti ke 1 atau 0
+
+    if (kode.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Kode Dokter harus diisi untuk melakukan update.");
+        return;
+    }
+
+    Dokter dokter = new Dokter();
+    dokter.setKode(kode);
+    dokter.setNama(nama);
+    dokter.setEmail(email);
+    dokter.setAlamat(alamat);
+    dokter.setTelephone(telephone);
+    dokter.setKota(kota);
+    dokter.setBank(bank);
+    dokter.setNomorRekening(nomorRekening);
+    dokter.setNamaRekening(namaRekening);
+    dokter.setAktif(aktif);
+
+      if (dokterDAO.updateDokter(id, dokter)){
+        JOptionPane.showMessageDialog(this, "Data Dokter berhasil diperbarui.");
+    } else {
+        JOptionPane.showMessageDialog(this, "Gagal memperbarui data Dokter.");
+    }
+}
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -78,6 +226,7 @@ public class frmMstDokter1 extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        txtIDDokter = new javax.swing.JTextField();
         jPanel5 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
@@ -101,12 +250,12 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         cmbAktif = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        jtKode = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
-        jTextField2 = new javax.swing.JTextField();
+        txtNama = new javax.swing.JTextField();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel6 = new javax.swing.JPanel();
-        txtNama = new javax.swing.JTextField();
+        txtEmail = new javax.swing.JTextField();
         lblKode3 = new javax.swing.JLabel();
         lblKode4 = new javax.swing.JLabel();
         txtAlamat = new javax.swing.JTextField();
@@ -116,14 +265,16 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         txtKota = new javax.swing.JTextField();
         jPanel7 = new javax.swing.JPanel();
         lblKode7 = new javax.swing.JLabel();
-        txtNama1 = new javax.swing.JTextField();
+        txtBank = new javax.swing.JTextField();
         lblKode8 = new javax.swing.JLabel();
-        txtNama2 = new javax.swing.JTextField();
+        txtNomorRekening = new javax.swing.JTextField();
         lblKode9 = new javax.swing.JLabel();
-        txtNama3 = new javax.swing.JTextField();
+        txtNamaRekening = new javax.swing.JTextField();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
+
+        txtIDDokter.setText("jTextField1");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Master Dokter");
@@ -318,11 +469,11 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel3.setText("Nama :");
 
-        jTextField1.setMinimumSize(new java.awt.Dimension(33, 22));
+        jtKode.setMinimumSize(new java.awt.Dimension(33, 22));
 
         jButton1.setText("jButton1");
 
-        jTextField2.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtNama.setMinimumSize(new java.awt.Dimension(33, 22));
 
         jTabbedPane1.addAncestorListener(new javax.swing.event.AncestorListener() {
             public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
@@ -334,15 +485,15 @@ public class frmMstDokter1 extends javax.swing.JFrame {
             }
         });
 
-        txtNama.setMaximumSize(new java.awt.Dimension(64, 23));
-        txtNama.setMinimumSize(new java.awt.Dimension(64, 23));
-        txtNama.setPreferredSize(new java.awt.Dimension(64, 23));
-        txtNama.addFocusListener(new java.awt.event.FocusAdapter() {
+        txtEmail.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtEmail.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtEmail.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtEmail.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                txtNamaFocusGained(evt);
+                txtEmailFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                txtNamaFocusLost(evt);
+                txtEmailFocusLost(evt);
             }
         });
 
@@ -416,7 +567,7 @@ public class frmMstDokter1 extends javax.swing.JFrame {
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addComponent(lblKode4, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -438,7 +589,7 @@ public class frmMstDokter1 extends javax.swing.JFrame {
                 .addGap(31, 31, 31)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblKode4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -462,15 +613,15 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         lblKode7.setMinimumSize(new java.awt.Dimension(33, 22));
         lblKode7.setPreferredSize(new java.awt.Dimension(33, 22));
 
-        txtNama1.setMaximumSize(new java.awt.Dimension(64, 23));
-        txtNama1.setMinimumSize(new java.awt.Dimension(64, 23));
-        txtNama1.setPreferredSize(new java.awt.Dimension(64, 23));
-        txtNama1.addFocusListener(new java.awt.event.FocusAdapter() {
+        txtBank.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtBank.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtBank.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtBank.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                txtNama1FocusGained(evt);
+                txtBankFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                txtNama1FocusLost(evt);
+                txtBankFocusLost(evt);
             }
         });
 
@@ -480,15 +631,15 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         lblKode8.setMinimumSize(new java.awt.Dimension(33, 22));
         lblKode8.setPreferredSize(new java.awt.Dimension(33, 22));
 
-        txtNama2.setMaximumSize(new java.awt.Dimension(64, 23));
-        txtNama2.setMinimumSize(new java.awt.Dimension(64, 23));
-        txtNama2.setPreferredSize(new java.awt.Dimension(64, 23));
-        txtNama2.addFocusListener(new java.awt.event.FocusAdapter() {
+        txtNomorRekening.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtNomorRekening.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtNomorRekening.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtNomorRekening.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                txtNama2FocusGained(evt);
+                txtNomorRekeningFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                txtNama2FocusLost(evt);
+                txtNomorRekeningFocusLost(evt);
             }
         });
 
@@ -498,15 +649,15 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         lblKode9.setMinimumSize(new java.awt.Dimension(33, 22));
         lblKode9.setPreferredSize(new java.awt.Dimension(33, 22));
 
-        txtNama3.setMaximumSize(new java.awt.Dimension(64, 23));
-        txtNama3.setMinimumSize(new java.awt.Dimension(64, 23));
-        txtNama3.setPreferredSize(new java.awt.Dimension(64, 23));
-        txtNama3.addFocusListener(new java.awt.event.FocusAdapter() {
+        txtNamaRekening.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtNamaRekening.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtNamaRekening.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtNamaRekening.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                txtNama3FocusGained(evt);
+                txtNamaRekeningFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                txtNama3FocusLost(evt);
+                txtNamaRekeningFocusLost(evt);
             }
         });
 
@@ -520,15 +671,15 @@ public class frmMstDokter1 extends javax.swing.JFrame {
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(lblKode7, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtNama1, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtBank, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(lblKode8, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtNama2, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtNomorRekening, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(lblKode9, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtNama3, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(txtNamaRekening, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(59, Short.MAX_VALUE))
         );
         jPanel7Layout.setVerticalGroup(
@@ -537,15 +688,15 @@ public class frmMstDokter1 extends javax.swing.JFrame {
                 .addGap(22, 22, 22)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblKode7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtNama1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtBank, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblKode8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtNama2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtNomorRekening, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblKode9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtNama3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtNamaRekening, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(120, Short.MAX_VALUE))
         );
 
@@ -564,13 +715,13 @@ public class frmMstDokter1 extends javax.swing.JFrame {
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(1, 1, 1)
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel5Layout.setVerticalGroup(
@@ -579,13 +730,13 @@ public class frmMstDokter1 extends javax.swing.JFrame {
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTabbedPane1)
                 .addGap(18, 18, 18)
@@ -630,13 +781,13 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         ubah();
     }//GEN-LAST:event_btnUbahActionPerformed
 
-    private void txtNamaFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNamaFocusGained
+    private void txtEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtEmailFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNamaFocusGained
+    }//GEN-LAST:event_txtEmailFocusGained
 
-    private void txtNamaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNamaFocusLost
+    private void txtEmailFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtEmailFocusLost
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNamaFocusLost
+    }//GEN-LAST:event_txtEmailFocusLost
 
     private void txtAlamatFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtAlamatFocusGained
         // TODO add your handling code here:
@@ -666,29 +817,29 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTabbedPane1AncestorRemoved
 
-    private void txtNama1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama1FocusGained
+    private void txtBankFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtBankFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama1FocusGained
+    }//GEN-LAST:event_txtBankFocusGained
 
-    private void txtNama1FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama1FocusLost
+    private void txtBankFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtBankFocusLost
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama1FocusLost
+    }//GEN-LAST:event_txtBankFocusLost
 
-    private void txtNama2FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama2FocusGained
+    private void txtNomorRekeningFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNomorRekeningFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama2FocusGained
+    }//GEN-LAST:event_txtNomorRekeningFocusGained
 
-    private void txtNama2FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama2FocusLost
+    private void txtNomorRekeningFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNomorRekeningFocusLost
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama2FocusLost
+    }//GEN-LAST:event_txtNomorRekeningFocusLost
 
-    private void txtNama3FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama3FocusGained
+    private void txtNamaRekeningFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNamaRekeningFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama3FocusGained
+    }//GEN-LAST:event_txtNamaRekeningFocusGained
 
-    private void txtNama3FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama3FocusLost
+    private void txtNamaRekeningFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNamaRekeningFocusLost
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama3FocusLost
+    }//GEN-LAST:event_txtNamaRekeningFocusLost
 
     /**
      * @param args the command line arguments
@@ -761,10 +912,9 @@ public class frmMstDokter1 extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JTextField jtKode;
     private javax.swing.JLabel lblKode3;
     private javax.swing.JLabel lblKode4;
     private javax.swing.JLabel lblKode5;
@@ -773,11 +923,13 @@ public class frmMstDokter1 extends javax.swing.JFrame {
     private javax.swing.JLabel lblKode8;
     private javax.swing.JLabel lblKode9;
     private javax.swing.JTextField txtAlamat;
+    private javax.swing.JTextField txtBank;
+    private javax.swing.JTextField txtEmail;
+    private javax.swing.JTextField txtIDDokter;
     private javax.swing.JTextField txtKota;
     private javax.swing.JTextField txtNama;
-    private javax.swing.JTextField txtNama1;
-    private javax.swing.JTextField txtNama2;
-    private javax.swing.JTextField txtNama3;
+    private javax.swing.JTextField txtNamaRekening;
+    private javax.swing.JTextField txtNomorRekening;
     private javax.swing.JTextField txtTelephone;
     // End of variables declaration//GEN-END:variables
 }

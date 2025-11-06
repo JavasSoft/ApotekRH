@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JOptionPane;
 
 public class DokterDAO {
     private Connection conn;
@@ -30,6 +31,7 @@ public class DokterDAO {
            pstmt.setInt(10, dokter.getAktif());
             return pstmt.executeUpdate() > 0;
         } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error SQL: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
