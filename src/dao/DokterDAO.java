@@ -27,7 +27,7 @@ public class DokterDAO {
             pstmt.setString(7, dokter.getBank());
             pstmt.setString(8, dokter.getNomorRekening());
             pstmt.setString(9, dokter.getNamaRekening());
-            pstmt.setInt(10, Integer.parseInt(dokter.getAktif()));
+           pstmt.setInt(10, dokter.getAktif());
             return pstmt.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();
@@ -47,7 +47,7 @@ public class DokterDAO {
             pstmt.setString(7, dokter.getBank());
             pstmt.setString(8, dokter.getNomorRekening());
             pstmt.setString(9, dokter.getNamaRekening());
-            pstmt.setInt(10, Integer.parseInt(dokter.getAktif()));
+            pstmt.setInt(10, dokter.getAktif());
             pstmt.setInt(11, id);
             return pstmt.executeUpdate() > 0;
         } catch (Exception e) {
@@ -86,7 +86,7 @@ public class DokterDAO {
                 dokter.setBank(rs.getString("Bank"));
                 dokter.setNomorRekening(rs.getString("NomorRekening"));
                 dokter.setNamaRekening(rs.getString("NamaRekening"));
-                dokter.setAktif(String.valueOf(rs.getInt("Aktif"))); // 0 atau 1
+                dokter.setAktif(rs.getInt("Aktif")); // 0 atau 1
                 dokterList.add(dokter);
             }
         } catch (Exception e) {
@@ -114,7 +114,7 @@ public class DokterDAO {
                     dokter.setBank(rs.getString("Bank"));
                     dokter.setNomorRekening(rs.getString("NomorRekening"));
                     dokter.setNamaRekening(rs.getString("NamaRekening"));
-                    dokter.setAktif(String.valueOf(rs.getInt("Aktif")));
+                   dokter.setAktif(rs.getInt("Aktif"));
                 }
             }
         } catch (Exception e) {
@@ -142,7 +142,7 @@ public class DokterDAO {
                     dokter.setBank(rs.getString("Bank"));
                     dokter.setNomorRekening(rs.getString("NomorRekening"));
                     dokter.setNamaRekening(rs.getString("NamaRekening"));
-                    dokter.setAktif(String.valueOf(rs.getInt("Aktif")));
+                 dokter.setAktif(rs.getInt("Aktif"));
                     dokterList.add(dokter);
                 }
             }

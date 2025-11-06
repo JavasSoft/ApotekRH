@@ -524,6 +524,11 @@ public class frmCus extends javax.swing.JFrame {
         jPanel4.setBackground(new java.awt.Color(204, 255, 255));
 
         btnSimpan.setText("Simpan");
+        btnSimpan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSimpanActionPerformed(evt);
+            }
+        });
 
         btnExit.setText("Exit Ctrl + X");
 
@@ -891,6 +896,10 @@ public class frmCus extends javax.swing.JFrame {
     private void jTabbedPane1AncestorRemoved(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_jTabbedPane1AncestorRemoved
         // TODO add your handling code here:
     }//GEN-LAST:event_jTabbedPane1AncestorRemoved
+
+    private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnSimpanActionPerformed
 
     /**
      * @param args the command line arguments

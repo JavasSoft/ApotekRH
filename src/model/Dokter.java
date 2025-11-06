@@ -20,7 +20,7 @@ public class Dokter {
     private String Bank;        // Kota: Kota usaha, tipe varchar(50)
     private String NomorRekening;        // Kota: Kota usaha, tipe varchar(50)
     private String NamaRekening;        // Kota: Kota usaha, tipe varchar(50)
-    private String Aktif;     // IsAktif: Status aktif (Ya/Tidak), tipe enum
+    private int Aktif;     // IsAktif: Status aktif (Ya/Tidak), tipe enum
 
     // Getters and setters
     public int getIDDokter() {
@@ -94,7 +94,7 @@ public class Dokter {
     }
 
     public void setNomorRekening(String NomorRekening) {
-        this.Bank =NomorRekening;
+        this.NomorRekening = NomorRekening;
     }
     
         public String getNamaRekening() {
@@ -106,11 +106,13 @@ public class Dokter {
     }
 
 
-    public String getAktif() {
-        return Aktif;
-    }
 
-    public void setAktif(String Aktif) {
-        this.Aktif = Aktif;
-    }
+public int getAktif() {
+    return Aktif;
+}
+
+public void setAktif(int Aktif) {
+    this.Aktif = Aktif;
+}
+
 }
