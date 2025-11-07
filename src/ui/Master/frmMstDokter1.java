@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 import model.Dokter;
@@ -26,7 +27,9 @@ public class frmMstDokter1 extends javax.swing.JFrame {
     private ResultSet rs;
     private String sql;
     private User user;
-    private List<Dokter> dokterList;
+   // private List<Dokter> dokterList;
+    private List<Dokter> dokterList = new ArrayList<>();
+
     private int currentRecordIndex;
     private int totalInputs;
 
@@ -43,9 +46,12 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         btnALL();
         awal();
         FrmProjec();
+        FormShow();
     }
     
     private void FormShow(){
+         loadDataFromDatabase();
+         loadCurrentPeriode(); 
     }
       
     private void initializeDatabase() {
@@ -214,6 +220,44 @@ private void updateDokter() {
         JOptionPane.showMessageDialog(this, "Data Dokter berhasil diperbarui.");
     } else {
         JOptionPane.showMessageDialog(this, "Gagal memperbarui data Dokter.");
+    }
+}
+private void loadDataFromDatabase() {
+    dokterList = dokterDAO.getAllDokter();
+    if (dokterList == null) {
+        dokterList = new ArrayList<>();
+    }
+
+    if (dokterList.isEmpty()) {
+        JOptionPane.showMessageDialog(null, "Data dokter belum ada di database.");
+    } else {
+        currentRecordIndex = 0;  // <<< ini penting
+    }
+}
+
+private void loadCurrentPeriode() {
+    if (currentRecordIndex >= 0 && currentRecordIndex < dokterList.size()) {
+        Dokter dokter = dokterList.get(currentRecordIndex);
+        
+        // Mengatur IDPeriode sebagai string
+        txtIDDokter.setText(String.valueOf(dokter.getIDDokter())); 
+        
+        // Tampilkan nilai-nilai ini di komponen UI
+        jtKode.setText(dokter.getKode());
+        txtNama.setText(dokter.getNama());
+        txtEmail.setText(dokter.getEmail());
+     txtAlamat.setText(dokter.getAlamat());
+      txtTelephone.setText(dokter.getTelephone());
+    txtKota.setText(dokter.getKota());
+    txtBank.setText(dokter.getBank());
+    txtNomorRekening.setText(dokter.getNomorRekening());
+     txtNamaRekening.setText(dokter.getNamaRekening());
+      cmbAktif.setSelected(dokter.getAktif() == 1); // <-- Diganti ke 1 atau 0
+        
+        
+        //updateRecordLabel();
+    } else {
+        JOptionPane.showMessageDialog(null, "Indeks catatan tidak valid.");
     }
 }
 
