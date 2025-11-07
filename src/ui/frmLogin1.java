@@ -123,6 +123,7 @@ public class frmLogin1 extends javax.swing.JFrame {
              //JOptionPane.showMessageDialog(this, "Login successful!");
                     frmMain frmMain = new frmMain();
                 frmMain.setVisible(true);
+                dispose();
             // Proceed to the next screen or functionality
         } else {
             JOptionPane.showMessageDialog(this, "Invalid username or password.");

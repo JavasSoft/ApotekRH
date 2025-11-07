@@ -48,10 +48,32 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         FrmProjec();
         FormShow();
     }
-    
+private void IDotomatis() {
+    try {
+        // Ambil kode terakhir dari tabel mdokter berdasarkan prefix "DR"
+        String lastCode = dokterDAO.getLastKode("DR"); // kirim prefix ke DAO
+        String newCode;
+
+        if (lastCode != null && lastCode.startsWith("DR")) {
+            // Ambil angka di belakang "DR"
+            int number = Integer.parseInt(lastCode.substring(2));
+            number++; // tambah 1
+            newCode = String.format("DR%03d", number); // hasil: DR001, DR002, dst
+        } else {
+            // Jika belum ada data sama sekali
+            newCode = "DR001";
+        }
+
+        jtKode.setText(newCode);
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "Terjadi kesalahan: " + e.getMessage());
+    }
+}
+
+
     private void FormShow(){
          loadDataFromDatabase();
-         loadCurrentPeriode(); 
+         loadCurrentDokter(); 
     }
       
     private void initializeDatabase() {
@@ -73,10 +95,10 @@ public class frmMstDokter1 extends javax.swing.JFrame {
          btnExit.addActionListener(evr -> dispose());
          btnTambah.addActionListener(evt -> tambah());
          btnUbah.addActionListener(evt -> ubah());
-        // btnAwal.addActionListener(evt -> data_awal());
-       //  btnPrevious.addActionListener(evt -> previous());
-      //   btnNext.addActionListener(evt -> next());
-       //  btnAkhir.addActionListener(evt -> data_terakhir());
+         btnAwal.addActionListener(evt -> data_awal());
+         btnPrevious.addActionListener(evt -> previous());
+         btnNext.addActionListener(evt -> next());
+         btnAkhir.addActionListener(evt -> data_terakhir());
         
     }
     
@@ -102,8 +124,23 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         btnSimpan.setEnabled(false);
         btnCancel.setEnabled(false);
         btnExit.setEnabled(false);
+        btnTambah.setEnabled(true);
+        btnUbah.setEnabled(true);
+        btnHapus.setEnabled(true);
         navaktif();
+        //  customerDAO = new CustomerDAO(conn);
+        dokterList = dokterDAO.getAllDokter(); // Ambil semua periode
+        totalInputs = dokterDAO.countDokter();
+
+        if (totalInputs > 0) {
+            currentRecordIndex = totalInputs - 1; // Set ke indeks terakhir
+            loadCurrentDokter(); // Muat periode terakhir
+            updateRecordLabel(); // Perbarui label dengan informasi record
+        }
+        navaktif();
+        data_terakhir();
     }
+    
     private void tambah(){
         jLabel1.setText("[Tambah]");
         btnUbah.setEnabled(false);
@@ -111,9 +148,22 @@ public class frmMstDokter1 extends javax.swing.JFrame {
         btnSimpan.setEnabled(true);
         btnCancel.setEnabled(true);
         btnExit.setEnabled(true);
-        navnonaktif();
-        
+        Kosong();
+        navnonaktif();  
     }
+    private void Kosong(){
+            jtKode.setText("");
+    txtNama.setText("");
+   txtEmail.setText("");
+    txtAlamat.setText("");
+   txtTelephone.setText("");
+    txtKota.setText("");
+   txtBank.setText("");
+    txtNomorRekening.setText("");
+    txtNamaRekening.setText("");
+   cmbAktif.setSelected(true);
+    }
+    
     private void ubah(){
         jLabel1.setText("[Ubah]");
         btnTambah.setEnabled(false);
@@ -145,6 +195,7 @@ private void simpan() {
 // ============ SIMPAN DOKTER =================
 // ===========================================
 private void saveDokter() {
+    IDotomatis();
     String kode = jtKode.getText();
     String nama = txtNama.getText();
     String email = txtEmail.getText();
@@ -235,7 +286,7 @@ private void loadDataFromDatabase() {
     }
 }
 
-private void loadCurrentPeriode() {
+private void loadCurrentDokter() {
     if (currentRecordIndex >= 0 && currentRecordIndex < dokterList.size()) {
         Dokter dokter = dokterList.get(currentRecordIndex);
         
@@ -255,12 +306,38 @@ private void loadCurrentPeriode() {
       cmbAktif.setSelected(dokter.getAktif() == 1); // <-- Diganti ke 1 atau 0
         
         
-        //updateRecordLabel();
+        updateRecordLabel();
     } else {
         JOptionPane.showMessageDialog(null, "Indeks catatan tidak valid.");
     }
 }
-
+    private void updateRecordLabel() {
+    recordLabel.setText("Record: " + (currentRecordIndex + 1) + " dari " + totalInputs);
+}
+    private void data_awal() {
+    currentRecordIndex = 0; // Data pertama
+    loadCurrentDokter();
+}
+    private void data_terakhir() {
+    currentRecordIndex = totalInputs - 1; // Data terakhir
+    loadCurrentDokter();
+}
+    private void next() {
+    if (currentRecordIndex < totalInputs - 1) { // Pastikan tidak melebihi jumlah total input
+        currentRecordIndex++;
+        loadCurrentDokter();
+    } else {
+        JOptionPane.showMessageDialog(null, "Anda sudah berada pada record terakhir.");
+    }
+}
+    private void previous() {
+    if (currentRecordIndex > 0) { // Pastikan tidak kurang dari record pertama
+        currentRecordIndex--;
+        loadCurrentDokter();
+    } else {
+        JOptionPane.showMessageDialog(null, "Anda sudah berada pada record pertama.");
+    }
+}
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -286,7 +363,7 @@ private void loadCurrentPeriode() {
         btnTambah = new javax.swing.JButton();
         btnUbah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
-        jLabel5 = new javax.swing.JLabel();
+        recordLabel = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         btnSimpan = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
@@ -443,9 +520,9 @@ private void loadCurrentPeriode() {
         btnHapus.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(btnHapus);
 
-        jLabel5.setBackground(new java.awt.Color(0, 0, 0));
-        jLabel5.setForeground(new java.awt.Color(0, 102, 0));
-        jLabel5.setText("1 of 9999");
+        recordLabel.setBackground(new java.awt.Color(0, 0, 0));
+        recordLabel.setForeground(new java.awt.Color(0, 102, 0));
+        recordLabel.setText("1 of 9999");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -455,7 +532,7 @@ private void loadCurrentPeriode() {
                 .addGap(37, 37, 37)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jLabel5)
+                .addComponent(recordLabel)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
@@ -469,7 +546,7 @@ private void loadCurrentPeriode() {
                         .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(recordLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addContainerGap())))
         );
 
@@ -944,7 +1021,6 @@ private void loadCurrentPeriode() {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
@@ -966,6 +1042,7 @@ private void loadCurrentPeriode() {
     private javax.swing.JLabel lblKode7;
     private javax.swing.JLabel lblKode8;
     private javax.swing.JLabel lblKode9;
+    private javax.swing.JLabel recordLabel;
     private javax.swing.JTextField txtAlamat;
     private javax.swing.JTextField txtBank;
     private javax.swing.JTextField txtEmail;
