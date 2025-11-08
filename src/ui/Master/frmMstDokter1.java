@@ -152,6 +152,8 @@ private void IDotomatis() {
         navnonaktif();  
     }
     private void Kosong(){
+        
+    txtNama.requestFocus();
             jtKode.setText("");
     txtNama.setText("");
    txtEmail.setText("");
@@ -208,11 +210,13 @@ private void saveDokter() {
     int aktif = cmbAktif.isSelected() ? 1 : 0; // <-- Diganti ke 1 atau 0
 
     // Validasi input
-    if (kode.isEmpty() || nama.isEmpty() || email.isEmpty() || alamat.isEmpty() ||
-        telephone.isEmpty() || kota.isEmpty() || bank.isEmpty() || 
-        nomorRekening.isEmpty() || namaRekening.isEmpty()) {
+    if (kode.isEmpty() || nama.isEmpty() 
+        //|| email.isEmpty() || alamat.isEmpty() ||
+       // telephone.isEmpty() || kota.isEmpty() || bank.isEmpty() || 
+        //nomorRekening.isEmpty() || namaRekening.isEmpty()
+                ) {
         JOptionPane.showMessageDialog(this, "Data tidak lengkap. Harap lengkapi semua field.");
-        return;
+        //return;
     }
 
     Dokter dokter = new Dokter();

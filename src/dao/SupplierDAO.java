@@ -15,17 +15,18 @@ public class SupplierDAO {
     }
     // Insert Supplier
     public boolean insertSupplier(Supplier supplier) {
-        String sqlInsert = "INSERT INTO msup (Kode, NamaUsaha, Tempo, Nama, Alamat, Telephone, Kota, IsAktif) "
-                         + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sqlInsert = "INSERT INTO msup (Kode, Nama, Alamat, Telephone, Kota, Bank, NomorRekening, NamaRekening, IsAktif) "
+                         + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sqlInsert)) {
             pstmt.setString(1, supplier.getKode());
-            pstmt.setString(2, supplier.getNamaUsaha());
-            pstmt.setInt(3, supplier.getTempo());
-            pstmt.setString(4, supplier.getNama());
-            pstmt.setString(5, supplier.getAlamat());
-            pstmt.setString(6, supplier.getTelephone());
-            pstmt.setString(7, supplier.getKota());
-            pstmt.setString(8, supplier.getIsAktif());
+            pstmt.setString(2, supplier.getNama());
+            pstmt.setString(3, supplier.getAlamat());
+            pstmt.setString(4, supplier.getTelephone());
+            pstmt.setString(5, supplier.getKota());
+            pstmt.setString(7, supplier.getBank());
+            pstmt.setString(8, supplier.getNomorRekening());
+            pstmt.setString(9, supplier.getNamaRekening());
+            pstmt.setString(6, supplier.getIsAktif());
             return pstmt.executeUpdate() > 0;
         } catch (Exception e) {
             e.printStackTrace();

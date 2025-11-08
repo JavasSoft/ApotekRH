@@ -10,6 +10,7 @@ import javax.swing.SwingConstants;
 import ui.Master.frmMstCust;
 import ui.Master.frmMstSupplier;
 import ui.Master.frmMstDokter1;
+import ui.Master.frmMstItem;
 
 
 
@@ -335,7 +336,8 @@ public class frmMain extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
-        // TODO add your handling code here:
+        frmMstItem frmMstItem = new frmMstItem();
+        frmMstItem.setVisible(true);        // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem1ActionPerformed
 
     private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed

@@ -1,7 +1,7 @@
 package model;
 
 public class Supplier {
-    private int idSup;
+    private int IDSupplier;
     private String kode;
     private String bandaUsaha;
     private String namaUsaha;
@@ -10,11 +10,14 @@ public class Supplier {
     private String alamat;
     private String telephone;
     private String kota;
+    private String Bank;
+    private String NomorRekening;
+    private String NamaRekening;
     private String IsAktif;
 
     // Getter dan Setter
-    public int getIdSup() { return idSup; }
-    public void setIdSup(int idSup) { this.idSup = idSup; }
+    public int getIdSup() { return IDSupplier; }
+    public void setIdSup(int idSup) { this.IDSupplier = idSup; }
 
     public String getKode() { return kode; }
     public void setKode(String kode) { this.kode = kode; }
@@ -47,6 +50,34 @@ public class Supplier {
 
     public void setIsAktif(String isAktif) {
         IsAktif = isAktif;
+    }
+
+        public String getBank() {
+        return Bank;
+    }
+
+    public void setBank(String Bank) {
+        this.Bank = Bank;
+    }
+    
+       public String getNomorRekening() {
+        return NomorRekening;
+    }
+
+    public void setNomorRekening(String NomorRekening) {
+        this.NomorRekening = NomorRekening;
+    }
+    
+        public String getNamaRekening() {
+        return NamaRekening;
+    }
+
+    public void setNamaRekening(String NamaRekening) {
+        this.NamaRekening = NamaRekening;
+    }
+
+    public void setEmail(String email) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
 
