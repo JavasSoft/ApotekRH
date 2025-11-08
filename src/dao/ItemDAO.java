@@ -14,7 +14,7 @@ public class ItemDAO {
     // INSERT ITEM + DETAIL
     public boolean insertItem(Item item) {
         String sqlItem = "INSERT INTO mitem (Kode, Nama, HargaBeli, Kategori, Aktif) VALUES (?, ?, ?, ?, ?)";
-        String sqlDetail = "INSERT INTO mitemd (IDItem, Satuan, Konversi, HargaJual, LabaPersen) VALUES (?, ?, ?, ?, ?)";
+        String sqlDetail = "INSERT INTO mitemd (IDItem, SatuanBesar, Jumlah, Satuan, Konversi, HargaJual, LabaPersen) VALUES (?, ?, ?,?, ?, ?, ?)";
         try {
             conn.setAutoCommit(false);
 
@@ -38,10 +38,12 @@ public class ItemDAO {
             PreparedStatement pDetail = conn.prepareStatement(sqlDetail);
             for (ItemDetail d : item.getDetails()) {
                 pDetail.setInt(1, idItem);
-                pDetail.setString(2, d.getSatuan());
-                pDetail.setInt(3, d.getKonversi());
-                pDetail.setDouble(4, d.getHargaJual());
-                pDetail.setDouble(5, d.getLabaPersen());
+                pDetail.setString(2, d.getSatuanBesar());
+                pDetail.setFloat(3, d.getJumlah());
+                pDetail.setString(4, d.getSatuan());
+                pDetail.setInt(5, d.getKonversi());
+                pDetail.setDouble(6, d.getHargaJual());
+                pDetail.setDouble(7, d.getLabaPersen());
                 pDetail.addBatch();
             }
             pDetail.executeBatch();
@@ -84,6 +86,7 @@ public class ItemDAO {
                 while (rsDetail.next()) {
                     ItemDetail d = new ItemDetail();
                     d.setIDDetail(rsDetail.getInt("IDDetail"));
+                    d.setSatuanBesar(rsDetail.getString("SatuanBesar"));
                     d.setSatuan(rsDetail.getString("Satuan"));
                     d.setKonversi(rsDetail.getInt("Konversi"));
                     d.setHargaJual(rsDetail.getDouble("HargaJual"));
@@ -158,6 +161,20 @@ public class ItemDAO {
         try { conn.setAutoCommit(true); } catch (Exception e) { e.printStackTrace(); }
     }
 }
+    
+    public int countItems() {
+        int totalRecords = 0;
+        String sqlCount = "SELECT COUNT(*) AS total FROM mitem";
+        try (PreparedStatement pstmt = conn.prepareStatement(sqlCount);
+             ResultSet rs = pstmt.executeQuery()) {
+            if (rs.next()) {
+                totalRecords = rs.getInt("total");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return totalRecords;
+    }
 
 
 }

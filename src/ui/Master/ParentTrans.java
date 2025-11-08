@@ -212,7 +212,6 @@ public class ParentTrans extends javax.swing.JFrame {
         jToolBar1.add(btnUbah);
 
         btnHapus.setText("Hapus");
-        btnHapus.setFocusable(false);
         btnHapus.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         btnHapus.setMaximumSize(new java.awt.Dimension(53, 30));
         btnHapus.setMinimumSize(new java.awt.Dimension(53, 30));

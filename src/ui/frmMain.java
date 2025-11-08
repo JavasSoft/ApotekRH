@@ -11,6 +11,7 @@ import ui.Master.frmMstCust;
 import ui.Master.frmMstSupplier;
 import ui.Master.frmMstDokter1;
 import ui.Master.frmMstItem;
+import ui.Transaksi.frmTransPenjualanTunai;
 
 
 
@@ -254,6 +255,11 @@ public class frmMain extends javax.swing.JFrame {
         jMenuItem5.setText("Penjualan");
         jMenuItem5.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jMenuItem5.setPreferredSize(new java.awt.Dimension(90, 30));
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem5ActionPerformed(evt);
+            }
+        });
         jMenu2.add(jMenuItem5);
 
         jMenuItem6.setText("Pembelian");
@@ -356,6 +362,12 @@ public class frmMain extends javax.swing.JFrame {
          frmMstSupplier frmMstSupplier = new frmMstSupplier();
                 frmMstSupplier.setVisible(true);       // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem2ActionPerformed
+
+    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
+        // TODO add your handling code here:
+        frmTransPenjualanTunai frmTransPenjualanTunai = new frmTransPenjualanTunai();
+                frmTransPenjualanTunai.setVisible(true);  
+    }//GEN-LAST:event_jMenuItem5ActionPerformed
 
     /**
      * @param args the command line arguments

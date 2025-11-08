@@ -55,7 +55,7 @@ private void IDotomatis() {
 
         if (lastCode != null && lastCode.startsWith("OBT")) {
             // Ambil angka di belakang "DR"
-            int number = Integer.parseInt(lastCode.substring(2));
+            int number = Integer.parseInt(lastCode.substring(3));
             number++; // tambah 1
             newCode = String.format("OBT%04d", number); // hasil: DR001, DR002, dst
         } else {
@@ -129,7 +129,7 @@ private void IDotomatis() {
         navaktif();
         //  customerDAO = new CustomerDAO(conn);
       itemsList = itemDAO.getAllItems(); // Ambil semua periode
-      //  totalInputs = dokterDAO.countDokter();
+       totalInputs = itemDAO.countItems();
 
         if (totalInputs > 0) {
             currentRecordIndex = totalInputs - 1; // Set ke indeks terakhir
@@ -191,10 +191,12 @@ private void simpan() {
 // ===========================================
 private void saveItem() {
     try {
+        IDotomatis();
         String kode = jtKode.getText().trim();
         String nama = txtNama.getText().trim();
         String kategori = cmbKategori.getSelectedItem().toString();
         double hargaBeli = Double.parseDouble(txtHargaBeli.getText().trim());
+        String satuanBesar = cmbSatuanBesar.getSelectedItem().toString();
         String satuanKecil = cmbSatuanKecil.getSelectedItem().toString();
         double hargaJual = Double.parseDouble(txtHargaJual.getText().trim());
         double labaPersen = Double.parseDouble(txtLabaPersen.getText().trim());
@@ -220,6 +222,8 @@ private void saveItem() {
 
         // Buat objek detail
         ItemDetail detail = new ItemDetail();
+        detail.setSatuanBesar(satuanBesar);
+        detail.setJumlah(1);
         detail.setSatuan(satuanKecil);
         detail.setKonversi(konversi);
         detail.setHargaJual(hargaJual);
@@ -333,6 +337,7 @@ private void loadCurrentItem() {
             ItemDetail detail = item.getDetails().get(0);
 
             cmbSatuanKecil.setSelectedItem(detail.getSatuan());
+            cmbSatuanBesar.setSelectedItem(detail.getSatuanBesar());
             txtHargaJual.setText(String.valueOf(detail.getHargaJual()));
             txtLabaPersen.setText(String.valueOf(detail.getLabaPersen()));
             txtKonversi.setText(String.valueOf(detail.getKonversi()));
@@ -425,7 +430,7 @@ private void loadCurrentItem() {
         jLabel6 = new javax.swing.JLabel();
         txtHargaBeli = new javax.swing.JTextField();
         cmbKategori = new javax.swing.JComboBox<>();
-        jComboBox2 = new javax.swing.JComboBox<>();
+        cmbSatuanBesar = new javax.swing.JComboBox<>();
         jLabel7 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
@@ -692,7 +697,7 @@ private void loadCurrentItem() {
 
         cmbKategori.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Obat Bebas", "Obat Prekursor", "Obat Keras", "Alat Kesehatan", "Vitamin" }));
 
-        jComboBox2.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Box", "Dus", "Pack", "Vial", "Ampul", "Pouch", "Tubes", "Botol", "Kaleng", "Strip", "Pouch", " " }));
+        cmbSatuanBesar.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Box", "Dus", "Pack", "Vial", "Ampul", "Pouch", "Tubes", "Botol", "Kaleng", "Strip", "Pouch", " " }));
 
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel7.setText("Kategori :");
@@ -720,7 +725,7 @@ private void loadCurrentItem() {
                             .addGroup(jPanel5Layout.createSequentialGroup()
                                 .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(cmbSatuanBesar, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel5Layout.createSequentialGroup()
                                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -750,7 +755,7 @@ private void loadCurrentItem() {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(cmbSatuanBesar, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -862,9 +867,9 @@ private void loadCurrentItem() {
     private javax.swing.JButton btnUbah;
     private javax.swing.JCheckBox cmbAktif;
     private javax.swing.JComboBox<String> cmbKategori;
+    private javax.swing.JComboBox<String> cmbSatuanBesar;
     private javax.swing.JComboBox<String> cmbSatuanKecil;
     private javax.swing.JButton jButton1;
-    private javax.swing.JComboBox<String> jComboBox2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;

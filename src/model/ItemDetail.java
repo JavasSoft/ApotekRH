@@ -4,6 +4,8 @@ public class ItemDetail {
     private int IDDetail;
     private int IDItem;
     private String Satuan;
+    private  String SatuanBesar;
+    private float Jumlah;
     private int Konversi;
     private double HargaJual;
     private double LabaPersen;
@@ -13,6 +15,12 @@ public class ItemDetail {
 
     public int getIDItem() { return IDItem; }
     public void setIDItem(int IDItem) { this.IDItem = IDItem; }
+    
+        public String getSatuanBesar() { return SatuanBesar; }
+    public void setSatuanBesar(String SatuanBesar) { this.SatuanBesar = SatuanBesar; }
+    
+        public float getJumlah() { return Jumlah; }
+    public void setJumlah(float Jumlah) { this.Jumlah = Jumlah; }
 
     public String getSatuan() { return Satuan; }
     public void setSatuan(String Satuan) { this.Satuan = Satuan; }
