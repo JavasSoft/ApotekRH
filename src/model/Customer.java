@@ -9,23 +9,26 @@ package model;
  * @author Epic
  */
 public class Customer {    
-    private int idCus;          // IDCus: Primary Key, Auto Increment
+    private int IDCustomer;          // IDDokter: Primary Key, Auto Increment
     private String kode;        // Kode: Kode usaha, tipe varchar(50)
-    private String namaUsaha;   // NamaUsaha: Nama usaha, tipe varchar(50)
-    private int tempo;          // Tempo: Jangka waktu tempo (integer)
-    private String nama;        // Nama: Nama orang yang terkait, tipe varchar(50)
-    private String alamat;      // Alamat: Alamat lengkap, tipe varchar(100)
-    private String telephone;   // Telephone: No telepon, tipe varchar(50)
-    private String kota;        // Kota: Kota usaha, tipe varchar(50)
-    private String isAktif;     // IsAktif: Status aktif (Ya/Tidak), tipe enum
+    private String Nama;   // NamaUsaha: Nama usaha, tipe varchar(50)
+    // Tempo: Jangka waktu tempo (integer)
+    private String Email;        // Nama: Nama orang yang terkait, tipe varchar(50)
+    private String Alamat;      // Alamat: Alamat lengkap, tipe varchar(100)
+    private String Telephone;   // Telephone: No telepon, tipe varchar(50)
+    private String Kota;        // Kota: Kota usaha, tipe varchar(50)
+    private String Bank;        // Kota: Kota usaha, tipe varchar(50)
+    private String NomorRekening;        // Kota: Kota usaha, tipe varchar(50)
+    private String NamaRekening;        // Kota: Kota usaha, tipe varchar(50)
+    private int Aktif;     // IsAktif: Status aktif (Ya/Tidak), tipe enum
 
     // Getters and setters
-    public int getIdCus() {
-        return idCus;
+    public int getIDCustomer() {
+        return IDCustomer;
     }
 
-    public void setIdCus(int idCus) {
-        this.idCus = idCus;
+    public void setIDCustomer(int IDCustomer) {
+        this.IDCustomer = IDCustomer;
     }
 
     public String getKode() {
@@ -37,59 +40,78 @@ public class Customer {
     }
 
 
-    public String getNamaUsaha() {
-        return namaUsaha;
+    public String getEmail() {
+        return Email;
     }
 
-    public void setNamaUsaha(String namaUsaha) {
-        this.namaUsaha = namaUsaha;
+    public void setEmail(String Email) {
+        this.Email = Email;
     }
-
-    public int getTempo() {
-        return tempo;
-    }
-
-    public void setTempo(int tempo) {
-        this.tempo = tempo;
-    }
-
+    
     public String getNama() {
-        return nama;
+        return Nama;
     }
 
-    public void setNama(String nama) {
-        this.nama = nama;
+    public void setNama(String Nama) {
+        this.Nama = Nama;
     }
 
     public String getAlamat() {
-        return alamat;
+        return Alamat;
     }
 
-    public void setAlamat(String alamat) {
-        this.alamat = alamat;
+    public void setAlamat(String Alamat) {
+        this.Alamat = Alamat;
     }
 
     public String getTelephone() {
-        return telephone;
+        return Telephone;
     }
 
-    public void setTelephone(String telephone) {
-        this.telephone = telephone;
+    public void setTelephone(String Telephone) {
+        this.Telephone = Telephone;
     }
 
     public String getKota() {
-        return kota;
+        return Kota;
     }
 
-    public void setKota(String kota) {
-        this.kota = kota;
+    public void setKota(String Kota) {
+        this.Kota = Kota;
+    }
+    
+    public String getBank() {
+        return Bank;
     }
 
-    public String getIsAktif() {
-        return isAktif;
+    public void setBank(String Bank) {
+        this.Bank = Bank;
+    }
+    
+       public String getNomorRekening() {
+        return NomorRekening;
     }
 
-    public void setIsAktif(String isAktif) {
-        this.isAktif = isAktif;
+    public void setNomorRekening(String NomorRekening) {
+        this.NomorRekening = NomorRekening;
     }
+    
+        public String getNamaRekening() {
+        return NamaRekening;
+    }
+
+    public void setNamaRekening(String NamaRekening) {
+        this.NamaRekening = NamaRekening;
+    }
+
+
+
+public int getAktif() {
+    return Aktif;
+}
+
+public void setAktif(int Aktif) {
+    this.Aktif = Aktif;
+}
+
 }

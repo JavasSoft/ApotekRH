@@ -88,6 +88,7 @@ public class frmMain extends javax.swing.JFrame {
         jMenuItem17 = new javax.swing.JMenuItem();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("APOTEK RH FARMA");
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 

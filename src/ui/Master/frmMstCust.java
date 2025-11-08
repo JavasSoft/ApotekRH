@@ -3,27 +3,103 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package ui.Master;
+import java.sql.Statement;
+import dao.CustomerDAO;
 import dao.Koneksi;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
+import model.Customer;
+import model.User;
 /**
  *
  * @author Admin
  */
 public class frmMstCust extends javax.swing.JFrame {
+    
+    private CustomerDAO customerDAO;
+    private Connection conn;
+    private Statement stat;
+    private ResultSet rs;
+    private String sql;
+    private User user;
+   // private List<Dokter> dokterList;
+    private List<Customer> customerList = new ArrayList<>();
+
+    private int currentRecordIndex;
+    private int totalInputs;
 
     /**
      * Creates new form ParentTrans
      */
+    
     public frmMstCust() {
         initComponents();
+        initializeDatabase();
+        customerDAO = new CustomerDAO(conn);
         jToolBar1.setFloatable(false);
         jToolBar2.setFloatable(false);
+        btnALL();
         awal();
         FrmProjec();
+        FormShow();
+    }
+private void IDotomatis() {
+    try {
+        // Ambil kode terakhir dari tabel mdokter berdasarkan prefix "DR"
+        String lastCode = customerDAO.getLastKode("CS"); // kirim prefix ke DAO
+        String newCode;
+
+        if (lastCode != null && lastCode.startsWith("CS")) {
+            // Ambil angka di belakang "DR"
+            int number = Integer.parseInt(lastCode.substring(2));
+            number++; // tambah 1
+            newCode = String.format("CS%03d", number); // hasil: DR001, DR002, dst
+        } else {
+            // Jika belum ada data sama sekali
+            newCode = "CS001";
+        }
+
+        jtKode.setText(newCode);
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "Terjadi kesalahan: " + e.getMessage());
+    }
+}
+
+
+    private void FormShow(){
+         loadDataFromDatabase();
+         loadCurrentCustomer(); 
+    }
+      
+    private void initializeDatabase() {
+                try {
+            conn = Koneksi.getConnection();
+            if (conn != null) {
+                stat = conn.createStatement();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to establish connection to the database.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error initializing database connection: " + e.getMessage());
+        }
+    }
+    
+    private void btnALL() {
+        btnSimpan.addActionListener(evt -> simpan());
+         btnExit.addActionListener(evr -> dispose());
+         btnTambah.addActionListener(evt -> tambah());
+         btnUbah.addActionListener(evt -> ubah());
+         btnAwal.addActionListener(evt -> data_awal());
+         btnPrevious.addActionListener(evt -> previous());
+         btnNext.addActionListener(evt -> next());
+         btnAkhir.addActionListener(evt -> data_terakhir());
+        
     }
     
     private void FrmProjec(){
@@ -48,8 +124,23 @@ public class frmMstCust extends javax.swing.JFrame {
         btnSimpan.setEnabled(false);
         btnCancel.setEnabled(false);
         btnExit.setEnabled(false);
+        btnTambah.setEnabled(true);
+        btnUbah.setEnabled(true);
+        btnHapus.setEnabled(true);
         navaktif();
+        //  customerDAO = new CustomerDAO(conn);
+        customerList = customerDAO.getAllCustomer(); // Ambil semua periode
+        totalInputs = customerDAO.countCustomer();
+
+        if (totalInputs > 0) {
+            currentRecordIndex = totalInputs - 1; // Set ke indeks terakhir
+            loadCurrentCustomer(); // Muat periode terakhir
+            updateRecordLabel(); // Perbarui label dengan informasi record
+        }
+        navaktif();
+        data_terakhir();
     }
+    
     private void tambah(){
         jLabel1.setText("[Tambah]");
         btnUbah.setEnabled(false);
@@ -57,9 +148,24 @@ public class frmMstCust extends javax.swing.JFrame {
         btnSimpan.setEnabled(true);
         btnCancel.setEnabled(true);
         btnExit.setEnabled(true);
-        navnonaktif();
-        
+        Kosong();
+        navnonaktif();  
     }
+    private void Kosong(){
+        
+    txtNama.requestFocus();
+    jtKode.setText("");
+    txtNama.setText("");
+    txtEmail.setText("");
+    txtAlamat.setText("");
+    txtTelephone.setText("");
+    txtKota.setText("");
+    txtBank.setText("");
+    txtNomorRekening.setText("");
+    txtNamaRekening.setText("");
+    cmbAktif.setSelected(true);
+    }
+    
     private void ubah(){
         jLabel1.setText("[Ubah]");
         btnTambah.setEnabled(false);
@@ -69,6 +175,173 @@ public class frmMstCust extends javax.swing.JFrame {
         btnExit.setEnabled(true);
         navaktif();
     }
+    
+    // ===========================================
+// ============ CRUD DOKTER ==================
+// ===========================================
+private void simpan() {
+    String action = jLabel1.getText(); // Mendapatkan teks dari JLabel
+
+    if (action.equals("[Tambah]")) {
+        saveCustomer();
+    } else if (action.equals("[Ubah]")) {
+        updateCustomer();
+    } else {
+        JOptionPane.showMessageDialog(null, "Aksi tidak dikenali: " + action);
+    }
+
+    awal(); // Reset form / state awal
+}
+
+// ===========================================
+// ============ SIMPAN DOKTER =================
+// ===========================================
+private void saveCustomer() {
+    IDotomatis();
+    String kode = jtKode.getText();
+    String nama = txtNama.getText();
+    String email = txtEmail.getText();
+    String alamat = txtAlamat.getText();
+    String telephone = txtTelephone.getText();
+    String kota = txtKota.getText();
+    String bank = txtBank.getText();
+    String nomorRekening = txtNomorRekening.getText();
+    String namaRekening = txtNamaRekening.getText();
+    int aktif = cmbAktif.isSelected() ? 1 : 0; // <-- Diganti ke 1 atau 0
+
+    // Validasi input
+    if (kode.isEmpty() || nama.isEmpty() 
+        //|| email.isEmpty() || alamat.isEmpty() ||
+       // telephone.isEmpty() || kota.isEmpty() || bank.isEmpty() || 
+        //nomorRekening.isEmpty() || namaRekening.isEmpty()
+                ) {
+        JOptionPane.showMessageDialog(this, "Data tidak lengkap. Harap lengkapi semua field.");
+        //return;
+    }
+
+    Customer customer = new Customer();
+    customer.setKode(kode);
+    customer.setNama(nama);
+    customer.setEmail(email);
+    customer.setAlamat(alamat);
+    customer.setTelephone(telephone);
+    customer.setKota(kota);
+    customer.setBank(bank);
+    customer.setNomorRekening(nomorRekening);
+    customer.setNamaRekening(namaRekening);
+    customer.setAktif(aktif);
+
+    if (customerDAO.insertCustomer(customer)) {
+        JOptionPane.showMessageDialog(this, "Data Customer berhasil disimpan.");
+    } else {
+        JOptionPane.showMessageDialog(this, "Gagal menyimpan data Customer.");
+    }
+}
+
+// ===========================================
+// ============ UPDATE DOKTER =================
+// ===========================================
+private void updateCustomer() {
+    int id = Integer.parseInt(txtIDCustomer.getText());
+    String kode = jtKode.getText();
+    String nama = txtNama.getText();
+    String email = txtEmail.getText();
+    String alamat = txtAlamat.getText();
+    String telephone = txtTelephone.getText();
+    String kota = txtKota.getText();
+    String bank = txtBank.getText();
+    String nomorRekening = txtNomorRekening.getText();
+    String namaRekening = txtNamaRekening.getText();
+    int aktif = cmbAktif.isSelected() ? 1 : 0; // <-- Diganti ke 1 atau 0
+
+    if (kode.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Kode Customer harus diisi untuk melakukan update.");
+        return;
+    }
+
+    Customer customer = new Customer();
+    customer.setKode(kode);
+    customer.setNama(nama);
+    customer.setEmail(email);
+    customer.setAlamat(alamat);
+    customer.setTelephone(telephone);
+    customer.setKota(kota);
+    customer.setBank(bank);
+    customer.setNomorRekening(nomorRekening);
+    customer.setNamaRekening(namaRekening);
+    customer.setAktif(aktif);
+
+      if (customerDAO.updateCustomer(id, customer)){
+        JOptionPane.showMessageDialog(this, "Data Customer berhasil diperbarui.");
+    } else {
+        JOptionPane.showMessageDialog(this, "Gagal memperbarui data Custpmer.");
+    }
+}
+private void loadDataFromDatabase() {
+    customerList = customerDAO.getAllCustomer();
+    if (customerList == null) {
+        customerList = new ArrayList<>();
+    }
+
+    if (customerList.isEmpty()) {
+        JOptionPane.showMessageDialog(null, "Data customer belum ada di database.");
+    } else {
+        currentRecordIndex = 0;  // <<< ini penting
+    }
+}
+
+private void loadCurrentCustomer() {
+    if (currentRecordIndex >= 0 && currentRecordIndex < customerList.size()) {
+        Customer customer = customerList.get(currentRecordIndex);
+        
+        // Mengatur IDPeriode sebagai string
+        txtIDCustomer.setText(String.valueOf(customer.getIDCustomer())); 
+        
+        // Tampilkan nilai-nilai ini di komponen UI
+        jtKode.setText(customer.getKode());
+        txtNama.setText(customer.getNama());
+        txtEmail.setText(customer.getEmail());
+     txtAlamat.setText(customer.getAlamat());
+      txtTelephone.setText(customer.getTelephone());
+    txtKota.setText(customer.getKota());
+    txtBank.setText(customer.getBank());
+    txtNomorRekening.setText(customer.getNomorRekening());
+     txtNamaRekening.setText(customer.getNamaRekening());
+      cmbAktif.setSelected(customer.getAktif() == 1); // <-- Diganti ke 1 atau 0
+        
+        
+        updateRecordLabel();
+    } else {
+        JOptionPane.showMessageDialog(null, "Indeks catatan tidak valid.");
+    }
+}
+    private void updateRecordLabel() {
+    recordLabel.setText("Record: " + (currentRecordIndex + 1) + " dari " + totalInputs);
+}
+    private void data_awal() {
+    currentRecordIndex = 0; // Data pertama
+    loadCurrentCustomer();
+}
+    private void data_terakhir() {
+    currentRecordIndex = totalInputs - 1; // Data terakhir
+    loadCurrentCustomer();
+}
+    private void next() {
+    if (currentRecordIndex < totalInputs - 1) { // Pastikan tidak melebihi jumlah total input
+        currentRecordIndex++;
+        loadCurrentCustomer();
+    } else {
+        JOptionPane.showMessageDialog(null, "Anda sudah berada pada record terakhir.");
+    }
+}
+    private void previous() {
+    if (currentRecordIndex > 0) { // Pastikan tidak kurang dari record pertama
+        currentRecordIndex--;
+        loadCurrentCustomer();
+    } else {
+        JOptionPane.showMessageDialog(null, "Anda sudah berada pada record pertama.");
+    }
+}
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -78,6 +351,7 @@ public class frmMstCust extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        txtIDCustomer = new javax.swing.JTextField();
         jPanel5 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
@@ -93,7 +367,7 @@ public class frmMstCust extends javax.swing.JFrame {
         btnTambah = new javax.swing.JButton();
         btnUbah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
-        jLabel5 = new javax.swing.JLabel();
+        recordLabel = new javax.swing.JLabel();
         jPanel4 = new javax.swing.JPanel();
         btnSimpan = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
@@ -101,12 +375,12 @@ public class frmMstCust extends javax.swing.JFrame {
         cmbAktif = new javax.swing.JCheckBox();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        jtKode = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
-        jTextField2 = new javax.swing.JTextField();
+        txtNama = new javax.swing.JTextField();
         jTabbedPane1 = new javax.swing.JTabbedPane();
         jPanel6 = new javax.swing.JPanel();
-        txtNama = new javax.swing.JTextField();
+        txtEmail = new javax.swing.JTextField();
         lblKode3 = new javax.swing.JLabel();
         lblKode4 = new javax.swing.JLabel();
         txtAlamat = new javax.swing.JTextField();
@@ -116,17 +390,19 @@ public class frmMstCust extends javax.swing.JFrame {
         txtKota = new javax.swing.JTextField();
         jPanel7 = new javax.swing.JPanel();
         lblKode7 = new javax.swing.JLabel();
-        txtNama1 = new javax.swing.JTextField();
+        txtBank = new javax.swing.JTextField();
         lblKode8 = new javax.swing.JLabel();
-        txtNama2 = new javax.swing.JTextField();
+        txtNomorRekening = new javax.swing.JTextField();
         lblKode9 = new javax.swing.JLabel();
-        txtNama3 = new javax.swing.JTextField();
+        txtNamaRekening = new javax.swing.JTextField();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
 
+        txtIDCustomer.setText("jTextField1");
+
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Master Pelanggan");
+        setTitle("Master Dokter");
         setBackground(new java.awt.Color(255, 255, 255));
 
         jPanel5.setBackground(new java.awt.Color(255, 255, 255));
@@ -248,9 +524,9 @@ public class frmMstCust extends javax.swing.JFrame {
         btnHapus.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(btnHapus);
 
-        jLabel5.setBackground(new java.awt.Color(0, 0, 0));
-        jLabel5.setForeground(new java.awt.Color(0, 102, 0));
-        jLabel5.setText("1 of 9999");
+        recordLabel.setBackground(new java.awt.Color(0, 0, 0));
+        recordLabel.setForeground(new java.awt.Color(0, 102, 0));
+        recordLabel.setText("1 of 9999");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -260,7 +536,7 @@ public class frmMstCust extends javax.swing.JFrame {
                 .addGap(37, 37, 37)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jLabel5)
+                .addComponent(recordLabel)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
@@ -274,7 +550,7 @@ public class frmMstCust extends javax.swing.JFrame {
                         .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(recordLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addContainerGap())))
         );
 
@@ -318,11 +594,11 @@ public class frmMstCust extends javax.swing.JFrame {
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel3.setText("Nama :");
 
-        jTextField1.setMinimumSize(new java.awt.Dimension(33, 22));
+        jtKode.setMinimumSize(new java.awt.Dimension(33, 22));
 
         jButton1.setText("jButton1");
 
-        jTextField2.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtNama.setMinimumSize(new java.awt.Dimension(33, 22));
 
         jTabbedPane1.addAncestorListener(new javax.swing.event.AncestorListener() {
             public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
@@ -334,15 +610,15 @@ public class frmMstCust extends javax.swing.JFrame {
             }
         });
 
-        txtNama.setMaximumSize(new java.awt.Dimension(64, 23));
-        txtNama.setMinimumSize(new java.awt.Dimension(64, 23));
-        txtNama.setPreferredSize(new java.awt.Dimension(64, 23));
-        txtNama.addFocusListener(new java.awt.event.FocusAdapter() {
+        txtEmail.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtEmail.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtEmail.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtEmail.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                txtNamaFocusGained(evt);
+                txtEmailFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                txtNamaFocusLost(evt);
+                txtEmailFocusLost(evt);
             }
         });
 
@@ -416,7 +692,7 @@ public class frmMstCust extends javax.swing.JFrame {
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addComponent(lblKode4, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -438,7 +714,7 @@ public class frmMstCust extends javax.swing.JFrame {
                 .addGap(31, 31, 31)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtEmail, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblKode4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -462,15 +738,15 @@ public class frmMstCust extends javax.swing.JFrame {
         lblKode7.setMinimumSize(new java.awt.Dimension(33, 22));
         lblKode7.setPreferredSize(new java.awt.Dimension(33, 22));
 
-        txtNama1.setMaximumSize(new java.awt.Dimension(64, 23));
-        txtNama1.setMinimumSize(new java.awt.Dimension(64, 23));
-        txtNama1.setPreferredSize(new java.awt.Dimension(64, 23));
-        txtNama1.addFocusListener(new java.awt.event.FocusAdapter() {
+        txtBank.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtBank.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtBank.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtBank.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                txtNama1FocusGained(evt);
+                txtBankFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                txtNama1FocusLost(evt);
+                txtBankFocusLost(evt);
             }
         });
 
@@ -480,15 +756,15 @@ public class frmMstCust extends javax.swing.JFrame {
         lblKode8.setMinimumSize(new java.awt.Dimension(33, 22));
         lblKode8.setPreferredSize(new java.awt.Dimension(33, 22));
 
-        txtNama2.setMaximumSize(new java.awt.Dimension(64, 23));
-        txtNama2.setMinimumSize(new java.awt.Dimension(64, 23));
-        txtNama2.setPreferredSize(new java.awt.Dimension(64, 23));
-        txtNama2.addFocusListener(new java.awt.event.FocusAdapter() {
+        txtNomorRekening.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtNomorRekening.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtNomorRekening.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtNomorRekening.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                txtNama2FocusGained(evt);
+                txtNomorRekeningFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                txtNama2FocusLost(evt);
+                txtNomorRekeningFocusLost(evt);
             }
         });
 
@@ -498,15 +774,15 @@ public class frmMstCust extends javax.swing.JFrame {
         lblKode9.setMinimumSize(new java.awt.Dimension(33, 22));
         lblKode9.setPreferredSize(new java.awt.Dimension(33, 22));
 
-        txtNama3.setMaximumSize(new java.awt.Dimension(64, 23));
-        txtNama3.setMinimumSize(new java.awt.Dimension(64, 23));
-        txtNama3.setPreferredSize(new java.awt.Dimension(64, 23));
-        txtNama3.addFocusListener(new java.awt.event.FocusAdapter() {
+        txtNamaRekening.setMaximumSize(new java.awt.Dimension(64, 23));
+        txtNamaRekening.setMinimumSize(new java.awt.Dimension(64, 23));
+        txtNamaRekening.setPreferredSize(new java.awt.Dimension(64, 23));
+        txtNamaRekening.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                txtNama3FocusGained(evt);
+                txtNamaRekeningFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                txtNama3FocusLost(evt);
+                txtNamaRekeningFocusLost(evt);
             }
         });
 
@@ -520,15 +796,15 @@ public class frmMstCust extends javax.swing.JFrame {
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(lblKode7, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtNama1, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtBank, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(lblKode8, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtNama2, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtNomorRekening, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel7Layout.createSequentialGroup()
                         .addComponent(lblKode9, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtNama3, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(txtNamaRekening, javax.swing.GroupLayout.PREFERRED_SIZE, 271, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(59, Short.MAX_VALUE))
         );
         jPanel7Layout.setVerticalGroup(
@@ -537,15 +813,15 @@ public class frmMstCust extends javax.swing.JFrame {
                 .addGap(22, 22, 22)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblKode7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtNama1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtBank, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblKode8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtNama2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtNomorRekening, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(lblKode9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtNama3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtNamaRekening, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(120, Short.MAX_VALUE))
         );
 
@@ -564,13 +840,13 @@ public class frmMstCust extends javax.swing.JFrame {
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 151, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(1, 1, 1)
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 291, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
         jPanel5Layout.setVerticalGroup(
@@ -579,13 +855,13 @@ public class frmMstCust extends javax.swing.JFrame {
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTabbedPane1)
                 .addGap(18, 18, 18)
@@ -630,13 +906,13 @@ public class frmMstCust extends javax.swing.JFrame {
         ubah();
     }//GEN-LAST:event_btnUbahActionPerformed
 
-    private void txtNamaFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNamaFocusGained
+    private void txtEmailFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtEmailFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNamaFocusGained
+    }//GEN-LAST:event_txtEmailFocusGained
 
-    private void txtNamaFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNamaFocusLost
+    private void txtEmailFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtEmailFocusLost
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNamaFocusLost
+    }//GEN-LAST:event_txtEmailFocusLost
 
     private void txtAlamatFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtAlamatFocusGained
         // TODO add your handling code here:
@@ -666,29 +942,29 @@ public class frmMstCust extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jTabbedPane1AncestorRemoved
 
-    private void txtNama1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama1FocusGained
+    private void txtBankFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtBankFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama1FocusGained
+    }//GEN-LAST:event_txtBankFocusGained
 
-    private void txtNama1FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama1FocusLost
+    private void txtBankFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtBankFocusLost
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama1FocusLost
+    }//GEN-LAST:event_txtBankFocusLost
 
-    private void txtNama2FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama2FocusGained
+    private void txtNomorRekeningFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNomorRekeningFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama2FocusGained
+    }//GEN-LAST:event_txtNomorRekeningFocusGained
 
-    private void txtNama2FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama2FocusLost
+    private void txtNomorRekeningFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNomorRekeningFocusLost
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama2FocusLost
+    }//GEN-LAST:event_txtNomorRekeningFocusLost
 
-    private void txtNama3FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama3FocusGained
+    private void txtNamaRekeningFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNamaRekeningFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama3FocusGained
+    }//GEN-LAST:event_txtNamaRekeningFocusGained
 
-    private void txtNama3FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNama3FocusLost
+    private void txtNamaRekeningFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNamaRekeningFocusLost
         // TODO add your handling code here:
-    }//GEN-LAST:event_txtNama3FocusLost
+    }//GEN-LAST:event_txtNamaRekeningFocusLost
 
     /**
      * @param args the command line arguments
@@ -749,7 +1025,6 @@ public class frmMstCust extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
@@ -761,10 +1036,9 @@ public class frmMstCust extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JTextField jtKode;
     private javax.swing.JLabel lblKode3;
     private javax.swing.JLabel lblKode4;
     private javax.swing.JLabel lblKode5;
@@ -772,12 +1046,15 @@ public class frmMstCust extends javax.swing.JFrame {
     private javax.swing.JLabel lblKode7;
     private javax.swing.JLabel lblKode8;
     private javax.swing.JLabel lblKode9;
+    private javax.swing.JLabel recordLabel;
     private javax.swing.JTextField txtAlamat;
+    private javax.swing.JTextField txtBank;
+    private javax.swing.JTextField txtEmail;
+    private javax.swing.JTextField txtIDCustomer;
     private javax.swing.JTextField txtKota;
     private javax.swing.JTextField txtNama;
-    private javax.swing.JTextField txtNama1;
-    private javax.swing.JTextField txtNama2;
-    private javax.swing.JTextField txtNama3;
+    private javax.swing.JTextField txtNamaRekening;
+    private javax.swing.JTextField txtNomorRekening;
     private javax.swing.JTextField txtTelephone;
     // End of variables declaration//GEN-END:variables
 }
