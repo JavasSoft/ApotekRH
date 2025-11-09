@@ -645,7 +645,7 @@ private void loadCurrentItem() {
             }
         });
 
-        cmbSatuanKecil.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Box", "Dus", "Pack", "Vial", "Ampul", "Pouch", "Tubes", "Botol", "Kaleng", "Strip", "Pouch", " " }));
+        cmbSatuanKecil.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Box", "Dus", "Pack", "Vial", "Ampul", "Pouch", "Tubes", "Botol", "Kaleng", "Strip", "Pouch", "" }));
 
         txtKonversi.setMinimumSize(new java.awt.Dimension(33, 22));
 

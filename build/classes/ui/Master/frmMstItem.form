@@ -562,7 +562,7 @@
                         <StringItem index="8" value="Kaleng"/>
                         <StringItem index="9" value="Strip"/>
                         <StringItem index="10" value="Pouch"/>
-                        <StringItem index="11" value=" "/>
+                        <StringItem index="11" value=""/>
                       </StringArray>
                     </Property>
                   </Properties>
