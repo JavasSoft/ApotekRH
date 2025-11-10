@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.table.DefaultTableCellRenderer;
 import ui.Master.frmMstItem;
+import ui.Transaksi.frmTransPenjualanTunai;
 //import ui.Transaksi.frmTransPo;
 
 /**
@@ -25,6 +26,8 @@ public class BrowseItem extends javax.swing.JDialog {
     private ItemDAO itemDAO;
     private DefaultTableModel tableModel;
     private List<Item> itemList;
+    private List<Item> currentItemList = new ArrayList<>(); // data yang sedang ditampilkan
+    private int displayLimit = 10;
 
     /**
      * Creates new form BrowseBarangDialog
@@ -35,83 +38,167 @@ public class BrowseItem extends javax.swing.JDialog {
         this.itemDAO = new ItemDAO(conn);
         setupTable();
         loadData();
+        setupTableClickListener();
+        setupLimitListener();
         setLocationRelativeTo(null);
         setupTableClickListener();
         jTable1.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
 
-   private void setupTable() {
-    String[] columnNames = {"NO", "ID", "Kode", "Nama", "Kategori", "Harga Beli", "Aktif"};
-    tableModel = new DefaultTableModel(columnNames, 0);
+  private void setupTable() {
+    String[] columnNames = {
+        "No", "IDItem", "Kode", "Nama", "Kategori",
+        "Harga Beli", "Aktif",
+        "Satuan Kecil", "Satuan Besar", "Harga Jual",
+        "Laba (%)", "Konversi"
+    };
+
+    tableModel = new DefaultTableModel(columnNames, 0) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false; // Semua kolom tidak bisa diedit langsung
+        }
+    };
     jTable1.setModel(tableModel);
 
-    // Kolom yang akan diatur khusus
-    int[] columnsWithPreferredWidth = {0, 2, 3}; // No, Kode, Nama
-    int[] columnWidths = {30, 60, 300};
-
-    // Atur kolom-kolom dengan preferensi lebar khusus
-    for (int i = 0; i < columnsWithPreferredWidth.length; i++) {
-        jTable1.getColumnModel().getColumn(columnsWithPreferredWidth[i]).setPreferredWidth(columnWidths[i]);
+    // Lebar kolom penting
+    int[] preferredWidths = {30, 0, 80, 200, 100, 80, 60, 100, 100, 100, 70, 70};
+    for (int i = 0; i < preferredWidths.length; i++) {
+        jTable1.getColumnModel().getColumn(i).setPreferredWidth(preferredWidths[i]);
     }
 
-    // Atur kolom yang harus disembunyikan (MinWidth, MaxWidth, Width = 0)
-    //int[] columnsToHide = {1, 4, 5, 6, 7, 8, 9, 10, 11};
-//    for (int col : columnsToHide) {
-//        jTable1.getColumnModel().getColumn(col).setMinWidth(0);
-//        jTable1.getColumnModel().getColumn(col).setMaxWidth(0);
-//        jTable1.getColumnModel().getColumn(col).setWidth(0);
-//    }
-    // Set alignment untuk kolom "NO" agar nomor urut berada di tengah
+    // Sembunyikan kolom IDItem (kolom 1)
+    jTable1.getColumnModel().getColumn(1).setMinWidth(0);
+    jTable1.getColumnModel().getColumn(1).setMaxWidth(0);
+    jTable1.getColumnModel().getColumn(1).setWidth(0);
+
+    // Rata tengah kolom nomor
     DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
     centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
     jTable1.getColumnModel().getColumn(0).setCellRenderer(centerRenderer);
-    
-    
-    // Opsional: Isi nomor urut secara otomatis (jika ingin nomor urut ditampilkan di kolom pertama)
-//    jTable1.getModel().addTableModelListener(e -> {
-//        for (int row = 0; row < jTable1.getRowCount(); row++) {
-//            jTable1.setValueAt(row + 1, row, 0); // Mengisi nomor urut pada kolom pertama
-//        }
-//    });
 }
 
-    private void setupTableClickListener() {
-        jTable1.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() >= 1) { // Deteksi klik
-                   // selectRowAndClose();
-                }
+
+private void setupTableClickListener() {
+    jTable1.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            // Deteksi klik 2 kali (double click)
+            if (e.getClickCount() == 2 && jTable1.getSelectedRow() != -1) {
+                selectRowAndClose(); // Panggil fungsi saat double-click
             }
-        });
-    }
+        }
+    });
+}
+
 
     private void loadData() {
         itemList = itemDAO.getAllItems();
         updateTable(itemList);
+        applyDisplayLimit();
+    }
+    
+ private void applyDisplayLimit() {
+    // Ambil limit dari combo box
+    displayLimit = Integer.parseInt(cmbLimit.getSelectedItem().toString());
+
+    // Potong list sesuai limit
+    if (itemList.size() > displayLimit) {
+        currentItemList = itemList.subList(0, displayLimit);
+    } else {
+        currentItemList = itemList;
     }
 
-private void updateTable(List<Item> itemList) {
-    tableModel.setRowCount(0); // Reset table model
-    int noUrut = 1;
-    for (Item item : itemList) {
-        // Ambil kategori berdasarkan ID kategori
-       // Kategori kategori = kategoriDAO.getKategoriById(barang.getIDKategori());
-//        String kodeKategori = (kategori != null) ? kategori.getKode() : "Tidak Ditemukan"; // Kode kategori
-//        String namaKategori = (kategori != null) ? kategori.getNama() : "Tidak Ditemukan"; // Nama kategori
+    updateTable(currentItemList); // refresh tampilan tabel
+}
+ 
+ private void setupLimitListener() {
+    cmbLimit.addActionListener(e -> applyDisplayLimit());
+}
 
-        Object[] row = {
-            noUrut++, // Nomor urut
-            item.getIDItem(),
-            item.getKode(),
-            item.getNama(),
-            item.getKategori(),
-            item.getHargaBeli(),
-            item.getAktif()
+
+
+private void updateTable(List<Item> itemList) {
+    tableModel.setRowCount(0); // Hapus semua isi tabel dulu
+    int noUrut = 1;
+
+    for (Item item : itemList) {
+        // Ambil detail pertama (karena 1 item bisa punya banyak detail)
+        ItemDetail detail = null;
+        if (item.getDetails() != null && !item.getDetails().isEmpty()) {
+            detail = item.getDetails().get(0);
+        }
+
+        Object[] row = new Object[]{
+            noUrut++,                        // No urut
+            item.getIDItem(),                // IDItem
+            item.getKode(),                  // Kode
+            item.getNama(),                  // Nama
+            item.getKategori(),              // Kategori
+            item.getHargaBeli(),             // Harga Beli
+            (item.getAktif() == 1) ? "Aktif" : "Tidak Aktif",  // Status aktif
+            (detail != null) ? detail.getSatuan() : "",         // Satuan kecil
+            (detail != null) ? detail.getSatuanBesar() : "",    // Satuan besar
+            (detail != null) ? detail.getHargaJual() : 0,       // Harga jual
+            (detail != null) ? detail.getLabaPersen() : 0,      // Laba %
+            (detail != null) ? detail.getKonversi() : 0         // Konversi
         };
+
         tableModel.addRow(row);
     }
 }
+
+private void selectRowAndClose() {
+    int selectedRow = jTable1.getSelectedRow();
+    if (selectedRow >= 0) {
+        try {
+            // Ambil semua data sesuai urutan kolom
+            int selectedID = Integer.parseInt(jTable1.getValueAt(selectedRow, 1).toString()); // IDItem
+            String selectedKode = jTable1.getValueAt(selectedRow, 2).toString();
+            String selectedNama = jTable1.getValueAt(selectedRow, 3).toString();
+            String selectedKategori = jTable1.getValueAt(selectedRow, 4).toString();
+            double selectedHargaBeli = Double.parseDouble(jTable1.getValueAt(selectedRow, 5).toString());
+            boolean isAktif = "Aktif".equalsIgnoreCase(jTable1.getValueAt(selectedRow, 6).toString());
+
+            String satuanKecil = jTable1.getValueAt(selectedRow, 7).toString();
+            String satuanBesar = jTable1.getValueAt(selectedRow, 8).toString();
+            double hargaJual = Double.parseDouble(jTable1.getValueAt(selectedRow, 9).toString());
+            double labaPersen = Double.parseDouble(jTable1.getValueAt(selectedRow, 10).toString());
+            double konversi = Double.parseDouble(jTable1.getValueAt(selectedRow, 11).toString());
+
+            // Kirim ke form utama
+            if (getParent() instanceof frmMstItem) {
+                frmMstItem parentForm = (frmMstItem) getParent();
+                parentForm.setItemData(
+                    selectedID, selectedKode, selectedNama, selectedKategori,
+                    selectedHargaBeli, isAktif,
+                    satuanKecil, satuanBesar, hargaJual, labaPersen, konversi
+                );
+            } 
+            else if (getParent() instanceof frmTransPenjualanTunai) {
+                frmTransPenjualanTunai parentForm = (frmTransPenjualanTunai) getParent();
+                parentForm.setItemData(
+                    selectedID, selectedKode, selectedNama, selectedKategori,
+                    selectedHargaBeli, isAktif,
+                    satuanKecil, satuanBesar, hargaJual, labaPersen, konversi
+                );
+            }
+
+            dispose(); // Tutup dialog setelah memilih
+
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Terjadi kesalahan membaca data item: " + ex.getMessage(),
+                    "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } else {
+        JOptionPane.showMessageDialog(this,
+                "Silakan pilih item terlebih dahulu.",
+                "Tidak ada pilihan", JOptionPane.WARNING_MESSAGE);
+    }
+}
+
+
 //private void selectRowAndClose() {
 //    int selectedRow = jTable1.getSelectedRow();
 //    if (selectedRow >= 0) {
@@ -185,6 +272,7 @@ private void updateTable(List<Item> itemList) {
         jTable1 = new javax.swing.JTable();
         jTextField1 = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
+        cmbLimit = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Browse Kategori");
@@ -213,6 +301,8 @@ private void updateTable(List<Item> itemList) {
             }
         });
 
+        cmbLimit.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "10", "50", "100" }));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -222,6 +312,8 @@ private void updateTable(List<Item> itemList) {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(cmbLimit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 133, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jButton1))
@@ -234,10 +326,12 @@ private void updateTable(List<Item> itemList) {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jButton1)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(cmbLimit, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(10, 10, 10)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 187, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(103, 103, 103))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(108, 108, 108))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -266,6 +360,7 @@ private void updateTable(List<Item> itemList) {
 //    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox<String> cmbLimit;
     private javax.swing.JButton jButton1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;

@@ -326,6 +326,37 @@ private void loadDataFromDatabase() {
     }
 }
 
+public void setItemData(int idItem, String kode, String nama, String kategori,
+                        double hargaBeli, boolean aktif,
+                        String satuanKecil, String satuanBesar,
+                        double hargaJual, double labaPersen, double konversi) {
+
+    // === Set data master ===
+    txtIDItem.setText(String.valueOf(idItem));
+    jtKode.setText(kode);
+    txtNama.setText(nama);
+    cmbKategori.setSelectedItem(kategori);
+    txtHargaBeli.setText(String.valueOf(hargaBeli));
+    cmbAktif.setSelected(aktif);
+
+    // === Set data detail ===
+    cmbSatuanKecil.setSelectedItem(satuanKecil);
+    cmbSatuanBesar.setSelectedItem(satuanBesar);
+    txtHargaJual.setText(String.valueOf(hargaJual));
+    txtLabaPersen.setText(String.valueOf(labaPersen));
+    txtKonversi.setText(String.valueOf(konversi));
+
+    // === Update state internal (opsional) ===
+    for (int i = 0; i < itemsList.size(); i++) {
+        if (itemsList.get(i).getIDItem() == idItem) {
+            currentRecordIndex = i;
+            updateRecordLabel();
+            break;
+        }
+    }
+}
+
+
 
 private void loadCurrentItem() {
     if (currentRecordIndex >= 0 && currentRecordIndex < itemsList.size()) {
