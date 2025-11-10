@@ -4,29 +4,27 @@
  */
 package ui.Master.BrowseAll;
 
-import dao.BarangDAO;
-import dao.KategoriDAO;
+import dao.ItemDAO;
 import model.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.table.DefaultTableCellRenderer;
-import ui.Master.frmBarang;
-import ui.Master.frmKategori;
-import ui.Transaksi.frmTransPo;
+import ui.Master.frmMstItem;
+//import ui.Transaksi.frmTransPo;
 
 /**
  *
  * @author Admin
  */
 public class BrowseItem extends javax.swing.JDialog {
-    private BarangDAO barangDAO;
-    private KategoriDAO kategoriDAO;
+    private ItemDAO itemDAO;
     private DefaultTableModel tableModel;
-    private List<Barang> barangList;
+    private List<Item> itemList;
 
     /**
      * Creates new form BrowseBarangDialog
@@ -34,8 +32,7 @@ public class BrowseItem extends javax.swing.JDialog {
     public BrowseItem(java.awt.Frame parent, boolean modal, Connection conn) {
         super(parent, modal);
         initComponents();
-        this.barangDAO = new BarangDAO(conn);
-        this.kategoriDAO = new KategoriDAO(conn); // Inisialisasi KategoriDAO
+        this.itemDAO = new ItemDAO(conn);
         setupTable();
         loadData();
         setLocationRelativeTo(null);
@@ -44,8 +41,7 @@ public class BrowseItem extends javax.swing.JDialog {
     }
 
    private void setupTable() {
-    String[] columnNames = {"NO", "ID", "Kode", "Nama", "ID Kategori", "Kode Kategori", 
-                             "Nama Kategori", "Satuan", "Harga Beli", "Harga Jual", "Keterangan", "Is Aktif"};
+    String[] columnNames = {"NO", "ID", "Kode", "Nama", "Kategori", "Harga Beli", "Aktif"};
     tableModel = new DefaultTableModel(columnNames, 0);
     jTable1.setModel(tableModel);
 
@@ -59,13 +55,12 @@ public class BrowseItem extends javax.swing.JDialog {
     }
 
     // Atur kolom yang harus disembunyikan (MinWidth, MaxWidth, Width = 0)
-    int[] columnsToHide = {1, 4, 5, 6, 7, 8, 9, 10, 11};
-    for (int col : columnsToHide) {
-        jTable1.getColumnModel().getColumn(col).setMinWidth(0);
-        jTable1.getColumnModel().getColumn(col).setMaxWidth(0);
-        jTable1.getColumnModel().getColumn(col).setWidth(0);
-    }
-
+    //int[] columnsToHide = {1, 4, 5, 6, 7, 8, 9, 10, 11};
+//    for (int col : columnsToHide) {
+//        jTable1.getColumnModel().getColumn(col).setMinWidth(0);
+//        jTable1.getColumnModel().getColumn(col).setMaxWidth(0);
+//        jTable1.getColumnModel().getColumn(col).setWidth(0);
+//    }
     // Set alignment untuk kolom "NO" agar nomor urut berada di tengah
     DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
     centerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
@@ -85,96 +80,91 @@ public class BrowseItem extends javax.swing.JDialog {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() >= 1) { // Deteksi klik
-                    selectRowAndClose();
+                   // selectRowAndClose();
                 }
             }
         });
     }
 
     private void loadData() {
-        barangList = barangDAO.getAllBarang();
-        updateTable(barangList);
+        itemList = itemDAO.getAllItems();
+        updateTable(itemList);
     }
 
-private void updateTable(List<Barang> barangList) {
+private void updateTable(List<Item> itemList) {
     tableModel.setRowCount(0); // Reset table model
     int noUrut = 1;
-    for (Barang barang : barangList) {
+    for (Item item : itemList) {
         // Ambil kategori berdasarkan ID kategori
-        Kategori kategori = kategoriDAO.getKategoriById(barang.getIDKategori());
-        String kodeKategori = (kategori != null) ? kategori.getKode() : "Tidak Ditemukan"; // Kode kategori
-        String namaKategori = (kategori != null) ? kategori.getNama() : "Tidak Ditemukan"; // Nama kategori
+       // Kategori kategori = kategoriDAO.getKategoriById(barang.getIDKategori());
+//        String kodeKategori = (kategori != null) ? kategori.getKode() : "Tidak Ditemukan"; // Kode kategori
+//        String namaKategori = (kategori != null) ? kategori.getNama() : "Tidak Ditemukan"; // Nama kategori
 
         Object[] row = {
             noUrut++, // Nomor urut
-            barang.getIDBarang(),
-            barang.getKode(),
-            barang.getNama(),
-            barang.getIDKategori(), // ID Kategori
-            kodeKategori, // Kode Kategori
-            namaKategori, // Nama Kategori
-            barang.getSatuan(),
-            barang.getBeli(),
-            barang.getJual(),
-            barang.getKeterangan(),
-            barang.getIsAktif()
+            item.getIDItem(),
+            item.getKode(),
+            item.getNama(),
+            item.getKategori(),
+            item.getHargaBeli(),
+            item.getAktif()
         };
         tableModel.addRow(row);
     }
 }
-private void selectRowAndClose() {
-    int selectedRow = jTable1.getSelectedRow();
-    if (selectedRow >= 0) {
-        int selectedID = (int) jTable1.getValueAt(selectedRow, 1); // ID
-        String selectedKode = jTable1.getValueAt(selectedRow, 2).toString(); // Kode
-        String selectedNama = jTable1.getValueAt(selectedRow, 3).toString(); // Nama
-        int selectedIDKategori = (int) jTable1.getValueAt(selectedRow, 4); // Kategori
-        String selectedKodeK = jTable1.getValueAt(selectedRow, 5).toString(); // Kode Kategori
-        String selectedNamaK = jTable1.getValueAt(selectedRow, 6).toString(); // Nama Kategori
-        String selectedSatuan = jTable1.getValueAt(selectedRow, 7).toString(); // Satuan
-        double selectedBeli = (double) jTable1.getValueAt(selectedRow, 8); // Harga Beli
-        double selectedJual = (double) jTable1.getValueAt(selectedRow, 9); // Harga Jual
-        String selectedKeterangan = jTable1.getValueAt(selectedRow, 10).toString(); // Keterangan
-        boolean isAktif = "Ya".equalsIgnoreCase(jTable1.getValueAt(selectedRow, 11).toString()); // Is Aktif
-
-        // Set nilai ke komponen di form utama
-        if (getParent() instanceof frmBarang) {
-            frmBarang parentForm = (frmBarang) getParent();
-            parentForm.setBarangData(selectedID, selectedKode, 
-                    selectedNama, selectedIDKategori, selectedKodeK, 
-                    selectedNamaK, selectedSatuan, selectedBeli, 
-                    selectedJual, selectedKeterangan, isAktif);
-            
-            // Temukan index barang dalam barangList
-            int index = -1;
-            for (int i = 0; i < barangList.size(); i++) {
-                if (barangList.get(i).getIDBarang() == selectedID) {
-                    index = i;
-                    break;
-                }
-            }
-            
-            if (index != -1) {
-                // Kirim index ke frmBarang
-                parentForm.setCurrentRecordIndex(index);
-            }
-        } else if  (getParent() instanceof frmTransPo) {
-            frmTransPo parentForm = (frmTransPo) getParent();
-            parentForm.setBarangData(selectedID, selectedKode, 
-                    selectedNama, selectedIDKategori, selectedKodeK, 
-                    selectedNamaK, selectedSatuan, selectedBeli, 
-                    selectedJual, selectedKeterangan, isAktif);
-        }
-        dispose(); // Tutup dialog setelah memilih
-    } else {
-        JOptionPane.showMessageDialog(this, "Silakan pilih barang.", "Tidak ada pilihan", JOptionPane.WARNING_MESSAGE);
-    }
-}
+//private void selectRowAndClose() {
+//    int selectedRow = jTable1.getSelectedRow();
+//    if (selectedRow >= 0) {
+//        int selectedID = (int) jTable1.getValueAt(selectedRow, 1); // ID
+//        String selectedKode = jTable1.getValueAt(selectedRow, 2).toString(); // Kode
+//        String selectedNama = jTable1.getValueAt(selectedRow, 3).toString(); // Nama
+//        int selectedIDKategori = (int) jTable1.getValueAt(selectedRow, 4); // Kategori
+//        String selectedKodeK = jTable1.getValueAt(selectedRow, 5).toString(); // Kode Kategori
+//        String selectedNamaK = jTable1.getValueAt(selectedRow, 6).toString(); // Nama Kategori
+//        String selectedSatuan = jTable1.getValueAt(selectedRow, 7).toString(); // Satuan
+//        double selectedBeli = (double) jTable1.getValueAt(selectedRow, 8); // Harga Beli
+//        double selectedJual = (double) jTable1.getValueAt(selectedRow, 9); // Harga Jual
+//        String selectedKeterangan = jTable1.getValueAt(selectedRow, 10).toString(); // Keterangan
+//        boolean isAktif = "Ya".equalsIgnoreCase(jTable1.getValueAt(selectedRow, 11).toString()); // Is Aktif
+//
+//        // Set nilai ke komponen di form utama
+//        if (getParent() instanceof frmMstItem) {
+//            frmMstItem parentForm = (frmMstItem) getParent();
+//            parentForm.setItemData(selectedID, selectedKode, 
+//                    selectedNama, selectedIDKategori, selectedKodeK, 
+//                    selectedNamaK, selectedSatuan, selectedBeli, 
+//                    selectedJual, selectedKeterangan, isAktif);
+//            
+//            // Temukan index barang dalam barangList
+//            int index = -1;
+//            for (int i = 0; i < barangList.size(); i++) {
+//                if (barangList.get(i).getIDBarang() == selectedID) {
+//                    index = i;
+//                    break;
+//                }
+//            }
+//            
+//            if (index != -1) {
+//                // Kirim index ke frmBarang
+//                parentForm.setCurrentRecordIndex(index);
+//            }
+//        } else if  (getParent() instanceof frmTransPo) {
+//            frmTransPo parentForm = (frmTransPo) getParent();
+//            parentForm.setBarangData(selectedID, selectedKode, 
+//                    selectedNama, selectedIDKategori, selectedKodeK, 
+//                    selectedNamaK, selectedSatuan, selectedBeli, 
+//                    selectedJual, selectedKeterangan, isAktif);
+//        }
+//        dispose(); // Tutup dialog setelah memilih
+//    } else {
+//        JOptionPane.showMessageDialog(this, "Silakan pilih barang.", "Tidak ada pilihan", JOptionPane.WARNING_MESSAGE);
+//    }
+//}
 
     private void searchBarang() {
         String keyword = jTextField1.getText().trim();
-        barangList = barangDAO.searchBarangByName(keyword);
-        updateTable(barangList);
+        itemList = itemDAO.searchBarangByName(keyword);
+        updateTable(itemList);
     }
 
     public JTable getTable() {

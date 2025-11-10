@@ -102,6 +102,54 @@ public class ItemDAO {
         return list;
     }
     
+    public List<Item> searchBarangByName(String keyword) {
+    List<Item> itemList = new ArrayList<>();
+    String sqlItem = "SELECT * FROM mitem WHERE Nama LIKE ?";
+    String sqlDetail = "SELECT * FROM mitemd WHERE IDItem = ?";
+
+    try (PreparedStatement psItem = conn.prepareStatement(sqlItem)) {
+        psItem.setString(1, "%" + keyword + "%");
+        ResultSet rsItem = psItem.executeQuery();
+
+        while (rsItem.next()) {
+            Item item = new Item();
+            item.setIDItem(rsItem.getInt("IDItem"));
+            item.setKode(rsItem.getString("Kode"));
+            item.setNama(rsItem.getString("Nama"));
+            item.setHargaBeli(rsItem.getDouble("HargaBeli"));
+            item.setKategori(rsItem.getString("Kategori"));
+            item.setAktif(rsItem.getInt("Aktif"));
+
+            // Ambil detail dari tabel mitemd
+            try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail)) {
+                psDetail.setInt(1, item.getIDItem());
+                ResultSet rsDetail = psDetail.executeQuery();
+
+                List<ItemDetail> details = new ArrayList<>();
+                while (rsDetail.next()) {
+                    ItemDetail detail = new ItemDetail();
+                    detail.setIDDetail(rsDetail.getInt("IDDetail"));
+                    detail.setSatuanBesar(rsDetail.getString("SatuanBesar"));
+                    detail.setSatuan(rsDetail.getString("Satuan"));
+                    detail.setKonversi(rsDetail.getInt("Konversi"));
+                    detail.setHargaJual(rsDetail.getDouble("HargaJual"));
+                    detail.setLabaPersen(rsDetail.getDouble("LabaPersen"));
+                    details.add(detail);
+                }
+                item.setDetails(details);
+            }
+
+            itemList.add(item);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return itemList;
+}
+
+    
         public String getLastKode(String prefix) {
         String sql = "SELECT Kode FROM mitem WHERE Kode LIKE ? ORDER BY Kode DESC LIMIT 1";
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {

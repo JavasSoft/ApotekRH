@@ -15,6 +15,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 import model.*;
 import model.User;
+import ui.Master.BrowseAll.BrowseItem;
 /**
  *
  * @author Admin
@@ -640,6 +641,11 @@ private void loadCurrentItem() {
         jtKode.setMinimumSize(new java.awt.Dimension(33, 22));
 
         jButton1.setText("jButton1");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         jTabbedPane1.addAncestorListener(new javax.swing.event.AncestorListener() {
             public void ancestorAdded(javax.swing.event.AncestorEvent evt) {
@@ -817,6 +823,12 @@ private void loadCurrentItem() {
     private void jTabbedPane1AncestorRemoved(javax.swing.event.AncestorEvent evt) {//GEN-FIRST:event_jTabbedPane1AncestorRemoved
         // TODO add your handling code here:
     }//GEN-LAST:event_jTabbedPane1AncestorRemoved
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+               BrowseItem dialog = new BrowseItem(this, true, conn);
+        dialog.setVisible(true);
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
