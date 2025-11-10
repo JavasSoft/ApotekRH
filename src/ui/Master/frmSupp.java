@@ -104,8 +104,8 @@ public class frmSupp extends javax.swing.JFrame {
         txtKota.setEditable(false);
         cmbAktif.setEnabled(false);
           supplierDAO = new SupplierDAO(conn);
-        supplierList = supplierDAO.getAllSuppliers(); // Ambil semua periode
-        totalInputs = supplierDAO.countSuppliers();
+        //supplierList = supplierDAO.getAllSuppliers(); // Ambil semua periode
+       // totalInputs = supplierDAO.countSuppliers();
 
     if (totalInputs > 0) {
         currentRecordIndex = totalInputs - 1; // Set ke indeks terakhir
@@ -179,13 +179,13 @@ public class frmSupp extends javax.swing.JFrame {
 
     Supplier supplier = new Supplier();
     supplier.setKode(kode);
-    supplier.setNamaUsaha(namaUsaha);
-    supplier.setTempo(tempo);
+  //  supplier.setNamaUsaha(namaUsaha);
+//    supplier.setTempo(tempo);
     supplier.setNama(nama);
     supplier.setAlamat(alamat);
     supplier.setTelephone(telephone);
     supplier.setKota(kota);
-    supplier.setIsAktif(isAktif);
+  //  supplier.setIsAktif(isAktif);
 
     if (supplierDAO.insertSupplier(supplier)) {
         JOptionPane.showMessageDialog(this, "Data Customer berhasil disimpan.");
@@ -214,15 +214,14 @@ public class frmSupp extends javax.swing.JFrame {
 
     // Membuat objek Supplier dengan data yang sudah diperbarui
     Supplier supplier = new Supplier();
-    supplier.setIdSup(id); // Pastikan Anda memiliki metode untuk mengatur ID
+   // supplier.setIdSup(id); // Pastikan Anda memiliki metode untuk mengatur ID
     supplier.setKode(kode);
-    supplier.setNamaUsaha(namaUsaha);
-    supplier.setTempo(tempo);
-    supplier.setNama(nama);
+ //   supplier.setNamaUsaha(namaUsaha);
+ //   supplier.setNama(nama);
     supplier.setAlamat(alamat);
     supplier.setTelephone(telephone);
     supplier.setKota(kota);
-    supplier.setIsAktif(isAktif);
+ //   supplier.setIsAktif(isAktif);
 
     // Mengubah data ke database menggunakan SupplierDAO
     if (supplierDAO.updateSupplier(id, supplier)) {
@@ -279,17 +278,17 @@ public class frmSupp extends javax.swing.JFrame {
         Supplier supplier = supplierList.get(currentRecordIndex);
         
         // Mengatur IDKategori sebagai string
-        txtId.setText(String.valueOf(supplier.getIdSup())); 
+        //txtId.setText(String.valueOf(supplier.getIdSup())); 
         
         // Tampilkan nilai-nilai ini di komponen UI
         jtKode.setText(supplier.getKode());
-        jtBadanNama.setText(supplier.getNamaUsaha()); // Pastikan Anda memiliki field nama
-        txtTempo.setText(String.valueOf(supplier.getTempo()));
+      //  jtBadanNama.setText(supplier.getNamaUsaha()); // Pastikan Anda memiliki field nama
+       // txtTempo.setText(String.valueOf(supplier.getTempo()));
         txtNama.setText(supplier.getNama());
         txtAlamat.setText(supplier.getAlamat());
         txtTelephone.setText(supplier.getTelephone());
         txtKota.setText(supplier.getKota());
-        cmbAktif.setSelected("Ya".equalsIgnoreCase(supplier.getIsAktif()));
+     //   cmbAktif.setSelected("Ya".equalsIgnoreCase(supplier.getIsAktif()));
         
         updateRecordLabel();
     } else {

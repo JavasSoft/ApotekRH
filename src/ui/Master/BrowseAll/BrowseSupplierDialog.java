@@ -94,7 +94,7 @@ private void setupTable() {
     }
 
     private void loadData() {
-        supplierList = supplierDAO.getAllSuppliers();
+    //    supplierList = supplierDAO.getAllSuppliers();
         updateTable(supplierList);
     }
 
@@ -104,15 +104,15 @@ private void setupTable() {
         for (Supplier supplier : supplierList) {
             Object[] row = {
                 num++,
-                supplier.getIdSup(),
+    //            supplier.getIdSup(),
                 supplier.getKode(),
-                supplier.getNamaUsaha(),
-                supplier.getTempo(),
+  //              supplier.getNamaUsaha(),
+  //              supplier.getTempo(),
                 supplier.getNama(),
                 supplier.getAlamat(),
                 supplier.getTelephone(),
                 supplier.getKota(),
-                supplier.getIsAktif(),
+//                supplier.getIsAktif(),
             };
             tableModel.addRow(row);
         }
@@ -143,15 +143,15 @@ private void selectRowAndClose() {
     int index = -1;
     for (int i = 0; i < supplierList.size(); i++) {
     int selectedIdAsInt = Integer.parseInt(selectedID); // Convert String to int
-    if (supplierList.get(i).getIdSup() == selectedIdAsInt) {
+  //  if (supplierList.get(i).getIdSup() == selectedIdAsInt) {
         index = i;
         break;
-    }
-    }
+  //  }
+    //}
     
-    if (index != -1) {
+  //  if (index != -1) {
         // Kirim index ke frmBarang
-        parentForm.setCurrentRecordIndex(index);
+     //   parentForm.setCurrentRecordIndex(index);
     }
 }
 

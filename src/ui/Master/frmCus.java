@@ -103,8 +103,8 @@ public class frmCus extends javax.swing.JFrame {
         txtKota.setEditable(false);
         cmbAktif.setEnabled(false);
         customerDAO = new CustomerDAO(conn);
-        customerList = customerDAO.getAllCustomers(); // Ambil semua periode
-        totalInputs = customerDAO.countCustomers();
+//        customerList = customerDAO.getAllCustomers(); // Ambil semua periode
+//        totalInputs = customerDAO.countCustomers();
 
     if (totalInputs > 0) {
         currentRecordIndex = totalInputs - 1; // Set ke indeks terakhir
@@ -166,13 +166,13 @@ public class frmCus extends javax.swing.JFrame {
 
     Customer customer = new Customer();
     customer.setKode(kode);
-    customer.setNamaUsaha(namaUsaha);
-    customer.setTempo(tempo);
+//    customer.setNamaUsaha(namaUsaha);
+//    customer.setTempo(tempo);
     customer.setNama(nama);
     customer.setAlamat(alamat);
     customer.setTelephone(telephone);
     customer.setKota(kota);
-    customer.setIsAktif(isAktif);
+//    customer.setIsAktif(isAktif);
 
     if (customerDAO.insertCustomer(customer)) {
         JOptionPane.showMessageDialog(this, "Data Customer berhasil disimpan.");
@@ -201,15 +201,15 @@ public class frmCus extends javax.swing.JFrame {
 
     // Membuat objek Customer dengan data yang sudah diperbarui
     Customer customer = new Customer();
-    customer.setIdCus(id); // Pastikan Anda memiliki metode untuk mengatur ID
+//    customer.setIdCus(id); // Pastikan Anda memiliki metode untuk mengatur ID
     customer.setKode(kode);
-    customer.setNamaUsaha(namaUsaha);
-    customer.setTempo(tempo);
+ //   customer.setNamaUsaha(namaUsaha);
+ //   customer.setTempo(tempo);
     customer.setNama(nama);
     customer.setAlamat(alamat);
     customer.setTelephone(telephone);
     customer.setKota(kota);
-    customer.setIsAktif(isAktif);
+//    customer.setIsAktif(isAktif);
 
     // Mengubah data ke database menggunakan CustomerDAO
     if (customerDAO.updateCustomer(id, customer)) {
@@ -266,17 +266,17 @@ public class frmCus extends javax.swing.JFrame {
         Customer customer = customerList.get(currentRecordIndex);
         
         // Mengatur IDKategori sebagai string
-        txtId.setText(String.valueOf(customer.getIdCus())); 
+//        txtId.setText(String.valueOf(customer.getIdCus())); 
         
         // Tampilkan nilai-nilai ini di komponen UI
         jtKode.setText(customer.getKode());
-        jtBadanNama.setText(customer.getNamaUsaha()); // Pastikan Anda memiliki field nama
-        txtTempo.setText(String.valueOf(customer.getTempo()));
+//        jtBadanNama.setText(customer.getNamaUsaha()); // Pastikan Anda memiliki field nama
+//        txtTempo.setText(String.valueOf(customer.getTempo()));
         txtNama.setText(customer.getNama());
         txtAlamat.setText(customer.getAlamat());
         txtTelephone.setText(customer.getTelephone());
         txtKota.setText(customer.getKota());
-        cmbAktif.setSelected("Ya".equalsIgnoreCase(customer.getIsAktif()));
+//        cmbAktif.setSelected("Ya".equalsIgnoreCase(customer.getIsAktif()));
         
         updateRecordLabel();
     } else {
