@@ -18,7 +18,7 @@ public class BarangDAO {
         this.conn = conn;
     }
     public boolean insertBarang(Barang barang) {
-        String sqlInsert = "INSERT INTO mbarang (Kode, Nama, IDKategori, Satuan, Beli, Jual, Keterangan, IsAktif) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        String sqlInsert = "INSERT INTO mbarang (Kode, Nama, IDKategori, Satuan, Beli, Jual, Keterangan, Aktif) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = conn.prepareStatement(sqlInsert)) {
             pstmt.setString(1, barang.getKode());
             pstmt.setString(2, barang.getNama());

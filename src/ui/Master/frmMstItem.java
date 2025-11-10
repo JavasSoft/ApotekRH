@@ -259,9 +259,11 @@ private void saveItem() {
 // ===========================================
 private void updateItem() {
     try {
+        int IDItem = Integer.parseInt(txtIDItem.getText().trim());
         String kode = jtKode.getText().trim();
         String nama = txtNama.getText().trim();
         String kategori = cmbKategori.getSelectedItem().toString();
+        String satuanBesar = cmbSatuanBesar.getSelectedItem().toString();
         double hargaBeli = Double.parseDouble(txtHargaBeli.getText().trim());
         String satuanKecil = cmbSatuanKecil.getSelectedItem().toString();
         double hargaJual = Double.parseDouble(txtHargaJual.getText().trim());
@@ -276,6 +278,7 @@ private void updateItem() {
 
         // --- Siapkan objek Item & Detail ---
         Item item = new Item();
+        item.setIDItem(IDItem); // 🟢 tambahkan baris ini
         item.setKode(kode);
         item.setNama(nama);
         item.setKategori(kategori);
@@ -283,6 +286,8 @@ private void updateItem() {
         item.setAktif(aktif);
 
         ItemDetail detail = new ItemDetail();
+        detail.setIDItem(IDItem);
+        detail.setSatuanBesar(satuanBesar);
         detail.setSatuan(satuanKecil);
         detail.setKonversi(konversi);
         detail.setHargaJual(hargaJual);
@@ -305,6 +310,7 @@ private void updateItem() {
         JOptionPane.showMessageDialog(this, "Terjadi kesalahan: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
+
 
 private void loadDataFromDatabase() {
     itemsList = itemDAO.getAllItems();

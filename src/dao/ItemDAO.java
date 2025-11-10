@@ -117,21 +117,23 @@ public class ItemDAO {
     }
         
     public boolean updateItemWithDetail(Item item, ItemDetail detail) {
-    String sqlUpdateItem = "UPDATE mitem SET Nama=?, Kategori=?, HargaBeli=?, Aktif=? WHERE IDItem=?";
+    String sqlUpdateItem = "UPDATE mitem SET Kode=?, Nama=?, Kategori=?, HargaBeli=?, Aktif=? WHERE IDItem=?";
     String sqlDeleteDetail = "DELETE FROM mitemd WHERE IDItem=?";
-    String sqlInsertDetail = "INSERT INTO mitemd (IDItem, Satuan, Konversi, HargaJual, LabaPersen) VALUES (?, ?, ?, ?, ?)";
+    String sqlInsertDetail = "INSERT INTO mitemd (IDItem, SatuanBesar, Jumlah, Satuan, Konversi, HargaJual, LabaPersen) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
     try {
         conn.setAutoCommit(false);
 
         // Update master item
         try (PreparedStatement psItem = conn.prepareStatement(sqlUpdateItem)) {
-            psItem.setString(1, item.getNama());
-            psItem.setString(2, item.getKategori());
-            psItem.setDouble(3, item.getHargaBeli());
-            psItem.setInt(4, item.getAktif());
-            psItem.setInt(5, item.getIDItem());
+            psItem.setString(1, item.getKode());
+            psItem.setString(2, item.getNama());
+            psItem.setString(3, item.getKategori());
+            psItem.setDouble(4, item.getHargaBeli());
+            psItem.setInt(5, item.getAktif());
+            psItem.setInt(6, item.getIDItem());
             psItem.executeUpdate();
+            System.out.println("✅ Updating IDItem = " + item.getIDItem());
         }
 
         // Hapus detail lama
@@ -143,10 +145,12 @@ public class ItemDAO {
         // Insert detail baru
         try (PreparedStatement psDet = conn.prepareStatement(sqlInsertDetail)) {
             psDet.setInt(1, item.getIDItem());
-            psDet.setString(2, detail.getSatuan());
-            psDet.setInt(3, detail.getKonversi());
-            psDet.setDouble(4, detail.getHargaJual());
-            psDet.setDouble(5, detail.getLabaPersen());
+            psDet.setString(2, detail.getSatuanBesar());
+            psDet.setDouble(3, detail.getJumlah());
+            psDet.setString(4, detail.getSatuan());
+            psDet.setInt(5, detail.getKonversi());
+            psDet.setDouble(6, detail.getHargaJual());
+            psDet.setDouble(7, detail.getLabaPersen());
             psDet.executeUpdate();
         }
 
@@ -161,6 +165,7 @@ public class ItemDAO {
         try { conn.setAutoCommit(true); } catch (Exception e) { e.printStackTrace(); }
     }
 }
+
     
     public int countItems() {
         int totalRecords = 0;
