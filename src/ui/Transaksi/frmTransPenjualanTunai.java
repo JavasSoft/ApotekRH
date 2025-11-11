@@ -103,24 +103,12 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
         navaktif();
     }
     
-    public void setItemData(int idItem, String kode, String nama, String kategori,
-                        double hargaBeli, boolean aktif,
-                        String satuanKecil, String satuanBesar,
-                        double hargaJual, double labaPersen, double konversi) {
-
-//    txtIDItem.setText(String.valueOf(idItem));
-//    txtKodeBarang.setText(kode);
-//    txtNama.setText(nama);
-//    txtKategori.setText(kategori);
-//    cmbSatuanBesar.setText(satuanKecil);
-//    txtHargaJual.setText(String.valueOf(hargaJual));
-//
-//    // Hitung laba otomatis (opsional)
-//    txtLabaPersen.setText(String.valueOf(labaPersen));
-//
-//    // Fokus ke Qty
-//    txtQty.requestFocus();
+public void setItemData(int idItem, String kode, String nama) {
+    txtIDItem.setText(String.valueOf(idItem));
+    txtKodeItem.setText(kode);
+    txtNama.setText(nama);
 }
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -131,6 +119,7 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        txtIDItem = new javax.swing.JTextField();
         jPanel5 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
@@ -174,6 +163,8 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
+
+        txtIDItem.setText("jTextField3");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Transaksi Penjualan Tunai");
@@ -665,6 +656,7 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
     private javax.swing.JTextField jTextField5;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JTextField txtIDItem;
     private javax.swing.JTextField txtKodeItem;
     private javax.swing.JTextField txtKonversi;
     private javax.swing.JLabel txtNama;
