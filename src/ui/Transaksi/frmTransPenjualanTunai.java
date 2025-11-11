@@ -37,7 +37,7 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
    // private LisList;
       private List<Item> itemsList = new ArrayList<>();
       private String selectedSatuanKecil;
-//private String hargaJual;
+private double selectedHarga;
 private String selectedSatuanBesar;
 private double selectedKonversi;
     DefaultTableModel model;
@@ -81,18 +81,63 @@ private double selectedKonversi;
 
 private void initTable() {
     DefaultTableModel model = new DefaultTableModel(
-        new Object[]{"ID", "Nama", "Satuan", "Qty", "Harga", "Total", "X"}, 0
+        new Object[]{"X", "ID", "Nama", "Satuan", "Qty", "Harga", "Total"}, 0
     ) {
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column == 6; // hanya kolom "X"
+            return column == 0; // hanya kolom "X"
         }
     };
     jTable1.setModel(model);
 
+    // Hilangkan garis grid
+    jTable1.setShowGrid(false);
+    jTable1.setIntercellSpacing(new java.awt.Dimension(0, 0));
+
+    // Matikan auto resize supaya kolom tidak menyesuaikan lebar table
+    jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
     // Renderer & Editor untuk tombol "X"
- jTable1.getColumn("X").setCellRenderer(new ButtonRenderer());
+    jTable1.getColumn("X").setCellRenderer(new ButtonRenderer());
     jTable1.getColumn("X").setCellEditor(new ButtonEditor(jTable1));
+    
+    jTable1.getColumn("ID").setMinWidth(0);
+    jTable1.getColumn("ID").setMaxWidth(0);
+    jTable1.getColumn("ID").setWidth(0);
+    
+        jTable1.getColumn("X").setPreferredWidth(30);
+    jTable1.getColumn("Nama").setPreferredWidth(200);
+    jTable1.getColumn("Satuan").setPreferredWidth(80);
+    jTable1.getColumn("Qty").setPreferredWidth(50);
+    jTable1.getColumn("Harga").setPreferredWidth(100);
+    jTable1.getColumn("Total").setPreferredWidth(120);
+
+
+
+    // Warna baris bergantian (striped rows)
+    jTable1.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+        @Override
+        public java.awt.Component getTableCellRendererComponent(JTable table, Object value, 
+                boolean isSelected, boolean hasFocus, int row, int column) {
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+            if (isSelected) {
+                setBackground(new java.awt.Color(135, 206, 250)); // biru muda saat dipilih
+                setForeground(java.awt.Color.BLACK);
+            } else {
+                if (row % 2 == 0) {
+                    setBackground(java.awt.Color.WHITE);
+                } else {
+                    setBackground(new java.awt.Color(220, 230, 241)); // biru pucat
+                }
+                setForeground(java.awt.Color.BLACK);
+            }
+            return this;
+        }
+    });
+
+    // Optional: header warna
+    jTable1.getTableHeader().setBackground(new java.awt.Color(70, 130, 180)); // biru tua
+    jTable1.getTableHeader().setForeground(java.awt.Color.WHITE);
 }
 
 
@@ -139,8 +184,10 @@ public void setItemData(int idItem, String kode, String nama ,String satuanKecil
     txtIDItem.setText(String.valueOf(idItem));
     txtKodeItem.setText(kode);
     txtNama.setText(nama);
-        DecimalFormat df = new DecimalFormat("#,##0.00");
+        DecimalFormat df = new DecimalFormat("#,##0");
     txtHarga.setText(df.format(hargaJual));
+    selectedHarga = hargaJual;
+    txtHarga.setText(df.format(hargaJual)); // tetap tampil rapi
     
         this.selectedSatuanKecil = satuanKecil;
     this.selectedSatuanBesar = satuanBesar;
@@ -172,34 +219,39 @@ private void addItemToTable(Item item) {
     // Total diisi 0 dulu, nanti dihitung saat user pilih satuan dan qty
     double total = 0;
 
+    // Urutan kolom sekarang: X, ID, Nama, Satuan, Qty, Harga, Total
     model.addRow(new Object[]{
-        item.getIDItem(),
+        "X",                  // Tombol hapus
+        item.getIDItem(),     // ID (disembunyikan)
         item.getNama(),
         satuan,
         qty,
         harga,
-        total,
-        "X"
+        total
     });
 }
 
 private void addItemFromInput() {
     try {
-        if(txtIDItem.getText().isEmpty() || txtNama.getText().isEmpty() || txtJumlah.getText().isEmpty() || txtHarga.getText().isEmpty()) {
+        // Validasi input kosong
+        if (txtIDItem.getText().isEmpty() || txtNama.getText().isEmpty() || 
+            txtJumlah.getText().isEmpty() || txtHarga.getText().isEmpty()) {
             JOptionPane.showMessageDialog(this, "Semua field harus diisi!");
             return;
         }
 
-        if(cmbSatuan.getSelectedItem() == null) {
+        if (cmbSatuan.getSelectedItem() == null) {
             JOptionPane.showMessageDialog(this, "Satuan belum dipilih!");
             return;
         }
 
+        // Parsing input
         int idItem = Integer.parseInt(txtIDItem.getText());
         String nama = txtNama.getText();
         String satuan = cmbSatuan.getSelectedItem().toString();
         int qty = Integer.parseInt(txtJumlah.getText());
-        double harga = Double.parseDouble(txtHarga.getText().replace(",", ""));
+        double harga = selectedHarga; // atau bisa pakai parsing dari txtHarga
+        // double harga = Double.parseDouble(txtHarga.getText().replace(",", ""));
 
         if (qty <= 0) {
             JOptionPane.showMessageDialog(this, "Qty harus lebih dari 0");
@@ -207,24 +259,35 @@ private void addItemFromInput() {
         }
 
         // Cek apakah item sudah ada di JTable
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         for (int i = 0; i < jTable1.getRowCount(); i++) {
-            int existingId = Integer.parseInt(jTable1.getValueAt(i, 0).toString());
-            if (existingId == idItem && jTable1.getValueAt(i, 2).toString().equals(satuan)) {
-                int existingQty = Integer.parseInt(jTable1.getValueAt(i, 3).toString());
-                jTable1.setValueAt(existingQty + qty, i, 3);
+            int existingId = Integer.parseInt(jTable1.getValueAt(i, 1).toString()); // kolom ID sekarang index 1
+            if (existingId == idItem && jTable1.getValueAt(i, 3).toString().equals(satuan)) { // kolom Satuan index 3
+                int existingQty = Integer.parseInt(jTable1.getValueAt(i, 4).toString()); // kolom Qty index 4
+                jTable1.setValueAt(existingQty + qty, i, 4);
                 return;
             }
         }
 
-        // Tambah item baru
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        model.addRow(new Object[]{idItem, nama, satuan, qty, harga, 0, "X"});
+        // Tambah item baru sesuai urutan kolom: X, ID, Nama, Satuan, Qty, Harga, Total
+        model.addRow(new Object[]{
+            "X",
+            idItem,
+            nama,
+            satuan,
+            qty,
+            harga,
+            0 // total diisi 0 dulu
+        });
+
+        // Bersihkan input
         txtJumlah.setText("");
 
     } catch (NumberFormatException e) {
         JOptionPane.showMessageDialog(this, "Input tidak valid! Pastikan angka di Qty dan Harga.");
     }
 }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
