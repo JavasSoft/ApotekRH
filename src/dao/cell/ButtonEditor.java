@@ -4,25 +4,27 @@ import java.awt.Component;
 import javax.swing.AbstractCellEditor;
 import javax.swing.JButton;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.table.TableCellEditor;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
 import javax.swing.table.DefaultTableModel;
+import ui.Transaksi.frmTransPenjualanTunai;
 
 public class ButtonEditor extends AbstractCellEditor implements TableCellEditor {
-    private JButton button;
-    private JTable table;
+    private final JButton button;
+    private final JTable table;
     private Runnable onRowRemovedCallback;
 
     public ButtonEditor(JTable jTable2) {
         this.table = jTable2;
         button = new JButton();
-        button.setIcon(new ImageIcon(getClass().getResource("/icon/x.png"))); // Menggunakan ikon
+        button.setIcon(new ImageIcon(getClass().getResource("/icon/x.png"))); // ikon hapus
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
         button.setFocusPainted(false);
-        
+
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -33,11 +35,20 @@ public class ButtonEditor extends AbstractCellEditor implements TableCellEditor 
                     System.out.println("Attempting to remove row: " + row);
                     data.removeRow(row);
                     updateRowNumbers();
-                    
-                    // Panggil callback jika ada
+
+                    // callback internal (kalau ada)
                     if (onRowRemovedCallback != null) {
                         onRowRemovedCallback.run();
                     }
+
+                    // update subtotal di form parent
+                    SwingUtilities.invokeLater(() -> {
+                        frmTransPenjualanTunai parentFrame =
+                                (frmTransPenjualanTunai) SwingUtilities.getWindowAncestor(table);
+                        if (parentFrame != null) {
+                            parentFrame.updateSubtotal();
+                        }
+                    });
                 } else {
                     System.err.println("Invalid row index for removal: " + row);
                 }
@@ -49,25 +60,22 @@ public class ButtonEditor extends AbstractCellEditor implements TableCellEditor 
 
     private void updateRowNumbers() {
         DefaultTableModel data = (DefaultTableModel) table.getModel();
-        int rowCount = data.getRowCount();
-
-        // Asumsi kolom pertama adalah nomor baris
-        for (int row = 0; row < rowCount; row++) {
-            data.setValueAt(row + 1, row, 0); // Update nomor baris
+        for (int i = 0; i < data.getRowCount(); i++) {
+            data.setValueAt(i + 1, i, 0); // kolom pertama nomor urut
         }
     }
 
     @Override
     public Object getCellEditorValue() {
-        return null; // Tidak ada nilai yang disimpan
+        return null; // tidak perlu nilai khusus
     }
 
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        return button; // Kembalikan tombol untuk diedit
+        return button;
     }
 
     public void setOnRowRemovedCallback(Runnable callback) {
-        this.onRowRemovedCallback = callback; // Set callback
+        this.onRowRemovedCallback = callback;
     }
 }

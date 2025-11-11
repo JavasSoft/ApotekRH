@@ -65,7 +65,12 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
     private void FormCreate(){
            initializeDatabase();
            initTable();
+           setupDiscEvents();
+           setupJenisListener(); 
            cmbSatuan.addActionListener(e -> updateHargaBerdasarkanSatuan());
+           txtJumlah.addActionListener(e -> addItemFromInput());
+            txtDiscPersen.addActionListener(e -> addItemFromInput());
+            txtDiscTotal.addActionListener(e -> addItemFromInput());
 
     }
      private void initializeDatabase() {
@@ -81,11 +86,24 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error initializing database connection: " + e.getMessage());
         }
     }
+     
+     private void setupJenisListener() {
+    cmbJenis.addActionListener(e -> {
+        String jenis = cmbJenis.getSelectedItem().toString();
+        if (jenis.equalsIgnoreCase("Biasa")) {
+            txtDokter.setEnabled(false);
+            txtDokter.setText("");
+        } else if (jenis.equalsIgnoreCase("Resep")) {
+            txtDokter.setEnabled(true);
+        }
+    });
+}
+
 
 
 private void initTable() {
     DefaultTableModel model = new DefaultTableModel(
-        new Object[]{"X", "ID","Kode", "Nama", "Satuan", "Qty", "Harga", "Total"}, 0
+        new Object[]{"X", "ID","Kode", "Nama", "Satuan", "Qty", "Harga", "Diskon", "Total"}, 0
     ) {
         @Override
         public boolean isCellEditable(int row, int column) {
@@ -153,7 +171,34 @@ jTable1.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellR
         jTable1.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
         jTable1.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
         jTable1.getColumnModel().getColumn(7).setCellRenderer(rightRenderer);
+        jTable1.getColumnModel().getColumn(8).setCellRenderer(rightRenderer);
 }
+
+
+
+private void setupDiscEvents() {
+    txtDiscPersen.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+        public void insertUpdate(javax.swing.event.DocumentEvent e) { updateDiscTotal(); }
+        public void removeUpdate(javax.swing.event.DocumentEvent e) { updateDiscTotal(); }
+        public void changedUpdate(javax.swing.event.DocumentEvent e) { updateDiscTotal(); }
+    });
+}
+
+private void updateDiscTotal() {
+    try {
+        double persen = txtDiscPersen.getText().isEmpty() ? 0 : Double.parseDouble(txtDiscPersen.getText());
+        double harga = parseAngka(txtHarga.getText());
+        int qty = txtJumlah.getText().isEmpty() ? 0 : Integer.parseInt(txtJumlah.getText());
+
+        double total = harga * qty;
+        double discTotal = (persen / 100) * total;
+
+        txtDiscTotal.setText(formatAngka(discTotal));
+    } catch (Exception e) {
+        txtDiscTotal.setText(formatAngka(0));
+    }
+}
+
 
  private String formatAngka(double value) {
         DecimalFormat df = new DecimalFormat("#,##0");
@@ -228,6 +273,9 @@ private void clearInputFields() {
     txtJumlah.setText("0");
     txtHarga.setText(formatAngka(0));
     cmbSatuan.removeAllItems();
+    txtDiscPersen.setText("");
+txtDiscTotal.setText("");
+
 }
 
     // === TAMBAH ITEM KE TABLE ===
@@ -256,6 +304,7 @@ private void clearInputFields() {
                 return;
             }
 
+            double discTotal = txtDiscTotal.getText().isEmpty() ? 0 : parseAngka(txtDiscTotal.getText());
             double total = qty * harga;
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
 
@@ -280,6 +329,7 @@ private void clearInputFields() {
                 satuan,
                 formatAngka(qty),
                 formatAngka(harga),
+                formatAngka(discTotal),
                 formatAngka(total)
             });
 
@@ -309,14 +359,21 @@ private void clearInputFields() {
     }
 
     // === UPDATE SUBTOTAL ===
-    private void updateSubtotal() {
+    public void updateSubtotal() {
         double subtotal = 0;
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
         for (int i = 0; i < model.getRowCount(); i++) {
-            subtotal += parseAngka(model.getValueAt(i, 7).toString());
+            subtotal += parseAngka(model.getValueAt(i, 8).toString());
         }
         lblSubtotal.setText(formatAngka(subtotal));
     }
+    
+    private String generateNoFaktur() {
+    String prefix = "PJ";
+    String datePart = new java.text.SimpleDateFormat("yyMMdd").format(new java.util.Date());
+    String uniquePart = String.format("%03d", (int)(Math.random() * 999));
+    return prefix + datePart + uniquePart;
+}
 
 
 
@@ -351,7 +408,7 @@ private void clearInputFields() {
         btnExit = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
         cmbAktif = new javax.swing.JCheckBox();
-        jTextField1 = new javax.swing.JTextField();
+        txtNoFaktur = new javax.swing.JTextField();
         jPanel6 = new javax.swing.JPanel();
         txtKodeItem = new javax.swing.JTextField();
         txtJumlah = new javax.swing.JTextField();
@@ -362,15 +419,21 @@ private void clearInputFields() {
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
         txtHarga = new javax.swing.JLabel();
+        txtDiscTotal = new javax.swing.JTextField();
+        jLabel12 = new javax.swing.JLabel();
+        txtDiscPersen = new javax.swing.JTextField();
+        jLabel13 = new javax.swing.JLabel();
         jPanel7 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
-        jDateChooser1 = new com.toedter.calendar.JDateChooser();
+        dtpTanggal = new com.toedter.calendar.JDateChooser();
         jLabel3 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        txtDokter = new javax.swing.JTextField();
         jTextField5 = new javax.swing.JTextField();
+        cmbJenis = new javax.swing.JComboBox<>();
+        jLabel14 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -564,7 +627,7 @@ private void clearInputFields() {
                 .addComponent(cmbAktif))
         );
 
-        jTextField1.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtNoFaktur.setMinimumSize(new java.awt.Dimension(33, 22));
 
         txtKodeItem.setMinimumSize(new java.awt.Dimension(33, 22));
         txtKodeItem.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -608,6 +671,34 @@ private void clearInputFields() {
         txtHarga.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         txtHarga.setText("1.234.567");
 
+        txtDiscTotal.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtDiscTotal.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtDiscTotalKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtDiscTotalKeyReleased(evt);
+            }
+        });
+
+        jLabel12.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel12.setText("Diskon");
+
+        txtDiscPersen.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtDiscPersen.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtDiscPersenKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtDiscPersenKeyReleased(evt);
+            }
+        });
+
+        jLabel13.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel13.setText("%");
+
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
@@ -623,15 +714,24 @@ private void clearInputFields() {
                         .addComponent(jLabel10)
                         .addGap(22, 22, 22)
                         .addComponent(cmbSatuan, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 65, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(txtDiscPersen, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel13)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtDiscTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(15, 15, 15))
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 398, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
+                        .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addComponent(lblSubtotal, javax.swing.GroupLayout.PREFERRED_SIZE, 372, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -647,26 +747,31 @@ private void clearInputFields() {
                             .addComponent(txtKodeItem, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(txtDiscTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(txtDiscPersen, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(lblSubtotal, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 14, Short.MAX_VALUE))
+                .addGap(14, 14, 14))
         );
 
         jPanel7.setBackground(new java.awt.Color(255, 255, 255));
 
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "Kode", "Nama Item", "Jumlah", "Satuan"
+                "Kode", "Nama Item", "Jumlah", "Satuan", "Diskon"
             }
         ));
         jScrollPane1.setViewportView(jTable1);
@@ -684,7 +789,7 @@ private void clearInputFields() {
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel7Layout.createSequentialGroup()
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 21, Short.MAX_VALUE))
+                .addGap(0, 27, Short.MAX_VALUE))
         );
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -699,9 +804,15 @@ private void clearInputFields() {
         jLabel11.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel11.setText("Dokter :");
 
-        jTextField2.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtDokter.setMinimumSize(new java.awt.Dimension(33, 22));
 
         jTextField5.setMinimumSize(new java.awt.Dimension(33, 22));
+
+        cmbJenis.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Biasa", "Resep" }));
+
+        jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
+        jLabel14.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel14.setText("Jenis :");
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -713,18 +824,22 @@ private void clearInputFields() {
                 .addGap(12, 12, 12)
                 .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(txtNoFaktur, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(9, 9, 9)
-                .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(dtpTanggal, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(135, 135, 135)
+                .addComponent(txtDokter, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cmbJenis, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(15, 15, 15))
             .addComponent(jPanel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
@@ -735,15 +850,17 @@ private void clearInputFields() {
                 .addGap(18, 18, 18)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
+                        .addComponent(txtNoFaktur, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(jDateChooser1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(dtpTanggal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jTextField2, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
+                        .addComponent(txtDokter, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
                         .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(cmbJenis)
+                        .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
+                        .addComponent(jLabel14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -780,6 +897,26 @@ private void clearInputFields() {
     private void btnTambahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTambahActionPerformed
         // TODO add your handling code here:
         tambah();
+        
+        // === AUTO GENERATE NO FAKTUR ===
+    String noFaktur = generateNoFaktur();
+    txtNoFaktur.setText(noFaktur);
+    
+    // === SET TANGGAL HARI INI ===
+    dtpTanggal.setDate(new java.util.Date());
+    
+    // === ATUR FIELD DOKTER BERDASARKAN JENIS PENJUALAN ===
+    Object selectedJenis = cmbJenis.getSelectedItem();
+    if (selectedJenis != null) {
+        String jenis = selectedJenis.toString();
+        if (jenis.equalsIgnoreCase("Biasa")) {
+            txtDokter.setEnabled(false);
+            txtDokter.setText(""); // Kosongkan jika tidak perlu
+        } else if (jenis.equalsIgnoreCase("Resep")) {
+            txtDokter.setEnabled(true);
+        }
+    }
+    clearInputFields();
     }//GEN-LAST:event_btnTambahActionPerformed
 
     private void btnUbahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUbahActionPerformed
@@ -809,6 +946,22 @@ private void clearInputFields() {
     private void txtJumlahKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtJumlahKeyReleased
         // TODO add your handling code here:
     }//GEN-LAST:event_txtJumlahKeyReleased
+
+    private void txtDiscTotalKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtDiscTotalKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtDiscTotalKeyPressed
+
+    private void txtDiscTotalKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtDiscTotalKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtDiscTotalKeyReleased
+
+    private void txtDiscPersenKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtDiscPersenKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtDiscPersenKeyPressed
+
+    private void txtDiscPersenKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtDiscPersenKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtDiscPersenKeyReleased
 
     /**
      * @param args the command line arguments
@@ -864,11 +1017,15 @@ private void clearInputFields() {
     private javax.swing.JButton btnTambah;
     private javax.swing.JButton btnUbah;
     private javax.swing.JCheckBox cmbAktif;
+    private javax.swing.JComboBox<String> cmbJenis;
     private javax.swing.JComboBox<String> cmbSatuan;
-    private com.toedter.calendar.JDateChooser jDateChooser1;
+    private com.toedter.calendar.JDateChooser dtpTanggal;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -887,16 +1044,18 @@ private void clearInputFields() {
     private javax.swing.JPanel jPanel7;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField jTextField5;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JLabel lblSubtotal;
+    private javax.swing.JTextField txtDiscPersen;
+    private javax.swing.JTextField txtDiscTotal;
+    private javax.swing.JTextField txtDokter;
     private javax.swing.JLabel txtHarga;
     private javax.swing.JTextField txtIDItem;
     private javax.swing.JTextField txtJumlah;
     private javax.swing.JTextField txtKodeItem;
     private javax.swing.JLabel txtNama;
+    private javax.swing.JTextField txtNoFaktur;
     // End of variables declaration//GEN-END:variables
 }
