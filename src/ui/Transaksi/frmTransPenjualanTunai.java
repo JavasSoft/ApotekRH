@@ -30,6 +30,9 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
     private User user;
    // private LisList;
       private List<Item> itemsList = new ArrayList<>();
+      private String selectedSatuanKecil;
+private String selectedSatuanBesar;
+private double selectedKonversi;
 
     /**
      * Creates new form ParentTrans
@@ -103,10 +106,27 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
         navaktif();
     }
     
-public void setItemData(int idItem, String kode, String nama) {
+public void setItemData(int idItem, String kode, String nama ,String satuanKecil, String satuanBesar, double konversi) {
     txtIDItem.setText(String.valueOf(idItem));
     txtKodeItem.setText(kode);
     txtNama.setText(nama);
+        
+    cmbSatuan.removeAllItems(); // hapus isi lama
+
+    if (satuanKecil != null && !satuanKecil.isEmpty()) {
+        cmbSatuan.addItem(satuanKecil);
+    }
+
+    if (satuanBesar != null && !satuanBesar.isEmpty()) {
+        // Hindari duplikat jika satuan besar == kecil
+        if (!satuanBesar.equalsIgnoreCase(satuanKecil)) {
+            cmbSatuan.addItem(satuanBesar);
+        }
+    }
+
+    // Set default: satuan kecil dulu
+    cmbSatuan.setSelectedItem(satuanKecil);
+    
 }
 
 
@@ -145,7 +165,7 @@ public void setItemData(int idItem, String kode, String nama) {
         jPanel6 = new javax.swing.JPanel();
         txtKodeItem = new javax.swing.JTextField();
         txtKonversi = new javax.swing.JTextField();
-        cmbSatuanBesar = new javax.swing.JComboBox<>();
+        cmbSatuan = new javax.swing.JComboBox<>();
         txtNama = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -364,7 +384,7 @@ public void setItemData(int idItem, String kode, String nama) {
 
         txtKonversi.setMinimumSize(new java.awt.Dimension(33, 22));
 
-        cmbSatuanBesar.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Box", "Dus", "Pack", "Vial", "Ampul", "Pouch", "Tubes", "Botol", "Kaleng", "Strip", "Pouch", " " }));
+        cmbSatuan.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Box", "Dus", "Pack", "Vial", "Ampul", "Pouch", "Tubes", "Botol", "Kaleng", "Strip", "Pouch", " " }));
 
         txtNama.setFont(new java.awt.Font("Segoe UI", 3, 24)); // NOI18N
         txtNama.setText("< Nama Item >");
@@ -399,7 +419,7 @@ public void setItemData(int idItem, String kode, String nama) {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jLabel10)
                         .addGap(22, 22, 22)
-                        .addComponent(cmbSatuanBesar, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(cmbSatuan, javax.swing.GroupLayout.PREFERRED_SIZE, 64, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -419,7 +439,7 @@ public void setItemData(int idItem, String kode, String nama) {
                         .addGap(2, 2, 2)
                         .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txtKonversi, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cmbSatuanBesar, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(cmbSatuan, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtKodeItem, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -627,7 +647,7 @@ public void setItemData(int idItem, String kode, String nama) {
     private javax.swing.JButton btnTambah;
     private javax.swing.JButton btnUbah;
     private javax.swing.JCheckBox cmbAktif;
-    private javax.swing.JComboBox<String> cmbSatuanBesar;
+    private javax.swing.JComboBox<String> cmbSatuan;
     private com.toedter.calendar.JDateChooser jDateChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
