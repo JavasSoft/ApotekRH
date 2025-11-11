@@ -192,7 +192,7 @@ private void selectRowAndClose() {
             } 
             else if (getParent() instanceof frmTransPenjualanTunai) {
                 frmTransPenjualanTunai parentForm = (frmTransPenjualanTunai) getParent();
-                parentForm.setItemData(selectedID, selectedKode, selectedNama,  satuanKecil, satuanBesar,konversi);
+                parentForm.setItemData(selectedID, selectedKode, selectedNama,  satuanKecil, satuanBesar, hargaJual,konversi);
             }
 
 

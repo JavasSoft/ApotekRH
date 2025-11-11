@@ -6,14 +6,20 @@ package ui.Transaksi;
 import dao.ItemDAO;
 import ui.Master.*;
 import dao.Koneksi;
+import dao.cell.ButtonEditor;
+import dao.cell.ButtonRenderer;
+import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
 import model.Item;
 import model.User;
 import ui.Master.BrowseAll.BrowseItem;
@@ -31,8 +37,11 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
    // private LisList;
       private List<Item> itemsList = new ArrayList<>();
       private String selectedSatuanKecil;
+//private String hargaJual;
 private String selectedSatuanBesar;
 private double selectedKonversi;
+    DefaultTableModel model;
+    JTable tblDetail;
 
     /**
      * Creates new form ParentTrans
@@ -53,6 +62,7 @@ private double selectedKonversi;
     
     private void FormCreate(){
            initializeDatabase();
+           initTable();
     }
      private void initializeDatabase() {
                 try {
@@ -67,6 +77,25 @@ private double selectedKonversi;
             JOptionPane.showMessageDialog(this, "Error initializing database connection: " + e.getMessage());
         }
     }
+
+
+private void initTable() {
+    DefaultTableModel model = new DefaultTableModel(
+        new Object[]{"ID", "Nama", "Satuan", "Qty", "Harga", "Total", "X"}, 0
+    ) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return column == 6; // hanya kolom "X"
+        }
+    };
+    jTable1.setModel(model);
+
+    // Renderer & Editor untuk tombol "X"
+ jTable1.getColumn("X").setCellRenderer(new ButtonRenderer());
+    jTable1.getColumn("X").setCellEditor(new ButtonEditor(jTable1));
+}
+
+
     private void navaktif(){
      btnAwal.setEnabled(true);
      btnPrevious.setEnabled(true);
@@ -106,11 +135,17 @@ private double selectedKonversi;
         navaktif();
     }
     
-public void setItemData(int idItem, String kode, String nama ,String satuanKecil, String satuanBesar, double konversi) {
+public void setItemData(int idItem, String kode, String nama ,String satuanKecil, String satuanBesar,double hargaJual, double konversi) {
     txtIDItem.setText(String.valueOf(idItem));
     txtKodeItem.setText(kode);
     txtNama.setText(nama);
-        
+        DecimalFormat df = new DecimalFormat("#,##0.00");
+    txtHarga.setText(df.format(hargaJual));
+    
+        this.selectedSatuanKecil = satuanKecil;
+    this.selectedSatuanBesar = satuanBesar;
+    this.selectedKonversi = konversi; // misal 1 box = 10 pcs
+
     cmbSatuan.removeAllItems(); // hapus isi lama
 
     if (satuanKecil != null && !satuanKecil.isEmpty()) {
@@ -128,8 +163,68 @@ public void setItemData(int idItem, String kode, String nama ,String satuanKecil
     cmbSatuan.setSelectedItem(satuanKecil);
     
 }
+private void addItemToTable(Item item) {
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    String satuan = cmbSatuan.getSelectedItem().toString();
+    int qty = Integer.parseInt(txtJumlah.getText());
+    double harga = Double.parseDouble(txtHarga.getText()); // harga per pcs
 
+    // Total diisi 0 dulu, nanti dihitung saat user pilih satuan dan qty
+    double total = 0;
 
+    model.addRow(new Object[]{
+        item.getIDItem(),
+        item.getNama(),
+        satuan,
+        qty,
+        harga,
+        total,
+        "X"
+    });
+}
+
+private void addItemFromInput() {
+    try {
+        if(txtIDItem.getText().isEmpty() || txtNama.getText().isEmpty() || txtJumlah.getText().isEmpty() || txtHarga.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Semua field harus diisi!");
+            return;
+        }
+
+        if(cmbSatuan.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(this, "Satuan belum dipilih!");
+            return;
+        }
+
+        int idItem = Integer.parseInt(txtIDItem.getText());
+        String nama = txtNama.getText();
+        String satuan = cmbSatuan.getSelectedItem().toString();
+        int qty = Integer.parseInt(txtJumlah.getText());
+        double harga = Double.parseDouble(txtHarga.getText().replace(",", ""));
+
+        if (qty <= 0) {
+            JOptionPane.showMessageDialog(this, "Qty harus lebih dari 0");
+            return;
+        }
+
+        // Cek apakah item sudah ada di JTable
+        for (int i = 0; i < jTable1.getRowCount(); i++) {
+            int existingId = Integer.parseInt(jTable1.getValueAt(i, 0).toString());
+            if (existingId == idItem && jTable1.getValueAt(i, 2).toString().equals(satuan)) {
+                int existingQty = Integer.parseInt(jTable1.getValueAt(i, 3).toString());
+                jTable1.setValueAt(existingQty + qty, i, 3);
+                return;
+            }
+        }
+
+        // Tambah item baru
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        model.addRow(new Object[]{idItem, nama, satuan, qty, harga, 0, "X"});
+        txtJumlah.setText("");
+
+    } catch (NumberFormatException e) {
+        JOptionPane.showMessageDialog(this, "Input tidak valid! Pastikan angka di Qty dan Harga.");
+    }
+}
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -164,13 +259,14 @@ public void setItemData(int idItem, String kode, String nama ,String satuanKecil
         jTextField1 = new javax.swing.JTextField();
         jPanel6 = new javax.swing.JPanel();
         txtKodeItem = new javax.swing.JTextField();
-        txtKonversi = new javax.swing.JTextField();
+        txtJumlah = new javax.swing.JTextField();
         cmbSatuan = new javax.swing.JComboBox<>();
         txtNama = new javax.swing.JLabel();
         jLabel7 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
+        txtHarga = new javax.swing.JLabel();
         jPanel7 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -382,7 +478,12 @@ public void setItemData(int idItem, String kode, String nama ,String satuanKecil
             }
         });
 
-        txtKonversi.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtJumlah.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtJumlah.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtJumlahKeyPressed(evt);
+            }
+        });
 
         cmbSatuan.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Box", "Dus", "Pack", "Vial", "Ampul", "Pouch", "Tubes", "Botol", "Kaleng", "Strip", "Pouch", " " }));
 
@@ -405,6 +506,10 @@ public void setItemData(int idItem, String kode, String nama ,String satuanKecil
         jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel10.setText("Satuan");
 
+        txtHarga.setFont(new java.awt.Font("Segoe UI", 3, 24)); // NOI18N
+        txtHarga.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        txtHarga.setText("1.234.567");
+
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
@@ -423,12 +528,13 @@ public void setItemData(int idItem, String kode, String nama ,String satuanKecil
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 102, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(txtKonversi, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addGap(6, 6, 6)
-                        .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 631, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 398, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(0, 0, 0)
+                .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 533, Short.MAX_VALUE)
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
@@ -438,14 +544,16 @@ public void setItemData(int idItem, String kode, String nama ,String satuanKecil
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addGap(2, 2, 2)
                         .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(txtKonversi, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(cmbSatuan, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtKodeItem, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(0, 14, Short.MAX_VALUE))
         );
@@ -516,7 +624,7 @@ public void setItemData(int idItem, String kode, String nama ,String satuanKecil
                 .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 98, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 257, Short.MAX_VALUE)
                 .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(66, 66, 66))
             .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -592,6 +700,13 @@ public void setItemData(int idItem, String kode, String nama ,String satuanKecil
         // this.dispose();
     }
     }//GEN-LAST:event_txtKodeItemMouseClicked
+
+    private void txtJumlahKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtJumlahKeyPressed
+        // TODO add your handling code here:
+         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+            addItemFromInput();
+        }
+    }//GEN-LAST:event_txtJumlahKeyPressed
 
     /**
      * @param args the command line arguments
@@ -676,9 +791,10 @@ public void setItemData(int idItem, String kode, String nama ,String satuanKecil
     private javax.swing.JTextField jTextField5;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JLabel txtHarga;
     private javax.swing.JTextField txtIDItem;
+    private javax.swing.JTextField txtJumlah;
     private javax.swing.JTextField txtKodeItem;
-    private javax.swing.JTextField txtKonversi;
     private javax.swing.JLabel txtNama;
     // End of variables declaration//GEN-END:variables
 }
