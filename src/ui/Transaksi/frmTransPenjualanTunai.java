@@ -4,15 +4,12 @@
  */
 package ui.Transaksi;
 import dao.ItemDAO;
-import ui.Master.*;
 import dao.Koneksi;
 import dao.cell.ButtonEditor;
 import dao.cell.ButtonRenderer;
 import java.awt.event.KeyEvent;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -29,17 +26,18 @@ import ui.Master.BrowseAll.BrowseItem;
  */
 public class frmTransPenjualanTunai extends javax.swing.JFrame {
     private Connection conn;
-     private ItemDAO itemDAO;
-      private Statement stat;
+    private ItemDAO itemDAO;
+    private Statement stat;
     private ResultSet rs;
     private String sql;
     private User user;
    // private LisList;
-      private List<Item> itemsList = new ArrayList<>();
-      private String selectedSatuanKecil;
-private double selectedHarga;
-private String selectedSatuanBesar;
-private double selectedKonversi;
+    private List<Item> itemsList = new ArrayList<>();
+    private String selectedSatuanKecil;
+    private double selectedHarga;
+    private String selectedSatuanBesar;
+    private double selectedKonversi;
+   private double setSubtotal = 0;
     DefaultTableModel model;
     JTable tblDetail;
 
@@ -58,11 +56,17 @@ private double selectedKonversi;
     private void FrmProjec(){
     this.setLocationRelativeTo(null);
     this.setResizable(false);
+    txtHarga.setText(formatAngka(0));
+    lblSubtotal.setText(formatAngka(0));
+    txtNama.setText("< Nama Item >");
+    
     }
     
     private void FormCreate(){
            initializeDatabase();
            initTable();
+           cmbSatuan.addActionListener(e -> updateHargaBerdasarkanSatuan());
+
     }
      private void initializeDatabase() {
                 try {
@@ -81,7 +85,7 @@ private double selectedKonversi;
 
 private void initTable() {
     DefaultTableModel model = new DefaultTableModel(
-        new Object[]{"X", "ID", "Nama", "Satuan", "Qty", "Harga", "Total"}, 0
+        new Object[]{"X", "ID","Kode", "Nama", "Satuan", "Qty", "Harga", "Total"}, 0
     ) {
         @Override
         public boolean isCellEditable(int row, int column) {
@@ -106,8 +110,9 @@ private void initTable() {
     jTable1.getColumn("ID").setWidth(0);
     
         jTable1.getColumn("X").setPreferredWidth(30);
-    jTable1.getColumn("Nama").setPreferredWidth(200);
-    jTable1.getColumn("Satuan").setPreferredWidth(80);
+         jTable1.getColumn("Kode").setPreferredWidth(100);
+    jTable1.getColumn("Nama").setPreferredWidth(400);
+    jTable1.getColumn("Satuan").setPreferredWidth(50);
     jTable1.getColumn("Qty").setPreferredWidth(50);
     jTable1.getColumn("Harga").setPreferredWidth(100);
     jTable1.getColumn("Total").setPreferredWidth(120);
@@ -115,31 +120,49 @@ private void initTable() {
 
 
     // Warna baris bergantian (striped rows)
-    jTable1.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
-        @Override
-        public java.awt.Component getTableCellRendererComponent(JTable table, Object value, 
-                boolean isSelected, boolean hasFocus, int row, int column) {
-            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-            if (isSelected) {
-                setBackground(new java.awt.Color(135, 206, 250)); // biru muda saat dipilih
-                setForeground(java.awt.Color.BLACK);
+   // Warna baris bergantian (striped rows)
+jTable1.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+    @Override
+    public java.awt.Component getTableCellRendererComponent(JTable table, Object value, 
+            boolean isSelected, boolean hasFocus, int row, int column) {
+        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        if (isSelected) {
+            setBackground(new java.awt.Color(135, 206, 250)); // biru muda saat dipilih
+            setForeground(java.awt.Color.BLACK);
+        } else {
+            if (row % 2 == 0) {
+                setBackground(java.awt.Color.WHITE); // baris genap putih
             } else {
-                if (row % 2 == 0) {
-                    setBackground(java.awt.Color.WHITE);
-                } else {
-                    setBackground(new java.awt.Color(220, 230, 241)); // biru pucat
-                }
-                setForeground(java.awt.Color.BLACK);
+                setBackground(new java.awt.Color(204, 255, 204)); // baris ganjil hijau muda
             }
-            return this;
+            setForeground(java.awt.Color.BLACK);
         }
-    });
+        return this;
+    }
+});
+
 
     // Optional: header warna
-    jTable1.getTableHeader().setBackground(new java.awt.Color(70, 130, 180)); // biru tua
-    jTable1.getTableHeader().setForeground(java.awt.Color.WHITE);
+    jTable1.getTableHeader().setBackground(new java.awt.Color(0, 102, 0)); // hijau tua
+    jTable1.getTableHeader().setForeground(java.awt.Color.WHITE); // teks putih
+    jTable1.getTableHeader().setFont(jTable1.getTableHeader().getFont().deriveFont(java.awt.Font.BOLD)); // opsional: teks tebal
+
+  // Kolom angka rata kanan
+    javax.swing.table.DefaultTableCellRenderer rightRenderer = new javax.swing.table.DefaultTableCellRenderer();
+    rightRenderer.setHorizontalAlignment(javax.swing.JLabel.RIGHT);
+        jTable1.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
+        jTable1.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
+        jTable1.getColumnModel().getColumn(7).setCellRenderer(rightRenderer);
 }
 
+ private String formatAngka(double value) {
+        DecimalFormat df = new DecimalFormat("#,##0");
+        return df.format(value);
+    }
+
+    private double parseAngka(String value) {
+        return Double.parseDouble(value.replace(",", "").replace(".", ""));
+    }
 
     private void navaktif(){
      btnAwal.setEnabled(true);
@@ -180,113 +203,122 @@ private void initTable() {
         navaktif();
     }
     
-public void setItemData(int idItem, String kode, String nama ,String satuanKecil, String satuanBesar,double hargaJual, double konversi) {
-    txtIDItem.setText(String.valueOf(idItem));
-    txtKodeItem.setText(kode);
-    txtNama.setText(nama);
-        DecimalFormat df = new DecimalFormat("#,##0");
-    txtHarga.setText(df.format(hargaJual));
-    selectedHarga = hargaJual;
-    txtHarga.setText(df.format(hargaJual)); // tetap tampil rapi
-    
+  public void setItemData(int idItem, String kode, String nama, String satuanKecil,
+            String satuanBesar, double hargaJual, double konversi) {
+        txtIDItem.setText(String.valueOf(idItem));
+        txtKodeItem.setText(kode);
+        txtNama.setText(nama);
+        txtHarga.setText(formatAngka(hargaJual));
+        selectedHarga = hargaJual;
         this.selectedSatuanKecil = satuanKecil;
-    this.selectedSatuanBesar = satuanBesar;
-    this.selectedKonversi = konversi; // misal 1 box = 10 pcs
+        this.selectedSatuanBesar = satuanBesar;
+        this.selectedKonversi = konversi;
 
-    cmbSatuan.removeAllItems(); // hapus isi lama
-
-    if (satuanKecil != null && !satuanKecil.isEmpty()) {
-        cmbSatuan.addItem(satuanKecil);
-    }
-
-    if (satuanBesar != null && !satuanBesar.isEmpty()) {
-        // Hindari duplikat jika satuan besar == kecil
-        if (!satuanBesar.equalsIgnoreCase(satuanKecil)) {
+        cmbSatuan.removeAllItems();
+        if (satuanKecil != null && !satuanKecil.isEmpty()) cmbSatuan.addItem(satuanKecil);
+        if (satuanBesar != null && !satuanBesar.isEmpty() && !satuanBesar.equalsIgnoreCase(satuanKecil)) {
             cmbSatuan.addItem(satuanBesar);
         }
+        cmbSatuan.setSelectedItem(satuanKecil);
     }
-
-    // Set default: satuan kecil dulu
-    cmbSatuan.setSelectedItem(satuanKecil);
-    
-}
-private void addItemToTable(Item item) {
-    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-    String satuan = cmbSatuan.getSelectedItem().toString();
-    int qty = Integer.parseInt(txtJumlah.getText());
-    double harga = Double.parseDouble(txtHarga.getText()); // harga per pcs
-
-    // Total diisi 0 dulu, nanti dihitung saat user pilih satuan dan qty
-    double total = 0;
-
-    // Urutan kolom sekarang: X, ID, Nama, Satuan, Qty, Harga, Total
-    model.addRow(new Object[]{
-        "X",                  // Tombol hapus
-        item.getIDItem(),     // ID (disembunyikan)
-        item.getNama(),
-        satuan,
-        qty,
-        harga,
-        total
-    });
+private void clearInputFields() {
+    txtIDItem.setText("");
+    txtKodeItem.setText("");
+     txtNama.setText("< Nama Item >");
+    txtJumlah.setText("0");
+    txtHarga.setText(formatAngka(0));
+    cmbSatuan.removeAllItems();
 }
 
-private void addItemFromInput() {
-    try {
-        // Validasi input kosong
-        if (txtIDItem.getText().isEmpty() || txtNama.getText().isEmpty() || 
-            txtJumlah.getText().isEmpty() || txtHarga.getText().isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Semua field harus diisi!");
-            return;
-        }
-
-        if (cmbSatuan.getSelectedItem() == null) {
-            JOptionPane.showMessageDialog(this, "Satuan belum dipilih!");
-            return;
-        }
-
-        // Parsing input
-        int idItem = Integer.parseInt(txtIDItem.getText());
-        String nama = txtNama.getText();
-        String satuan = cmbSatuan.getSelectedItem().toString();
-        int qty = Integer.parseInt(txtJumlah.getText());
-        double harga = selectedHarga; // atau bisa pakai parsing dari txtHarga
-        // double harga = Double.parseDouble(txtHarga.getText().replace(",", ""));
-
-        if (qty <= 0) {
-            JOptionPane.showMessageDialog(this, "Qty harus lebih dari 0");
-            return;
-        }
-
-        // Cek apakah item sudah ada di JTable
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        for (int i = 0; i < jTable1.getRowCount(); i++) {
-            int existingId = Integer.parseInt(jTable1.getValueAt(i, 1).toString()); // kolom ID sekarang index 1
-            if (existingId == idItem && jTable1.getValueAt(i, 3).toString().equals(satuan)) { // kolom Satuan index 3
-                int existingQty = Integer.parseInt(jTable1.getValueAt(i, 4).toString()); // kolom Qty index 4
-                jTable1.setValueAt(existingQty + qty, i, 4);
+    // === TAMBAH ITEM KE TABLE ===
+    private void addItemFromInput() {
+        try {
+            if (txtIDItem.getText().isEmpty() || txtNama.getText().isEmpty() ||
+                txtJumlah.getText().isEmpty() || txtHarga.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Semua field harus diisi!");
                 return;
             }
+
+            if (cmbSatuan.getSelectedItem() == null) {
+                JOptionPane.showMessageDialog(this, "Satuan belum dipilih!");
+                return;
+            }
+
+            int idItem = Integer.parseInt(txtIDItem.getText());
+            String kode = txtKodeItem.getText();
+            String nama = txtNama.getText();
+            String satuan = cmbSatuan.getSelectedItem().toString();
+            int qty = Integer.parseInt(txtJumlah.getText());
+            double harga = parseAngka(txtHarga.getText());
+
+            if (qty <= 0) {
+                JOptionPane.showMessageDialog(this, "Qty harus lebih dari 0");
+                return;
+            }
+
+            double total = qty * harga;
+            DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+
+            for (int i = 0; i < jTable1.getRowCount(); i++) {
+                int existingId = Integer.parseInt(jTable1.getValueAt(i, 1).toString());
+                if (existingId == idItem && jTable1.getValueAt(i, 4).toString().equals(satuan)) {
+                    int existingQty = Integer.parseInt(jTable1.getValueAt(i, 5).toString().replace(",", ""));
+                    int newQty = existingQty + qty;
+                    double newTotal = newQty * harga;
+                    jTable1.setValueAt(formatAngka(newQty), i, 5);
+                    jTable1.setValueAt(formatAngka(newTotal), i, 7);
+                    updateSubtotal();
+                    return;
+                }
+            }
+
+            model.addRow(new Object[]{
+                "X",
+                idItem,
+                kode,
+                nama,
+                satuan,
+                formatAngka(qty),
+                formatAngka(harga),
+                formatAngka(total)
+            });
+
+            txtJumlah.setText("");
+            clearInputFields();
+            updateSubtotal();
+
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "Input tidak valid! Pastikan angka di Qty dan Harga.");
         }
-
-        // Tambah item baru sesuai urutan kolom: X, ID, Nama, Satuan, Qty, Harga, Total
-        model.addRow(new Object[]{
-            "X",
-            idItem,
-            nama,
-            satuan,
-            qty,
-            harga,
-            0 // total diisi 0 dulu
-        });
-
-        // Bersihkan input
-        txtJumlah.setText("");
-
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Input tidak valid! Pastikan angka di Qty dan Harga.");
     }
-}
+
+    // === UPDATE HARGA BERDASARKAN SATUAN ===
+    private void updateHargaBerdasarkanSatuan() {
+        try {
+            String satuanDipilih = cmbSatuan.getSelectedItem().toString();
+            double hargaAkhir;
+            if (satuanDipilih.equalsIgnoreCase(selectedSatuanBesar)) {
+                hargaAkhir = selectedHarga * selectedKonversi;
+            } else {
+                hargaAkhir = selectedHarga;
+            }
+            txtHarga.setText(formatAngka(hargaAkhir));
+        } catch (Exception e) {
+            txtHarga.setText("0");
+        }
+    }
+
+    // === UPDATE SUBTOTAL ===
+    private void updateSubtotal() {
+        double subtotal = 0;
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            subtotal += parseAngka(model.getValueAt(i, 7).toString());
+        }
+        lblSubtotal.setText(formatAngka(subtotal));
+    }
+
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -325,7 +357,7 @@ private void addItemFromInput() {
         txtJumlah = new javax.swing.JTextField();
         cmbSatuan = new javax.swing.JComboBox<>();
         txtNama = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
+        lblSubtotal = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
@@ -517,11 +549,11 @@ private void addItemFromInput() {
                 .addComponent(cmbAktif)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnSimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(18, 18, 18)
                 .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnExit)
-                .addGap(29, 29, 29))
+                .addContainerGap())
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -546,6 +578,9 @@ private void addItemFromInput() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 txtJumlahKeyPressed(evt);
             }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtJumlahKeyReleased(evt);
+            }
         });
 
         cmbSatuan.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Box", "Dus", "Pack", "Vial", "Ampul", "Pouch", "Tubes", "Botol", "Kaleng", "Strip", "Pouch", " " }));
@@ -553,9 +588,9 @@ private void addItemFromInput() {
         txtNama.setFont(new java.awt.Font("Segoe UI", 3, 24)); // NOI18N
         txtNama.setText("< Nama Item >");
 
-        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
-        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        jLabel7.setText("Rp. 1.234.567");
+        lblSubtotal.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        lblSubtotal.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        lblSubtotal.setText("Rp. 1.234.567");
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -596,8 +631,8 @@ private void addItemFromInput() {
                         .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 398, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(0, 0, 0)
-                .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 533, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 19, Short.MAX_VALUE)
+                .addComponent(lblSubtotal, javax.swing.GroupLayout.PREFERRED_SIZE, 372, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel6Layout.setVerticalGroup(
@@ -617,7 +652,7 @@ private void addItemFromInput() {
                         .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(lblSubtotal, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(0, 14, Short.MAX_VALUE))
         );
 
@@ -687,11 +722,11 @@ private void addItemFromInput() {
                 .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 257, Short.MAX_VALUE)
+                .addGap(135, 135, 135)
                 .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(66, 66, 66))
-            .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addComponent(jPanel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -771,6 +806,10 @@ private void addItemFromInput() {
         }
     }//GEN-LAST:event_txtJumlahKeyPressed
 
+    private void txtJumlahKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtJumlahKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtJumlahKeyReleased
+
     /**
      * @param args the command line arguments
      */
@@ -834,7 +873,6 @@ private void addItemFromInput() {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JMenu jMenu1;
@@ -854,6 +892,7 @@ private void addItemFromInput() {
     private javax.swing.JTextField jTextField5;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JLabel lblSubtotal;
     private javax.swing.JLabel txtHarga;
     private javax.swing.JTextField txtIDItem;
     private javax.swing.JTextField txtJumlah;
