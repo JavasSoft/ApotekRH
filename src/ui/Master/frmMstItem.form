@@ -603,6 +603,9 @@
                       <Dimension value="[33, 22]"/>
                     </Property>
                   </Properties>
+                  <Events>
+                    <EventHandler event="keyReleased" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="txtLabaPersenKeyReleased"/>
+                  </Events>
                 </Component>
               </SubComponents>
             </Container>

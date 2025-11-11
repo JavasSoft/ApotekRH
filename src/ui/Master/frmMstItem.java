@@ -697,6 +697,11 @@ private void loadCurrentItem() {
 
         txtLabaPersen.setBorder(javax.swing.BorderFactory.createTitledBorder("%"));
         txtLabaPersen.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtLabaPersen.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtLabaPersenKeyReleased(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
@@ -860,6 +865,22 @@ private void loadCurrentItem() {
                BrowseItem dialog = new BrowseItem(this, true, conn);
         dialog.setVisible(true);
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void txtLabaPersenKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtLabaPersenKeyReleased
+        // TODO add your handling code here:
+        try {
+            double hargaBeli = Double.parseDouble(txtHargaBeli.getText());
+            double konversi = Double.parseDouble(txtKonversi.getText());
+            double labaPersen = Double.parseDouble(txtLabaPersen.getText());
+
+            double hargaPerPcs = hargaBeli / konversi;
+            double hargaJual = hargaPerPcs * (1 + (labaPersen / 100));
+
+            txtHargaJual.setText(String.format("%.0f", hargaJual)); // tanpa desimal
+        } catch (NumberFormatException e) {
+            txtHargaJual.setText("0");
+        }
+    }//GEN-LAST:event_txtLabaPersenKeyReleased
 
     /**
      * @param args the command line arguments

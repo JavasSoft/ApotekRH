@@ -3,24 +3,40 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package ui.Transaksi;
+import dao.ItemDAO;
 import ui.Master.*;
 import dao.Koneksi;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
+import model.Item;
+import model.User;
+import ui.Master.BrowseAll.BrowseItem;
 /**
  *
  * @author Admin
  */
 public class frmTransPenjualanTunai extends javax.swing.JFrame {
+    private Connection conn;
+     private ItemDAO itemDAO;
+      private Statement stat;
+    private ResultSet rs;
+    private String sql;
+    private User user;
+   // private LisList;
+      private List<Item> itemsList = new ArrayList<>();
 
     /**
      * Creates new form ParentTrans
      */
     public frmTransPenjualanTunai() {
         initComponents();
+        FormCreate();
         jToolBar1.setFloatable(false);
         jToolBar2.setFloatable(false);
         awal();
@@ -32,6 +48,22 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
     this.setResizable(false);
     }
     
+    private void FormCreate(){
+           initializeDatabase();
+    }
+     private void initializeDatabase() {
+                try {
+            conn = Koneksi.getConnection();
+            if (conn != null) {
+                stat = conn.createStatement();
+            } else {
+                JOptionPane.showMessageDialog(this, "Failed to establish connection to the database.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error initializing database connection: " + e.getMessage());
+        }
+    }
     private void navaktif(){
      btnAwal.setEnabled(true);
      btnPrevious.setEnabled(true);
@@ -333,6 +365,11 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
         jTextField1.setMinimumSize(new java.awt.Dimension(33, 22));
 
         txtKodeItem.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtKodeItem.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                txtKodeItemMouseClicked(evt);
+            }
+        });
 
         txtKonversi.setMinimumSize(new java.awt.Dimension(33, 22));
 
@@ -532,6 +569,18 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
         // TODO add your handling code here:
         ubah();
     }//GEN-LAST:event_btnUbahActionPerformed
+
+    private void txtKodeItemMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtKodeItemMouseClicked
+        // TODO add your handling code here:
+         if (evt.getClickCount() == 2) {
+        // Membuka form lain
+        BrowseItem dialog = new BrowseItem(this, true, conn);
+        dialog.setVisible(true);
+        
+        // Opsional: menutup form saat ini
+        // this.dispose();
+    }
+    }//GEN-LAST:event_txtKodeItemMouseClicked
 
     /**
      * @param args the command line arguments

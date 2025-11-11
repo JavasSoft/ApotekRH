@@ -547,6 +547,11 @@ public void setBarangData(int id, String kode, String nama, int idKategori, Stri
 
         jButton2.setBackground(new java.awt.Color(153, 255, 255));
         jButton2.setText("+");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -702,6 +707,10 @@ public void setBarangData(int id, String kode, String nama, int idKategori, Stri
             jtKode.setForeground(Color.GRAY);
         }
     }//GEN-LAST:event_jtKodeFocusLost
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
