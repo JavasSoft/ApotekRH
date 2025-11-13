@@ -20,6 +20,13 @@ import javax.swing.table.DefaultTableModel;
 import model.Item;
 import model.User;
 import ui.Master.BrowseAll.BrowseItem;
+import dao.TjualhDAO;
+import dao.TjualdDAO;
+import dao.TjurnalitemDAO;
+import model.Tjualh;
+import model.Tjuald;
+import model.Tjurnalitem;
+
 /**
  *
  * @author Admin
@@ -47,6 +54,7 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
     public frmTransPenjualanTunai() {
         initComponents();
         FormCreate();
+        btnALL();
         jToolBar1.setFloatable(false);
         jToolBar2.setFloatable(false);
         awal();
@@ -72,6 +80,18 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
             txtDiscPersen.addActionListener(e -> addItemFromInput());
             txtDiscTotal.addActionListener(e -> addItemFromInput());
 
+    }
+    
+        private void btnALL() {
+        btnSimpan.addActionListener(evt -> simpan());
+         btnExit.addActionListener(evr -> dispose());
+         btnTambah.addActionListener(evt -> tambah());
+         btnUbah.addActionListener(evt -> ubah());
+ //        btnAwal.addActionListener(evt -> data_awal());
+ //        btnPrevious.addActionListener(evt -> previous());
+ //        btnNext.addActionListener(evt -> next());
+  //       btnAkhir.addActionListener(evt -> data_terakhir());
+        
     }
      private void initializeDatabase() {
                 try {
@@ -375,7 +395,103 @@ txtDiscTotal.setText("");
     return prefix + datePart + uniquePart;
 }
 
+private void simpanTransaksi() {
+    try {
+        // 🔹 Buat koneksi
+        conn.setAutoCommit(false); // mulai transaksi
 
+        // 🔹 Generate kode faktur
+        String noFaktur = generateNoFaktur();
+        java.sql.Date tanggal = new java.sql.Date(System.currentTimeMillis());
+        String jenisBayar = "Tunai";
+
+        // --- INSERT HEADER ---
+        Tjualh jualh = new Tjualh();
+        jualh.setKode(noFaktur);
+        jualh.setTanggal(tanggal);
+        jualh.setJenisBayar(jenisBayar);
+        jualh.setSubTotal(parseAngka(lblSubtotal.getText()));
+        jualh.setDiskon(0);
+        jualh.setPpn(0);
+        jualh.setTotal(parseAngka(lblSubtotal.getText()));
+        jualh.setStatus("Open");
+        jualh.setInsertUser(user != null ? user.getUsername() : "admin");
+
+        TjualhDAO jualhDAO = new TjualhDAO(conn);
+        jualhDAO.insert(jualh);
+
+        // 🔹 Dapatkan ID header terakhir
+        int idJualH = 0;
+        try (Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery("SELECT LAST_INSERT_ID() AS id")) {
+            if (rs.next()) idJualH = rs.getInt("id");
+        }
+
+        // --- INSERT DETAIL ---
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        TjualdDAO jualdDAO = new TjualdDAO(conn);
+        TjurnalitemDAO jurnalDAO = new TjurnalitemDAO(conn);
+
+        for (int i = 0; i < model.getRowCount(); i++) {
+            int idItem = Integer.parseInt(model.getValueAt(i, 1).toString());
+            double qty = parseAngka(model.getValueAt(i, 5).toString());
+            double harga = parseAngka(model.getValueAt(i, 6).toString());
+            double total = parseAngka(model.getValueAt(i, 8).toString());
+
+            Tjuald juald = new Tjuald();
+            juald.setIdJualH(idJualH);
+            juald.setIdItemD(idItem);
+            juald.setQty(qty);
+            juald.setHarga(harga);
+            juald.setTotal(total);
+            juald.setQtyBase(qty);
+
+            jualdDAO.insert(juald);
+
+            // --- INSERT KE JURNAL STOK ---
+            Tjurnalitem ji = new Tjurnalitem();
+            ji.setTanggal(tanggal);
+            ji.setIdItem(idItem);
+            ji.setKodeTrans(noFaktur);
+            ji.setJenisTrans("Jual");
+            ji.setQtyMasuk(0);
+            ji.setQtyKeluar(qty);
+            ji.setSatuan(model.getValueAt(i, 4).toString());
+            ji.setKeterangan("Penjualan tunai " + noFaktur);
+            ji.setInsertUser(user != null ? user.getUsername() : "admin");
+
+            jurnalDAO.insert(ji);
+        }
+
+        conn.commit();
+        JOptionPane.showMessageDialog(this, "Transaksi berhasil disimpan!\nNo Faktur: " + noFaktur);
+        clearInputFields();
+        ((DefaultTableModel) jTable1.getModel()).setRowCount(0);
+        lblSubtotal.setText("0");
+
+    } catch (Exception e) {
+        try { conn.rollback(); } catch (Exception ex) { ex.printStackTrace(); }
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Gagal menyimpan transaksi: " + e.getMessage());
+    }
+}
+//simpan data
+private void simpan() {
+    String action = jLabel1.getText(); // Mendapatkan teks dari JLabel
+
+    if (action.equals("[Tambah]")) {
+        simpanTransaksi();
+    } else if (action.equals("[Ubah]")) {
+        updateTrans();
+    } else {
+        JOptionPane.showMessageDialog(null, "Aksi tidak dikenali: " + action);
+    }
+
+    awal(); // Reset form / state awal
+}
+
+private void updateTrans(){
+}
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -685,7 +801,11 @@ txtDiscTotal.setText("");
         jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel12.setText("Diskon");
 
+        txtDiscPersen.setMaximumSize(new java.awt.Dimension(33, 22));
         txtDiscPersen.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtDiscPersen.setName(""); // NOI18N
+        txtDiscPersen.setOpaque(true);
+        txtDiscPersen.setPreferredSize(new java.awt.Dimension(33, 22));
         txtDiscPersen.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 txtDiscPersenKeyPressed(evt);
@@ -721,17 +841,17 @@ txtDiscTotal.setText("");
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(txtDiscPersen, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtDiscPersen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(15, 15, 15)
                         .addComponent(jLabel13)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtDiscTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(15, 15, 15))
+                        .addComponent(txtDiscTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 398, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblSubtotal, javax.swing.GroupLayout.PREFERRED_SIZE, 372, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
@@ -741,17 +861,18 @@ txtDiscTotal.setText("");
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addGap(2, 2, 2)
-                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(txtJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(cmbSatuan, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtKodeItem, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txtDiscTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txtDiscPersen, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(txtDiscPersen, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(txtJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(cmbSatuan, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtKodeItem, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(txtDiscTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLabel12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -854,10 +975,10 @@ txtDiscTotal.setText("");
                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(dtpTanggal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(cmbJenis)
+                    .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(txtDokter, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
                         .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(cmbJenis)
                         .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
                         .addComponent(jLabel14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
