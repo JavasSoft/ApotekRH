@@ -185,6 +185,12 @@ private void updatePageData() {
                     kota, bank, norek, namarek, aktif
                 );
             } 
+                 else if (getParent() instanceof frmTransPenjualanTunai) {
+                frmTransPenjualanTunai parentForm = (frmTransPenjualanTunai) getParent();
+                // kirim hanya data yang dibutuhkan oleh transaksi
+                parentForm.setDokterData(id, nama);
+            }
+                
                 dispose();
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this,

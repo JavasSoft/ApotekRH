@@ -20,6 +20,7 @@ import javax.swing.table.DefaultTableModel;
 import model.Item;
 import model.User;
 import ui.Master.BrowseAll.BrowseItem;
+import ui.Master.BrowseAll.BrowseDokter;
 import dao.TjualhDAO;
 import dao.TjualdDAO;
 import dao.TjurnalitemDAO;
@@ -43,6 +44,7 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
     private String selectedSatuanKecil;
     private double selectedHarga;
     private String selectedSatuanBesar;
+    private int selectedDokterId = 0;
     private double selectedKonversi;
    private double setSubtotal = 0;
     DefaultTableModel model;
@@ -410,6 +412,7 @@ private void simpanTransaksi() {
         jualh.setKode(noFaktur);
         jualh.setTanggal(tanggal);
         jualh.setJenisBayar(jenisBayar);
+        jualh.setIdDokter(selectedDokterId);
         jualh.setSubTotal(parseAngka(lblSubtotal.getText()));
         jualh.setDiskon(0);
         jualh.setPpn(0);
@@ -477,8 +480,10 @@ private void simpanTransaksi() {
 }
 //simpan data
 private void simpan() {
-    String action = jLabel1.getText(); // Mendapatkan teks dari JLabel
-
+    System.out.println("DEBUG: simpan() terpanggil");
+    String action = jLabel1.getText();
+    System.out.println("DEBUG: Label aksi = " + action);
+    
     if (action.equals("[Tambah]")) {
         simpanTransaksi();
     } else if (action.equals("[Ubah]")) {
@@ -492,6 +497,17 @@ private void simpan() {
 
 private void updateTrans(){
 }
+
+public void setDokterData(int idDokter, String namaDokter) {
+    // kalau kamu ingin menyimpan idDokter untuk keperluan simpan ke database,
+    // buat variabel global di kelas, misalnya:
+    this.selectedDokterId = idDokter;
+
+    // hanya tampilkan nama di text field
+    txtDokter.setText(namaDokter);
+}
+
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -926,6 +942,11 @@ private void updateTrans(){
         jLabel11.setText("Dokter :");
 
         txtDokter.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtDokter.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                txtDokterMouseClicked(evt);
+            }
+        });
 
         jTextField5.setMinimumSize(new java.awt.Dimension(33, 22));
 
@@ -1084,6 +1105,14 @@ private void updateTrans(){
         // TODO add your handling code here:
     }//GEN-LAST:event_txtDiscPersenKeyReleased
 
+    private void txtDokterMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtDokterMouseClicked
+             // TODO add your handling code here:
+         if (evt.getClickCount() == 2) {
+        // Membuka form lain
+        BrowseDokter dialog = new BrowseDokter(this, true, conn);
+        dialog.setVisible(true);   // TODO add your handling code here:
+    }//GEN-LAST:event_txtDokterMouseClicked
+  }
     /**
      * @param args the command line arguments
      */

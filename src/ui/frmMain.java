@@ -12,6 +12,7 @@ import ui.Master.frmMstSupplier;
 import ui.Master.frmMstDokter1;
 import ui.Master.frmMstItem;
 import ui.Transaksi.frmTransPenjualanTunai;
+import ui.Transaksi.frmTransPembelianBayar;
 
 
 
@@ -73,6 +74,7 @@ public class frmMain extends javax.swing.JFrame {
         jMenu2 = new javax.swing.JMenu();
         Penjualan = new javax.swing.JMenu();
         PenjualanTunai = new javax.swing.JMenuItem();
+        jMenu5 = new javax.swing.JMenu();
         jMenuItem6 = new javax.swing.JMenuItem();
         jMenuItem7 = new javax.swing.JMenuItem();
         jMenuItem8 = new javax.swing.JMenuItem();
@@ -257,6 +259,7 @@ public class frmMain extends javax.swing.JFrame {
         Penjualan.setText("Penjualan");
 
         PenjualanTunai.setText("Penjualan Tunai");
+        PenjualanTunai.setActionCommand("Jual Tunai");
         PenjualanTunai.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         PenjualanTunai.setPreferredSize(new java.awt.Dimension(90, 30));
         PenjualanTunai.addActionListener(new java.awt.event.ActionListener() {
@@ -268,9 +271,18 @@ public class frmMain extends javax.swing.JFrame {
 
         jMenu2.add(Penjualan);
 
-        jMenuItem6.setText("Pembelian");
+        jMenu5.setText("Pembelian");
+
+        jMenuItem6.setText("Beli Bayar");
         jMenuItem6.setPreferredSize(new java.awt.Dimension(80, 30));
-        jMenu2.add(jMenuItem6);
+        jMenuItem6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem6ActionPerformed(evt);
+            }
+        });
+        jMenu5.add(jMenuItem6);
+
+        jMenu2.add(jMenu5);
 
         jMenuItem7.setText("Hutang");
         jMenuItem7.setPreferredSize(new java.awt.Dimension(80, 30));
@@ -375,6 +387,11 @@ public class frmMain extends javax.swing.JFrame {
                 frmTransPenjualanTunai.setVisible(true);  
     }//GEN-LAST:event_PenjualanTunaiActionPerformed
 
+    private void jMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem6ActionPerformed
+        frmTransPembelianBayar frmTransPembelianBayar = new frmTransPembelianBayar();
+                frmTransPembelianBayar.setVisible(true);         // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem6ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -410,6 +427,7 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
+    private javax.swing.JMenu jMenu5;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem10;
