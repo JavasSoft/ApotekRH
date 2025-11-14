@@ -154,6 +154,7 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     private void clearInputFields() {
     txtIDItem.setText("");
     txtKodeItem.setText("");
+    txtSupplier.setText("");
      txtNama.setText("< Nama Item >");
     txtJumlah.setText("0");
     txtHarga.setText(formatAngka(0));
@@ -332,6 +333,7 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
             belih.setKode(noFaktur);
             belih.setTanggal(tanggal);
             belih.setJenisBayar(jenisBayar);
+            belih.setIdSupplier(selectedSupplierId);
             belih.setSubTotal(parseAngka(lblSubtotal.getText()));
             belih.setDiskon(0);
             belih.setPpn(0);
@@ -396,7 +398,26 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Gagal menyimpan transaksi: " + e.getMessage());
         }
     }
+    
+    public void setItemData(int idItem, String kode, String nama, String satuanKecil,
+            String satuanBesar, double hargaJual, double konversi) {
+        txtIDItem.setText(String.valueOf(idItem));
+        txtKodeItem.setText(kode);
+        txtNama.setText(nama);
+        txtHarga.setText(formatAngka(hargaJual));
+        selectedHarga = hargaJual;
+        this.selectedSatuanKecil = satuanKecil;
+        this.selectedSatuanBesar = satuanBesar;
+        this.selectedKonversi = konversi;
 
+        cmbSatuan.removeAllItems();
+        if (satuanKecil != null && !satuanKecil.isEmpty()) cmbSatuan.addItem(satuanKecil);
+        if (satuanBesar != null && !satuanBesar.isEmpty() && !satuanBesar.equalsIgnoreCase(satuanKecil)) {
+            cmbSatuan.addItem(satuanBesar);
+        }
+        cmbSatuan.setSelectedItem(satuanKecil);
+    }
+    
     private void simpan() {
         System.out.println("DEBUG: simpan() terpanggil");
         String action = jLabel1.getText();
