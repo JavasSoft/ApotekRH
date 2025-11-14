@@ -25,7 +25,8 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import ui.Master.BrowseAll.BrowseBarangDialog;
-import ui.Master.BrowseAll.BrowseSupplierDialog;
+import ui.Master.BrowseAll.BrowseSupplier;
+//import ui.Master.BrowseAll.BrowseSupplierDialog;
 /**
  *
  * @author Admin
@@ -153,7 +154,7 @@ private void tdefauttabel() {
         dialog.setVisible(true);
     }
      private void openBrowseDialog(){
-         BrowseSupplierDialog dialog = new BrowseSupplierDialog(this, true, conn);
+         BrowseSupplier dialog = new BrowseSupplier(this, true, conn);
         dialog.setVisible(true);
     }
 public void setBarangData(int id, String kode, String nama, int idKategori, String KodeK, String NamaK, String satuan, double beli, double jual, String keterangan, boolean isAktif) {

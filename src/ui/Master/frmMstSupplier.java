@@ -327,6 +327,25 @@ import model.User;
             JOptionPane.showMessageDialog(null, "Anda sudah berada pada record pertama.");
         }
     }
+    
+    public void setSupplierData(int id, String kode, String nama, String email,
+                            String alamat, String telp, String kota,
+                            String bank, String norek, String namarek,
+                            boolean aktif) {
+
+    txtIDSupplier.setText(String.valueOf(id));
+    jtKode.setText(kode);
+    txtNama.setText(nama);
+    txtEmail.setText(email);
+    txtAlamat.setText(alamat);
+    txtTelephone.setText(telp);
+    txtKota.setText(kota);
+    txtBank.setText(bank);
+    txtNomorRekening.setText(norek);
+    txtNamaRekening.setText(namarek);
+    cmbAktif.setSelected(aktif);
+}
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always

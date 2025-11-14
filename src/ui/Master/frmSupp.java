@@ -18,7 +18,7 @@ import javax.swing.JOptionPane;
 import model.Customer;
 import model.Supplier;
 import model.User;
-import ui.Master.BrowseAll.BrowseSupplierDialog;
+import ui.Master.BrowseAll.BrowseSupplier;
 /**
  *
  * @author Admin
@@ -339,7 +339,7 @@ public class frmSupp extends javax.swing.JFrame {
         cmbAktif.setSelected(isAktif); // Check the checkbox if the supplier is active
     }
     private void openBrowseDialog(){
-         BrowseSupplierDialog dialog = new BrowseSupplierDialog(this, true, conn);
+         BrowseSupplier dialog = new BrowseSupplier(this, true, conn);
         dialog.setVisible(true);
     }
     // Other form methods and initialization code
