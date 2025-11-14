@@ -14,7 +14,17 @@ public class TjualhDAO {
     public TjualhDAO(Connection conn) {
         this.conn = conn;
     }
-
+public String getLastKode(String prefix) throws SQLException {
+        String sql = "SELECT Kode FROM tjualh WHERE Kode LIKE ? ORDER BY Kode DESC LIMIT 1";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, prefix + "%");
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getString("Kode");
+            }
+        }
+        return null;
+    }
     public void insert(Tjualh jual) throws SQLException {
         String sql = "INSERT INTO tjualh (Kode, IDCust, Tanggal, JenisBayar, IDDokter, " +
                      "JatuhTempo, SubTotal, Diskon, Ppn, Total, Status, InsertUser) " +

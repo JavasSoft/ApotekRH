@@ -24,6 +24,8 @@ import ui.Master.BrowseAll.BrowseDokter;
 import dao.TjualhDAO;
 import dao.TjualdDAO;
 import dao.TjurnalitemDAO;
+import java.time.LocalDate;
+import model.Session;
 import model.Tjualh;
 import model.Tjuald;
 import model.Tjurnalitem;
@@ -40,11 +42,13 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
     private String sql;
     private User user;
    // private LisList;
+    private TjualdDAO tjualdDAO;
     private List<Item> itemsList = new ArrayList<>();
     private String selectedSatuanKecil;
     private double selectedHarga;
     private String selectedSatuanBesar;
-    private int selectedDokterId = 0;
+    private Integer selectedDokterId;
+
     private double selectedKonversi;
    private double setSubtotal = 0;
     DefaultTableModel model;
@@ -59,7 +63,7 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
         btnALL();
         jToolBar1.setFloatable(false);
         jToolBar2.setFloatable(false);
-        awal();
+        tambah();
         FrmProjec();
     }
     
@@ -76,7 +80,8 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
            initializeDatabase();
            initTable();
            setupDiscEvents();
-           setupJenisListener(); 
+           setupJenisListener();
+           //TjualhDAO dao = new TjualhDAO(conn);
            cmbSatuan.addActionListener(e -> updateHargaBerdasarkanSatuan());
            txtJumlah.addActionListener(e -> addItemFromInput());
             txtDiscPersen.addActionListener(e -> addItemFromInput());
@@ -251,6 +256,7 @@ private void updateDiscTotal() {
         navaktif();
     }
     private void tambah(){
+        IDotomatis();
         jLabel1.setText("[Tambah]");
         btnUbah.setEnabled(false);
         btnHapus.setEnabled(false);
@@ -258,7 +264,8 @@ private void updateDiscTotal() {
         btnCancel.setEnabled(true);
         btnExit.setEnabled(true);
         navnonaktif();
-        
+        dtpTanggal.setDate(new java.util.Date()); // set tanggal hari ini
+        dtpTanggal.setDateFormatString("dd/MM/yyyy"); // ubah format tampilan      
     }
     private void ubah(){
         jLabel1.setText("[Ubah]");
@@ -297,6 +304,8 @@ private void clearInputFields() {
     cmbSatuan.removeAllItems();
     txtDiscPersen.setText("");
 txtDiscTotal.setText("");
+selectedDokterId = null;
+txtDokter.setText("");
 
 }
 
@@ -390,34 +399,42 @@ txtDiscTotal.setText("");
         lblSubtotal.setText(formatAngka(subtotal));
     }
     
-    private String generateNoFaktur() {
-    String prefix = "PJ";
-    String datePart = new java.text.SimpleDateFormat("yyMMdd").format(new java.util.Date());
-    String uniquePart = String.format("%03d", (int)(Math.random() * 999));
-    return prefix + datePart + uniquePart;
-}
-
 private void simpanTransaksi() {
     try {
         // 🔹 Buat koneksi
         conn.setAutoCommit(false); // mulai transaksi
 
         // 🔹 Generate kode faktur
-        String noFaktur = generateNoFaktur();
+         String noFaktur = txtNoFaktur.getText();
         java.sql.Date tanggal = new java.sql.Date(System.currentTimeMillis());
-        String jenisBayar = "Tunai";
+        String jenisBayar = cmbJenisTras.getSelectedItem().toString(); 
+        String status = "";
+        if ("Tunai".equals(jenisBayar)) {
+            status = "Lunas";  
+        } else {
+            status = "Open";
+        }
+        User user = Session.getUser();
+    String username = user.getUsername();
+
+    // Lanjutkan proses penyimpanan transaksi sesuai jenis pembayaran
+
 
         // --- INSERT HEADER ---
         Tjualh jualh = new Tjualh();
         jualh.setKode(noFaktur);
         jualh.setTanggal(tanggal);
         jualh.setJenisBayar(jenisBayar);
-        jualh.setIdDokter(selectedDokterId);
+        if (selectedDokterId == null || selectedDokterId == 0) {
+    jualh.setIdDokter(null);
+} else {
+    jualh.setIdDokter(selectedDokterId);
+}
         jualh.setSubTotal(parseAngka(lblSubtotal.getText()));
         jualh.setDiskon(0);
         jualh.setPpn(0);
         jualh.setTotal(parseAngka(lblSubtotal.getText()));
-        jualh.setStatus("Open");
+        jualh.setStatus(status);
         jualh.setInsertUser(user != null ? user.getUsername() : "admin");
 
         TjualhDAO jualhDAO = new TjualhDAO(conn);
@@ -483,7 +500,15 @@ private void simpan() {
     System.out.println("DEBUG: simpan() terpanggil");
     String action = jLabel1.getText();
     System.out.println("DEBUG: Label aksi = " + action);
-    
+     if (cmbJenis.getSelectedItem().toString().equalsIgnoreCase("Resep")) {
+        if (txtDokter.getText().trim().isEmpty()) {
+            JOptionPane.showMessageDialog(null, 
+                    "Dokter harus diisi jika jenis = Resep!",
+                    "Validasi", JOptionPane.WARNING_MESSAGE);
+            txtDokter.requestFocus();
+            return; // HENTIKAN proses simpan
+        }
+    }
     if (action.equals("[Tambah]")) {
         simpanTransaksi();
     } else if (action.equals("[Ubah]")) {
@@ -492,10 +517,39 @@ private void simpan() {
         JOptionPane.showMessageDialog(null, "Aksi tidak dikenali: " + action);
     }
 
-    awal(); // Reset form / state awal
+   tambah(); // Reset form / state awal
 }
 
 private void updateTrans(){
+}
+private void IDotomatis() {
+    try {
+        // Buat prefix dinamis berdasarkan tahun & bulan
+        LocalDate today = LocalDate.now();
+        String year  = String.format("%02d", today.getYear() % 100); // 25
+        String month = String.format("%02d", today.getMonthValue()); // 11
+
+        String prefix = "PJ" + year + month; // contoh: PJ2511
+            TjualhDAO dao = new TjualhDAO(conn);
+        // Ambil kode terakhir berdasarkan prefix baru
+        String lastCode = dao.getLastKode(prefix);
+        String newCode;
+
+        if (lastCode != null && lastCode.startsWith(prefix)) {
+            // Ambil angka urut setelah prefix
+            int number = Integer.parseInt(lastCode.substring(prefix.length()));
+            number++; // increment
+            newCode = prefix + String.format("%05d", number); // hasil: PJ251100001
+        } else {
+            // Jika belum ada data untuk bulan tersebut
+            newCode = prefix + "00001";
+        }
+
+        txtNoFaktur.setText(newCode);
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "Terjadi kesalahan: " + e.getMessage());
+    }
 }
 
 public void setDokterData(int idDokter, String namaDokter) {
@@ -519,6 +573,20 @@ public void setDokterData(int idDokter, String namaDokter) {
     private void initComponents() {
 
         txtIDItem = new javax.swing.JTextField();
+        Pebayaran = new javax.swing.JPanel();
+        jPanel8 = new javax.swing.JPanel();
+        jLabel6 = new javax.swing.JLabel();
+        jTextField1 = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jLabel15 = new javax.swing.JLabel();
+        jTextField2 = new javax.swing.JTextField();
+        jLabel16 = new javax.swing.JLabel();
+        jTextField3 = new javax.swing.JTextField();
+        jRadioButton1 = new javax.swing.JRadioButton();
+        jRadioButton2 = new javax.swing.JRadioButton();
+        buttonGroup1 = new javax.swing.ButtonGroup();
         jPanel5 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
@@ -535,6 +603,7 @@ public void setDokterData(int idDokter, String namaDokter) {
         btnUbah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
+        cmbJenisTras = new javax.swing.JComboBox<>();
         jPanel4 = new javax.swing.JPanel();
         btnSimpan = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
@@ -571,6 +640,116 @@ public void setDokterData(int idDokter, String namaDokter) {
         jMenuItem1 = new javax.swing.JMenuItem();
 
         txtIDItem.setText("jTextField3");
+
+        Pebayaran.setBackground(new java.awt.Color(255, 255, 255));
+
+        jPanel8.setBackground(new java.awt.Color(0, 255, 204));
+
+        jLabel6.setBackground(new java.awt.Color(255, 255, 255));
+        jLabel6.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel6.setText("Pembayaran");
+
+        javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
+        jPanel8.setLayout(jPanel8Layout);
+        jPanel8Layout.setHorizontalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel8Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel8Layout.setVerticalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel8Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel7.setText("Total :");
+
+        jButton1.setText("No Print");
+
+        jButton2.setText("Print Nota");
+
+        jLabel15.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel15.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel15.setText("Pembayaran :");
+
+        jLabel16.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel16.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel16.setText("Kembali :");
+
+        buttonGroup1.add(jRadioButton1);
+        jRadioButton1.setText("Tunai");
+
+        buttonGroup1.add(jRadioButton2);
+        jRadioButton2.setText("Transfer");
+
+        javax.swing.GroupLayout PebayaranLayout = new javax.swing.GroupLayout(Pebayaran);
+        Pebayaran.setLayout(PebayaranLayout);
+        PebayaranLayout.setHorizontalGroup(
+            PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(PebayaranLayout.createSequentialGroup()
+                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(PebayaranLayout.createSequentialGroup()
+                        .addGap(25, 25, 25)
+                        .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(PebayaranLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(PebayaranLayout.createSequentialGroup()
+                                .addGap(6, 6, 6)
+                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addGroup(PebayaranLayout.createSequentialGroup()
+                                .addComponent(jLabel16, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PebayaranLayout.createSequentialGroup()
+                                .addComponent(jLabel15, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(PebayaranLayout.createSequentialGroup()
+                                        .addComponent(jRadioButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jRadioButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                .addContainerGap())
+        );
+        PebayaranLayout.setVerticalGroup(
+            PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(PebayaranLayout.createSequentialGroup()
+                .addComponent(jPanel8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jTextField1)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE))
+                .addGap(11, 11, 11)
+                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jRadioButton1)
+                    .addComponent(jRadioButton2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jTextField2)
+                    .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jTextField3)
+                    .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 14, Short.MAX_VALUE))
+        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Transaksi Penjualan Tunai");
@@ -699,6 +878,8 @@ public void setDokterData(int idDokter, String namaDokter) {
         jLabel5.setForeground(new java.awt.Color(0, 102, 0));
         jLabel5.setText("1 of 9999");
 
+        cmbJenisTras.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Tunai", "Kredit" }));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -708,6 +889,8 @@ public void setDokterData(int idDokter, String namaDokter) {
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jLabel5)
+                .addGap(53, 53, 53)
+                .addComponent(cmbJenisTras, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
@@ -716,12 +899,14 @@ public void setDokterData(int idDokter, String namaDokter) {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(cmbJenisTras))
                         .addContainerGap())))
         );
 
@@ -783,7 +968,7 @@ public void setDokterData(int idDokter, String namaDokter) {
         txtNama.setFont(new java.awt.Font("Segoe UI", 3, 24)); // NOI18N
         txtNama.setText("< Nama Item >");
 
-        lblSubtotal.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        lblSubtotal.setFont(new java.awt.Font("Segoe UI", 1, 36)); // NOI18N
         lblSubtotal.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         lblSubtotal.setText("Rp. 1.234.567");
 
@@ -821,7 +1006,7 @@ public void setDokterData(int idDokter, String namaDokter) {
         txtDiscPersen.setMinimumSize(new java.awt.Dimension(33, 22));
         txtDiscPersen.setName(""); // NOI18N
         txtDiscPersen.setOpaque(true);
-        txtDiscPersen.setPreferredSize(new java.awt.Dimension(33, 22));
+        txtDiscPersen.setPreferredSize(new java.awt.Dimension(32, 22));
         txtDiscPersen.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 txtDiscPersenKeyPressed(evt);
@@ -856,17 +1041,17 @@ public void setDokterData(int idDokter, String namaDokter) {
                         .addComponent(txtJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(txtDiscPersen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(15, 15, 15)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel13)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtDiscTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtDiscTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 112, Short.MAX_VALUE))
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 398, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                        .addComponent(txtHarga, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(lblSubtotal, javax.swing.GroupLayout.PREFERRED_SIZE, 372, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -878,7 +1063,11 @@ public void setDokterData(int idDokter, String namaDokter) {
                     .addGroup(jPanel6Layout.createSequentialGroup()
                         .addGap(2, 2, 2)
                         .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtDiscPersen, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(txtDiscPersen, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(txtDiscTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                             .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                 .addComponent(txtJumlah, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addComponent(cmbSatuan, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -886,10 +1075,8 @@ public void setDokterData(int idDokter, String namaDokter) {
                                 .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(txtDiscTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
@@ -925,8 +1112,8 @@ public void setDokterData(int idDokter, String namaDokter) {
         jPanel7Layout.setVerticalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel7Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 27, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 223, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -974,7 +1161,7 @@ public void setDokterData(int idDokter, String namaDokter) {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtDokter, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(txtDokter, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -989,24 +1176,23 @@ public void setDokterData(int idDokter, String namaDokter) {
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addGap(10, 10, 10)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(txtNoFaktur, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(dtpTanggal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(cmbJenis)
-                    .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(txtDokter, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
-                        .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
-                        .addComponent(jLabel14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(txtDokter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jLabel14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
+                    .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(txtNoFaktur, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(18, 18, 18)
+                .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 52, Short.MAX_VALUE)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(20, 20, 20))
         );
@@ -1024,9 +1210,7 @@ public void setDokterData(int idDokter, String namaDokter) {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1038,27 +1222,6 @@ public void setDokterData(int idDokter, String namaDokter) {
 
     private void btnTambahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTambahActionPerformed
         // TODO add your handling code here:
-        tambah();
-        
-        // === AUTO GENERATE NO FAKTUR ===
-    String noFaktur = generateNoFaktur();
-    txtNoFaktur.setText(noFaktur);
-    
-    // === SET TANGGAL HARI INI ===
-    dtpTanggal.setDate(new java.util.Date());
-    
-    // === ATUR FIELD DOKTER BERDASARKAN JENIS PENJUALAN ===
-    Object selectedJenis = cmbJenis.getSelectedItem();
-    if (selectedJenis != null) {
-        String jenis = selectedJenis.toString();
-        if (jenis.equalsIgnoreCase("Biasa")) {
-            txtDokter.setEnabled(false);
-            txtDokter.setText(""); // Kosongkan jika tidak perlu
-        } else if (jenis.equalsIgnoreCase("Resep")) {
-            txtDokter.setEnabled(true);
-        }
-    }
-    clearInputFields();
     }//GEN-LAST:event_btnTambahActionPerformed
 
     private void btnUbahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUbahActionPerformed
@@ -1156,6 +1319,7 @@ public void setDokterData(int idDokter, String namaDokter) {
 //    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel Pebayaran;
     private javax.swing.JButton btnAkhir;
     private javax.swing.JButton btnAwal;
     private javax.swing.JButton btnCancel;
@@ -1166,20 +1330,28 @@ public void setDokterData(int idDokter, String namaDokter) {
     private javax.swing.JButton btnSimpan;
     private javax.swing.JButton btnTambah;
     private javax.swing.JButton btnUbah;
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JCheckBox cmbAktif;
     private javax.swing.JComboBox<String> cmbJenis;
+    private javax.swing.JComboBox<String> cmbJenisTras;
     private javax.swing.JComboBox<String> cmbSatuan;
     private com.toedter.calendar.JDateChooser dtpTanggal;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JMenu jMenu1;
@@ -1192,8 +1364,14 @@ public void setDokterData(int idDokter, String namaDokter) {
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
+    private javax.swing.JRadioButton jRadioButton1;
+    private javax.swing.JRadioButton jRadioButton2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
+    private javax.swing.JTextField jTextField1;
+    private javax.swing.JTextField jTextField2;
+    private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField5;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;

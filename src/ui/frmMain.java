@@ -7,6 +7,7 @@ package ui;
 import javax.swing.JFrame;
 import javax.swing.Box;
 import javax.swing.SwingConstants;
+import model.User;
 import ui.Master.frmMstCust;
 import ui.Master.frmMstSupplier;
 import ui.Master.frmMstDokter1;
@@ -24,11 +25,11 @@ import ui.Transaksi.frmTransPembelianBayar;
 public class frmMain extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(frmMain.class.getName());
-
     /**
      * Creates new form frmMain
      */
     public frmMain() {
+       
         initComponents();
         FormShow();
         BarMenu();
@@ -44,7 +45,7 @@ public class frmMain extends javax.swing.JFrame {
     jMenu2.setHorizontalAlignment(SwingConstants.CENTER);
     jMenu3.setHorizontalAlignment(SwingConstants.CENTER);
 }
-    
+
     
     
 

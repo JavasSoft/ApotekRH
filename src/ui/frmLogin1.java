@@ -16,6 +16,7 @@ import java.sql.Statement;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import model.User;
+import model.Session;
 
 /**
  *
@@ -121,6 +122,7 @@ public class frmLogin1 extends javax.swing.JFrame {
             // Successful login logic here
             // Optionally show a success message
              //JOptionPane.showMessageDialog(this, "Login successful!");
+              Session.setUser(user);
                     frmMain frmMain = new frmMain();
                 frmMain.setVisible(true);
                 dispose();
