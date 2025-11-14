@@ -87,8 +87,9 @@
         <Container class="javax.swing.JPanel" name="jPanel1">
           <Properties>
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="ff" green="ff" red="cc" type="rgb"/>
+              <Color blue="cc" green="ff" red="0" type="rgb"/>
             </Property>
+            <Property name="toolTipText" type="java.lang.String" value=""/>
           </Properties>
 
           <Layout>
@@ -127,7 +128,7 @@
             <Container class="javax.swing.JPanel" name="jPanel2">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="ff" green="66" red="0" type="rgb"/>
+                  <Color blue="0" green="66" red="0" type="rgb"/>
                 </Property>
               </Properties>
 
@@ -154,7 +155,7 @@
                 <Container class="javax.swing.JPanel" name="jPanel3">
                   <Properties>
                     <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                      <Color blue="f5" green="a9" red="5e" type="rgb"/>
+                      <Color blue="cc" green="ff" red="cc" type="rgb"/>
                     </Property>
                     <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
                       <Border info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
@@ -191,18 +192,12 @@
                   <SubComponents>
                     <Component class="javax.swing.JLabel" name="jLabel4">
                       <Properties>
-                        <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                          <Color blue="ff" green="ff" red="ff" type="rgb"/>
-                        </Property>
                         <Property name="horizontalAlignment" type="int" value="0"/>
                         <Property name="text" type="java.lang.String" value="Mode Aktif "/>
                       </Properties>
                     </Component>
                     <Component class="javax.swing.JLabel" name="jLabel1">
                       <Properties>
-                        <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                          <Color blue="ff" green="ff" red="ff" type="rgb"/>
-                        </Property>
                         <Property name="horizontalAlignment" type="int" value="0"/>
                         <Property name="text" type="java.lang.String" value="[Browse]"/>
                       </Properties>
@@ -258,7 +253,7 @@
             <Container class="javax.swing.JToolBar" name="jToolBar1">
               <Properties>
                 <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="f5" green="a9" red="5e" type="rgb"/>
+                  <Color blue="cc" green="ff" red="cc" type="rgb"/>
                 </Property>
                 <Property name="rollover" type="boolean" value="true"/>
                 <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
@@ -335,7 +330,7 @@
                   <Color blue="0" green="0" red="0" type="rgb"/>
                 </Property>
                 <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-                  <Color blue="ff" green="33" red="0" type="rgb"/>
+                  <Color blue="0" green="66" red="0" type="rgb"/>
                 </Property>
                 <Property name="text" type="java.lang.String" value="1 of 9999"/>
               </Properties>
@@ -345,7 +340,7 @@
         <Container class="javax.swing.JPanel" name="jPanel4">
           <Properties>
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
-              <Color blue="ff" green="ff" red="cc" type="rgb"/>
+              <Color blue="cc" green="ff" red="0" type="rgb"/>
             </Property>
           </Properties>
 

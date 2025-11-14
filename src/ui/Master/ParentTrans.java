@@ -101,20 +101,19 @@ public class ParentTrans extends javax.swing.JFrame {
 
         jPanel5.setBackground(new java.awt.Color(255, 255, 255));
 
-        jPanel1.setBackground(new java.awt.Color(204, 255, 255));
+        jPanel1.setBackground(new java.awt.Color(0, 255, 204));
+        jPanel1.setToolTipText("");
 
-        jPanel2.setBackground(new java.awt.Color(0, 102, 255));
+        jPanel2.setBackground(new java.awt.Color(0, 102, 0));
 
-        jPanel3.setBackground(new java.awt.Color(94, 169, 245));
+        jPanel3.setBackground(new java.awt.Color(204, 255, 204));
         jPanel3.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
         jPanel3.setMinimumSize(new java.awt.Dimension(100, 25));
         jPanel3.setPreferredSize(new java.awt.Dimension(100, 25));
 
-        jLabel4.setForeground(new java.awt.Color(255, 255, 255));
         jLabel4.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel4.setText("Mode Aktif ");
 
-        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("[Browse]");
 
@@ -178,7 +177,7 @@ public class ParentTrans extends javax.swing.JFrame {
             .addComponent(jToolBar2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
         );
 
-        jToolBar1.setBackground(new java.awt.Color(94, 169, 245));
+        jToolBar1.setBackground(new java.awt.Color(204, 255, 204));
         jToolBar1.setRollover(true);
         jToolBar1.setMaximumSize(new java.awt.Dimension(100, 25));
         jToolBar1.setMinimumSize(new java.awt.Dimension(100, 25));
@@ -220,7 +219,7 @@ public class ParentTrans extends javax.swing.JFrame {
         jToolBar1.add(btnHapus);
 
         jLabel5.setBackground(new java.awt.Color(0, 0, 0));
-        jLabel5.setForeground(new java.awt.Color(0, 51, 255));
+        jLabel5.setForeground(new java.awt.Color(0, 102, 0));
         jLabel5.setText("1 of 9999");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -249,7 +248,7 @@ public class ParentTrans extends javax.swing.JFrame {
                         .addContainerGap())))
         );
 
-        jPanel4.setBackground(new java.awt.Color(204, 255, 255));
+        jPanel4.setBackground(new java.awt.Color(0, 255, 204));
 
         btnSimpan.setText("Simpan");
 
