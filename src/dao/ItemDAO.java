@@ -102,6 +102,39 @@ public class ItemDAO {
         return list;
     }
     
+    public ItemFull getFullItem(int idItem) throws SQLException {
+
+        String sql = """
+            SELECT 
+                mitem.IDItem,
+                mitem.Kode,
+                mitem.Nama,
+                mitemd.SatuanBesar,
+                mitemd.HargaJual
+            FROM mitem
+            LEFT JOIN mitemd ON mitem.IDItem = mitemd.IDItem
+            WHERE mitem.IDItem = ?
+            LIMIT 1
+            """;
+
+        PreparedStatement ps = conn.prepareStatement(sql);
+        ps.setInt(1, idItem);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            ItemFull item = new ItemFull();
+            item.setIdItem(rs.getInt("IDItem"));
+            item.setKode(rs.getString("Kode"));
+            item.setNama(rs.getString("Nama"));
+            item.setSatuanBesar(rs.getString("SatuanBesar"));
+            item.setHargaJual(rs.getDouble("HargaJual"));
+            return item;
+        }
+
+        return null;
+    }
+
+    
     public List<Item> searchBarangByName(String keyword) {
     List<Item> itemList = new ArrayList<>();
     String sqlItem = "SELECT * FROM mitem WHERE Nama LIKE ?";
