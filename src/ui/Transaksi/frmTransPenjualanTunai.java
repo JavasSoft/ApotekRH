@@ -674,11 +674,11 @@ private void tampilkanDetailKeTabel(List<Tjuald> details) {
                 kode,            // Kolom 1 = Kode
                 nama,            // Kolom 2 = Nama
                 satuan,          // Kolom 3 = Satuan
-                d.getQty(),      // Kolom 4 = Qty
-                d.getHarga(),
+                formatAngka(d.getQty()),      // Kolom 4 = Qty
+                formatAngka(d.getHarga()),
                 null,// Kolom 5 = Harga
                 //d.getDiskon() != null ? d.getDiskon() : 0,
-                d.getTotal()     // Kolom 7 = Total
+                formatAngka(d.getTotal())     // Kolom 7 = Total
             });
 
 
