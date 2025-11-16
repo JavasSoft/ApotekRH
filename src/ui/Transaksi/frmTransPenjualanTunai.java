@@ -5,6 +5,7 @@
 package ui.Transaksi;
 import dao.ItemDAO;
 import dao.Koneksi;
+import dao.TjualPiutangDAO;
 import dao.cell.ButtonEditor;
 import dao.cell.ButtonRenderer;
 import java.awt.event.KeyEvent;
@@ -28,6 +29,7 @@ import dao.TjurnalitemDAO;
 import java.time.LocalDate;
 import model.ItemFull;
 import model.Session;
+import model.TjualPiutang;
 import model.Tjualh;
 import model.Tjuald;
 import model.Tjurnalitem;
@@ -515,6 +517,26 @@ private void simpanTransaksi() {
              ResultSet rs = st.executeQuery("SELECT LAST_INSERT_ID() AS id")) {
             if (rs.next()) idJualH = rs.getInt("id");
         }
+        
+        // === INSERT PIUTANG JIKA KREDIT ===
+        if (jenisBayar.equalsIgnoreCase("Kredit")) {
+
+        TjualPiutangDAO pdao = new TjualPiutangDAO(conn);
+        TjualPiutang p = new TjualPiutang();
+
+        java.sql.Date dueDate = new java.sql.Date(dtpJatuhTempo.getDate().getTime());
+
+        p.setIdJualH(idJualH);
+        p.setNoFaktur(noFaktur);
+        p.setTanggal(tanggal);
+        p.setJatuhTempo(dueDate);
+        p.setSisaPiutang(parseAngka(lblSubtotal.getText())); // piutang awal = total
+
+        pdao.insert(p);
+
+        System.out.println("DEBUG: Piutang berhasil disimpan untuk transaksi kredit.");
+        }
+
 
         // --- INSERT DETAIL ---
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -630,7 +652,9 @@ private void loadCurrentItem() {
         txtIDJual.setText(String.valueOf(tjualh.getIdJualH()));
         txtNoFaktur.setText(tjualh.getKode());
         dtpTanggal.setDate(tjualh.getTanggal());
+        dtpJatuhTempo.setDate(tjualh.getJatuhTempo());
         txtDokter.setText(String.valueOf(tjualh.getIdDokter()));
+        
 
         lblSubtotal.setText(formatAngka(tjualh.getSubTotal()));
         txtDiscTotal.setText(formatAngka(tjualh.getDiskon()));
