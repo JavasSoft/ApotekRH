@@ -8,6 +8,7 @@ import javax.swing.JFrame;
 import javax.swing.Box;
 import javax.swing.SwingConstants;
 import model.User;
+import ui.Laporan.laporanjualpertanggal;
 import ui.Master.frmMstCust;
 import ui.Master.frmMstSupplier;
 import ui.Master.frmMstDokter1;
@@ -306,6 +307,11 @@ public class frmMain extends javax.swing.JFrame {
 
         jMenuItem10.setText("Pembelian");
         jMenuItem10.setPreferredSize(new java.awt.Dimension(90, 30));
+        jMenuItem10.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem10ActionPerformed(evt);
+            }
+        });
         jMenu3.add(jMenuItem10);
 
         jMenuItem11.setText("Penjualan");
@@ -392,6 +398,12 @@ public class frmMain extends javax.swing.JFrame {
         frmTransPembelianBayar frmTransPembelianBayar = new frmTransPembelianBayar();
                 frmTransPembelianBayar.setVisible(true);         // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem6ActionPerformed
+
+    private void jMenuItem10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem10ActionPerformed
+        // TODO add your handling code here:
+         laporanjualpertanggal lapjualpertngl = new laporanjualpertanggal();
+                lapjualpertngl.setVisible(true);   
+    }//GEN-LAST:event_jMenuItem10ActionPerformed
 
     /**
      * @param args the command line arguments
