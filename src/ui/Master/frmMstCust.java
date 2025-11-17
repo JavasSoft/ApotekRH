@@ -15,6 +15,7 @@ import java.util.List;
 import javax.swing.JOptionPane;
 import model.Customer;
 import model.User;
+import ui.Master.BrowseAll.BrowseCustomer;
 /**
  *
  * @author Admin
@@ -315,6 +316,32 @@ private void loadCurrentCustomer() {
         JOptionPane.showMessageDialog(null, "Indeks catatan tidak valid.");
     }
 }
+
+public void setCustomerData(int id, String kode, String nama, String email,
+                          String alamat, String telephone,
+                          String kota, String bank, 
+                          String nomorRekening, String namaRekening, boolean aktif) {
+    txtIDCustomer.setText(String.valueOf(id));
+    jtKode.setText(kode);
+    txtNama.setText(nama);
+    txtEmail.setText(email);
+    txtAlamat.setText(alamat);
+    txtTelephone.setText(telephone);
+    txtKota.setText(kota);
+    txtBank.setText(bank);
+    txtNomorRekening.setText(nomorRekening);
+    txtNamaRekening.setText(namaRekening);
+    cmbAktif.setSelected(aktif);
+        // === Update state internal (opsional) ===
+    for (int i = 0; i < customerList.size(); i++) {
+        if (customerList.get(i).getIDCustomer()== id) {
+            currentRecordIndex = i;
+            updateRecordLabel();
+            break;
+        }
+    }
+}
+
     private void updateRecordLabel() {
     recordLabel.setText("Record: " + (currentRecordIndex + 1) + " dari " + totalInputs);
 }
@@ -597,6 +624,11 @@ private void loadCurrentCustomer() {
         jtKode.setMinimumSize(new java.awt.Dimension(33, 22));
 
         jButton1.setText("jButton1");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
 
         txtNama.setMinimumSize(new java.awt.Dimension(33, 22));
 
@@ -965,6 +997,11 @@ private void loadCurrentCustomer() {
     private void txtNamaRekeningFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtNamaRekeningFocusLost
         // TODO add your handling code here:
     }//GEN-LAST:event_txtNamaRekeningFocusLost
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+                   BrowseCustomer dialog = new BrowseCustomer(this, true, conn);
+        dialog.setVisible(true);        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
