@@ -6,6 +6,7 @@ package ui.Laporan;
 import ui.Master.*;
 import dao.Koneksi;
 import dao.TjualhDAO;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,12 +15,18 @@ import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import model.Tjualh;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.view.JasperViewer;
 /**
  *
  * @author Admin
@@ -286,6 +293,11 @@ center.setHorizontalAlignment(javax.swing.JLabel.CENTER);
         jPanel4.setBackground(new java.awt.Color(0, 255, 204));
 
         btnPrint.setText("Print");
+        btnPrint.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPrintActionPerformed(evt);
+            }
+        });
 
         btnExit.setText("Exit Ctrl + X");
 
@@ -330,7 +342,10 @@ center.setHorizontalAlignment(javax.swing.JLabel.CENTER);
         ));
         jScrollPane1.setViewportView(jTable1);
 
-        jLabel3.setText("Total");
+        txtGrandTotal.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
+
+        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel3.setText("Total :");
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
@@ -428,6 +443,41 @@ center.setHorizontalAlignment(javax.swing.JLabel.CENTER);
     // Set ke tanggal akhir
     jdtglAkhir.setDate(cal.getTime());
     }//GEN-LAST:event_formWindowOpened
+
+    private void btnPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPrintActionPerformed
+try {
+    java.sql.Date tglAwal = new java.sql.Date(jdtglAwal.getDate().getTime());
+    java.sql.Date tglAkhir = new java.sql.Date(jdtglAkhir.getDate().getTime());
+    
+
+
+    HashMap<String, Object> param = new HashMap<>();
+    param.put("tglAwal", tglAwal);
+    param.put("tglAkhir", tglAkhir);
+    
+    ResultSet rs = stat.executeQuery(
+    "SELECT * FROM tjualh WHERE Tanggal BETWEEN '" + tglAwal + "' AND '" + tglAkhir + "'"
+);
+int count = 0;
+while(rs.next()) count++;
+System.out.println("Jumlah record: " + count);
+
+    // Path file jasper (pastikan path ini sesuai lokasi jasper kamu)
+    String reportPath = "src/ui/Laporan/Blank_A4.jasper";
+
+    JasperPrint jp = JasperFillManager.fillReport(reportPath, param, conn);
+    
+
+    // Membuat JasperViewer dan menampilkannya
+    JasperViewer viewer = new JasperViewer(jp, false);
+    viewer.setVisible(true);  // menampilkan viewer
+
+} catch (Exception e) {
+    JOptionPane.showMessageDialog(this, "Gagal cetak: " + e.getMessage());
+}
+
+
+    }//GEN-LAST:event_btnPrintActionPerformed
 
     /**
      * @param args the command line arguments
