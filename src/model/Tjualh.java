@@ -5,6 +5,8 @@
 package model;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Tjualh {
     private int idJualH;
@@ -22,6 +24,7 @@ public class Tjualh {
     private String insertUser;
     private java.sql.Timestamp insertTime;
     private String updateUser;
+    List<Tjuald> details;
 
     // --- Getter dan Setter ---
     public int getIdJualH() { return idJualH; }
@@ -68,4 +71,8 @@ public class Tjualh {
 
     public String getUpdateUser() { return updateUser; }
     public void setUpdateUser(String updateUser) { this.updateUser = updateUser; }
+    
+        public List<Tjuald> getDetails() { return details; }
+    public void setDetails(List<Tjuald> details) { this.details = details; }
 }
+

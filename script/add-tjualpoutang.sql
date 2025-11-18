@@ -1,0 +1,12 @@
+CREATE TABLE `tjualpiutang` (
+    `IDPiutang` INT NOT NULL AUTO_INCREMENT,
+    `IDJualH` INT NULL DEFAULT NULL,
+    `NoFaktur` VARCHAR(50) NULL DEFAULT NULL,
+    `Tanggal` DATE NULL DEFAULT NULL,
+    `JatuhTempo` DATE NULL DEFAULT NULL,
+    `SisaPiutang` DECIMAL(18,2) NULL DEFAULT NULL,
+    PRIMARY KEY (`IDPiutang`) USING BTREEtjualpiutang
+)
+COLLATE='utf8mb4_0900_ai_ci'
+ENGINE=InnoDB
+;
