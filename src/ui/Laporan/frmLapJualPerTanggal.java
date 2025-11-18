@@ -65,6 +65,8 @@ private void tampilkanKeTabelLaporan(List<Tjualh> list) {
     model.setRowCount(0); // bersihkan tabel
 
     int no = 1;
+    // 1. Deklarasi variabel untuk Grand Total
+    double grandTotal = 0.0; 
 
     for (Tjualh h : list) {
         String namaCustomer = (h.getCustomer() != null && h.getCustomer().getNama() != null)
@@ -74,7 +76,7 @@ private void tampilkanKeTabelLaporan(List<Tjualh> list) {
                 ? h.getDokter().getNama() : "-";
 
         model.addRow(new Object[]{
-            no++,                   // nomor urut
+            no++, 					// nomor urut
             h.getKode(),
             h.getTanggal(),
             namaCustomer,
@@ -84,7 +86,15 @@ private void tampilkanKeTabelLaporan(List<Tjualh> list) {
             formatAngka(h.getPpn()),
             formatAngka(h.getTotal())
         });
+        
+        // 2. Akumulasi total
+        grandTotal += h.getTotal(); 
     }
+    
+    // 3. Tampilkan Grand Total ke txtgrandtotal
+    // Asumsi: txtgrandtotal adalah komponen JTextField/JLabel, dan Anda ingin memformat angkanya.
+    
+txtGrandTotal.setText(formatAngka(grandTotal)); 
 }
 
 private void initTableLaporan() {
@@ -187,6 +197,8 @@ center.setHorizontalAlignment(javax.swing.JLabel.CENTER);
         cmbAktif = new javax.swing.JCheckBox();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
+        txtGrandTotal = new javax.swing.JTextField();
+        jLabel3 = new javax.swing.JLabel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -318,15 +330,23 @@ center.setHorizontalAlignment(javax.swing.JLabel.CENTER);
         ));
         jScrollPane1.setViewportView(jTable1);
 
+        jLabel3.setText("Total");
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(jPanel5Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 810, Short.MAX_VALUE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 810, Short.MAX_VALUE)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(txtGrandTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(14, 14, 14))
         );
         jPanel5Layout.setVerticalGroup(
@@ -335,7 +355,11 @@ center.setHorizontalAlignment(javax.swing.JLabel.CENTER);
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 324, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(txtGrandTotal)
+                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(21, 21, 21))
         );
@@ -457,6 +481,7 @@ center.setHorizontalAlignment(javax.swing.JLabel.CENTER);
     private javax.swing.JCheckBox jCheckBox2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
@@ -468,5 +493,6 @@ center.setHorizontalAlignment(javax.swing.JLabel.CENTER);
     private javax.swing.JTable jTable1;
     private com.toedter.calendar.JDateChooser jdtglAkhir;
     private com.toedter.calendar.JDateChooser jdtglAwal;
+    private javax.swing.JTextField txtGrandTotal;
     // End of variables declaration//GEN-END:variables
 }
