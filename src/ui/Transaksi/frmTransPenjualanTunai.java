@@ -201,9 +201,6 @@ private void loadDataFromDatabase() {
     }
     }
 
-
-
-
 private void initTable() {
     DefaultTableModel model = new DefaultTableModel(
         new Object[]{"X", "ID","Kode", "Nama", "Satuan", "Qty", "Harga", "Diskon", "Total"}, 0
