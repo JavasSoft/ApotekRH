@@ -316,6 +316,11 @@ public class frmMain extends javax.swing.JFrame {
 
         jMenuItem11.setText("Penjualan");
         jMenuItem11.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenuItem11.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem11ActionPerformed(evt);
+            }
+        });
         jMenu3.add(jMenuItem11);
 
         jMenuItem12.setText("Hutang");
@@ -400,10 +405,13 @@ public class frmMain extends javax.swing.JFrame {
     }//GEN-LAST:event_jMenuItem6ActionPerformed
 
     private void jMenuItem10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem10ActionPerformed
-        // TODO add your handling code here:
-         frmLapJualPerTanggal lapjualpertngl = new frmLapJualPerTanggal();
-                lapjualpertngl.setVisible(true);   
+        // TODO add your handling code here: 
     }//GEN-LAST:event_jMenuItem10ActionPerformed
+
+    private void jMenuItem11ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem11ActionPerformed
+             frmLapJualPerTanggal lapjualpertngl = new frmLapJualPerTanggal();
+                lapjualpertngl.setVisible(true);          // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem11ActionPerformed
 
     /**
      * @param args the command line arguments
