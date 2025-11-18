@@ -200,6 +200,30 @@ private void loadDataFromDatabase() {
         dtpJatuhTempo.setDate(cal.getTime());
     }
     }
+     
+//    private void updateNominalVisibility() {
+//        String jenis = cmbJenisTras.getSelectedItem().toString();
+//
+//        if (jenis.equalsIgnoreCase("Tunai")) {
+//            lblNominal.setVisible(true);
+//            txtNominal.setVisible(true);
+//            lblKembalian.setVisible(true);
+//            txtKembalian.setVisible(true);
+//
+//            txtNominal.setText("");
+//            txtKembalian.setText("0");
+//
+//        } else { // Kredit
+//            lblNominal.setVisible(false);
+//            txtNominal.setVisible(false);
+//            lblKembalian.setVisible(false);
+//            txtKembalian.setVisible(false);
+//
+//            txtNominal.setText("");
+//            txtKembalian.setText("");
+//        }
+//    }
+
 
 private void initTable() {
     DefaultTableModel model = new DefaultTableModel(
@@ -793,6 +817,8 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
     private void initComponents() {
 
         txtIDJual = new javax.swing.JTextField();
+        buttonGroup1 = new javax.swing.ButtonGroup();
+        jdBayar = new javax.swing.JDialog();
         Pebayaran = new javax.swing.JPanel();
         jPanel8 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
@@ -806,7 +832,6 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         jTextField3 = new javax.swing.JTextField();
         jRadioButton1 = new javax.swing.JRadioButton();
         jRadioButton2 = new javax.swing.JRadioButton();
-        buttonGroup1 = new javax.swing.ButtonGroup();
         jPanel5 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
@@ -870,6 +895,7 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         txtIDJual.setText("jTextField3");
 
         Pebayaran.setBackground(new java.awt.Color(255, 255, 255));
+        Pebayaran.setMinimumSize(new java.awt.Dimension(415, 282));
 
         jPanel8.setBackground(new java.awt.Color(0, 255, 204));
 
@@ -977,6 +1003,27 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
                     .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(0, 14, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout jdBayarLayout = new javax.swing.GroupLayout(jdBayar.getContentPane());
+        jdBayar.getContentPane().setLayout(jdBayarLayout);
+        jdBayarLayout.setHorizontalGroup(
+            jdBayarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 415, Short.MAX_VALUE)
+            .addGroup(jdBayarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jdBayarLayout.createSequentialGroup()
+                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addComponent(Pebayaran, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        jdBayarLayout.setVerticalGroup(
+            jdBayarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(jdBayarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jdBayarLayout.createSequentialGroup()
+                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addComponent(Pebayaran, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
         );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -1173,6 +1220,11 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         jPanel4.setBackground(new java.awt.Color(0, 255, 204));
 
         btnSimpan.setText("Simpan");
+        btnSimpan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSimpanActionPerformed(evt);
+            }
+        });
 
         btnExit.setText("Exit Ctrl + X");
 
@@ -1577,6 +1629,20 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         dialog.setVisible(true);}     // TODO add your handling code here:
     }//GEN-LAST:event_txtCustomerMouseClicked
 
+    private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
+// 1. Pastikan jdBayar mengambil ukuran sesuai konten
+    jdBayar.pack(); 
+    
+    // 2. Set Posisi ke Tengah Layar
+    jdBayar.setLocationRelativeTo(null); 
+    
+    // (Opsional) 3. Cegah user mengubah ukuran jendela, agar tata letak tetap rapi
+    jdBayar.setResizable(false); 
+    
+    // 4. Tampilkan JDialog
+    jdBayar.setVisible(true);    // TODO add your handling code here:
+    }//GEN-LAST:event_btnSimpanActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1678,6 +1744,7 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
     private javax.swing.JTextField jTextField5;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JDialog jdBayar;
     private javax.swing.JLabel lblCustomer;
     private javax.swing.JLabel lblJatuhTempo;
     private javax.swing.JLabel lblSubtotal;

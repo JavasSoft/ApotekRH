@@ -74,10 +74,8 @@ public class frmMain extends javax.swing.JFrame {
         jMenuItem3 = new javax.swing.JMenuItem();
         jMenuItem4 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
-        Penjualan = new javax.swing.JMenu();
-        PenjualanTunai = new javax.swing.JMenuItem();
-        jMenu5 = new javax.swing.JMenu();
-        jMenuItem6 = new javax.swing.JMenuItem();
+        jMenuItem5 = new javax.swing.JMenuItem();
+        jMenuItem18 = new javax.swing.JMenuItem();
         jMenuItem7 = new javax.swing.JMenuItem();
         jMenuItem8 = new javax.swing.JMenuItem();
         jMenuItem9 = new javax.swing.JMenuItem();
@@ -258,33 +256,21 @@ public class frmMain extends javax.swing.JFrame {
         jMenu2.setText("     Transaksi");
         jMenu2.setPreferredSize(new java.awt.Dimension(100, 22));
 
-        Penjualan.setText("Penjualan");
-
-        PenjualanTunai.setText("Penjualan Tunai");
-        PenjualanTunai.setActionCommand("Jual Tunai");
-        PenjualanTunai.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        PenjualanTunai.setPreferredSize(new java.awt.Dimension(90, 30));
-        PenjualanTunai.addActionListener(new java.awt.event.ActionListener() {
+        jMenuItem5.setText("Penjualan");
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                PenjualanTunaiActionPerformed(evt);
+                jMenuItem5ActionPerformed(evt);
             }
         });
-        Penjualan.add(PenjualanTunai);
+        jMenu2.add(jMenuItem5);
 
-        jMenu2.add(Penjualan);
-
-        jMenu5.setText("Pembelian");
-
-        jMenuItem6.setText("Beli Bayar");
-        jMenuItem6.setPreferredSize(new java.awt.Dimension(80, 30));
-        jMenuItem6.addActionListener(new java.awt.event.ActionListener() {
+        jMenuItem18.setText("Pembelian");
+        jMenuItem18.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem6ActionPerformed(evt);
+                jMenuItem18ActionPerformed(evt);
             }
         });
-        jMenu5.add(jMenuItem6);
-
-        jMenu2.add(jMenu5);
+        jMenu2.add(jMenuItem18);
 
         jMenuItem7.setText("Hutang");
         jMenuItem7.setPreferredSize(new java.awt.Dimension(80, 30));
@@ -393,17 +379,6 @@ public class frmMain extends javax.swing.JFrame {
                 frmMstSupplier.setVisible(true);       // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem2ActionPerformed
 
-    private void PenjualanTunaiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_PenjualanTunaiActionPerformed
-        // TODO add your handling code here:
-        frmTransPenjualanTunai frmTransPenjualanTunai = new frmTransPenjualanTunai();
-                frmTransPenjualanTunai.setVisible(true);  
-    }//GEN-LAST:event_PenjualanTunaiActionPerformed
-
-    private void jMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem6ActionPerformed
-        frmTransPembelianBayar frmTransPembelianBayar = new frmTransPembelianBayar();
-                frmTransPembelianBayar.setVisible(true);         // TODO add your handling code here:
-    }//GEN-LAST:event_jMenuItem6ActionPerformed
-
     private void jMenuItem10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem10ActionPerformed
         // TODO add your handling code here: 
     }//GEN-LAST:event_jMenuItem10ActionPerformed
@@ -412,6 +387,16 @@ public class frmMain extends javax.swing.JFrame {
              frmLapJualPerTanggal lapjualpertngl = new frmLapJualPerTanggal();
                 lapjualpertngl.setVisible(true);          // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem11ActionPerformed
+
+    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
+                frmTransPenjualanTunai frmTransPenjualanTunai = new frmTransPenjualanTunai();
+                frmTransPenjualanTunai.setVisible(true);        // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem5ActionPerformed
+
+    private void jMenuItem18ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem18ActionPerformed
+                frmTransPembelianBayar frmTransPembelianBayar = new frmTransPembelianBayar();
+                frmTransPembelianBayar.setVisible(true);         // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem18ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -439,8 +424,6 @@ public class frmMain extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JMenu Penjualan;
-    private javax.swing.JMenuItem PenjualanTunai;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -448,7 +431,6 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenu jMenu3;
     private javax.swing.JMenu jMenu4;
-    private javax.swing.JMenu jMenu5;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem10;
@@ -459,10 +441,11 @@ public class frmMain extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem15;
     private javax.swing.JMenuItem jMenuItem16;
     private javax.swing.JMenuItem jMenuItem17;
+    private javax.swing.JMenuItem jMenuItem18;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
-    private javax.swing.JMenuItem jMenuItem6;
+    private javax.swing.JMenuItem jMenuItem5;
     private javax.swing.JMenuItem jMenuItem7;
     private javax.swing.JMenuItem jMenuItem8;
     private javax.swing.JMenuItem jMenuItem9;
