@@ -8,7 +8,7 @@ import javax.swing.JFrame;
 import javax.swing.Box;
 import javax.swing.SwingConstants;
 import model.User;
-import ui.Laporan.laporanjualpertanggal;
+import ui.Laporan.frmLapJualPerTanggal;
 import ui.Master.frmMstCust;
 import ui.Master.frmMstSupplier;
 import ui.Master.frmMstDokter1;
@@ -401,7 +401,7 @@ public class frmMain extends javax.swing.JFrame {
 
     private void jMenuItem10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem10ActionPerformed
         // TODO add your handling code here:
-         laporanjualpertanggal lapjualpertngl = new laporanjualpertanggal();
+         frmLapJualPerTanggal lapjualpertngl = new frmLapJualPerTanggal();
                 lapjualpertngl.setVisible(true);   
     }//GEN-LAST:event_jMenuItem10ActionPerformed
 

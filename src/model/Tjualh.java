@@ -1,11 +1,6 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
 import java.sql.Date;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Tjualh {
@@ -24,9 +19,13 @@ public class Tjualh {
     private String insertUser;
     private java.sql.Timestamp insertTime;
     private String updateUser;
-    List<Tjuald> details;
+    private List<Tjuald> details;
 
-    // --- Getter dan Setter ---
+    // === Tambahkan field untuk Customer dan Dokter ===
+    private Customer customer;  
+    private Dokter dokter;
+
+    // --- Getter dan Setter existing ---
     public int getIdJualH() { return idJualH; }
     public void setIdJualH(int idJualH) { this.idJualH = idJualH; }
 
@@ -71,8 +70,14 @@ public class Tjualh {
 
     public String getUpdateUser() { return updateUser; }
     public void setUpdateUser(String updateUser) { this.updateUser = updateUser; }
-    
-        public List<Tjuald> getDetails() { return details; }
-    public void setDetails(List<Tjuald> details) { this.details = details; }
-}
 
+    public List<Tjuald> getDetails() { return details; }
+    public void setDetails(List<Tjuald> details) { this.details = details; }
+
+    // === Getter dan Setter untuk Customer dan Dokter ===
+    public Customer getCustomer() { return customer; }
+    public void setCustomer(Customer customer) { this.customer = customer; }
+
+    public Dokter getDokter() { return dokter; }
+    public void setDokter(Dokter dokter) { this.dokter = dokter; }
+}

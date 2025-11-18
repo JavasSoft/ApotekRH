@@ -11,24 +11,31 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DecimalFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import model.Tjualh;
 /**
  *
  * @author Admin
  */
-public class laporanjualpertanggal extends javax.swing.JFrame {
+public class frmLapJualPerTanggal extends javax.swing.JFrame {
    private Connection conn;
        private Statement stat;
     /**
      * Creates new form ParentTrans
      */
-    public laporanjualpertanggal() {
+    public frmLapJualPerTanggal() {
         initComponents();
         initializeDatabase();
+     //   FormShow();
     }
+    
     
        private void initializeDatabase() {
                 try {
@@ -43,32 +50,113 @@ public class laporanjualpertanggal extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(this, "Error initializing database connection: " + e.getMessage());
         }
     }
-
-private void tampilkanKeTabel(List<Tjualh> list) {
-    DefaultTableModel model = new DefaultTableModel();
-
-    model.addColumn("Kode");
-    model.addColumn("Tanggal");
-    model.addColumn("Customer");
-    model.addColumn("Subtotal");
-    model.addColumn("Diskon");
-    model.addColumn("PPN");
-    model.addColumn("Total");
-
-    for (Tjualh h : list) {
-        model.addRow(new Object[]{
-            h.getKode(),
-            h.getTanggal(),
-            h.getIdCust(),
-            h.getSubTotal(),
-            h.getDiskon(),
-            h.getPpn(),
-            h.getTotal()
-        });
+ private String formatAngka(double value) {
+        DecimalFormat df = new DecimalFormat("#,##0");
+        return df.format(value);
     }
 
-    jTable1.setModel(model);
+    private double parseAngka(String value) {
+        return Double.parseDouble(value.replace(",", "").replace(".", ""));
+    }
+
+
+private void tampilkanKeTabelLaporan(List<Tjualh> list) {
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    model.setRowCount(0); // bersihkan tabel
+
+    int no = 1;
+
+    for (Tjualh h : list) {
+        String namaCustomer = (h.getCustomer() != null && h.getCustomer().getNama() != null)
+                ? h.getCustomer().getNama() : "-";
+
+        String namaDokter = (h.getDokter() != null && h.getDokter().getNama() != null)
+                ? h.getDokter().getNama() : "-";
+
+        model.addRow(new Object[]{
+            no++,                   // nomor urut
+            h.getKode(),
+            h.getTanggal(),
+            namaCustomer,
+            namaDokter,
+            formatAngka(h.getSubTotal()),
+            formatAngka(h.getDiskon()),
+            formatAngka(h.getPpn()),
+            formatAngka(h.getTotal())
+        });
+    }
 }
+
+private void initTableLaporan() {
+    DefaultTableModel model = new DefaultTableModel(
+        new Object[]{"No", "Kode", "Tanggal", "Customer", "Dokter", "Subtotal", "Diskon", "PPN", "Total"}, 0
+    ) {
+        @Override
+        public boolean isCellEditable(int row, int column) {
+            return false; // semua kolom tidak bisa diedit
+        }
+    };
+
+    jTable1.setModel(model);
+
+    // Hilangkan grid dan spacing
+    jTable1.setShowGrid(false);
+    jTable1.setIntercellSpacing(new java.awt.Dimension(0, 0));
+    jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+    // Set lebar kolom
+    jTable1.getColumn("No").setPreferredWidth(40);
+    jTable1.getColumn("Kode").setPreferredWidth(120);
+    jTable1.getColumn("Tanggal").setPreferredWidth(100);
+    jTable1.getColumn("Customer").setPreferredWidth(200);
+    jTable1.getColumn("Dokter").setPreferredWidth(200);
+    jTable1.getColumn("Subtotal").setPreferredWidth(120);
+    jTable1.getColumn("Diskon").setPreferredWidth(120);
+    jTable1.getColumn("PPN").setPreferredWidth(120);
+    jTable1.getColumn("Total").setPreferredWidth(120);
+
+    // Buat striped rows
+    jTable1.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+        @Override
+        public java.awt.Component getTableCellRendererComponent(
+                JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+
+            super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+            if (isSelected) {
+                setBackground(new java.awt.Color(135, 206, 250)); // biru muda
+                setForeground(java.awt.Color.BLACK);
+            } else {
+                setBackground(row % 2 == 0
+                        ? java.awt.Color.WHITE
+                        : new java.awt.Color(240, 255, 240)); // hijau muda lembut
+                setForeground(java.awt.Color.BLACK);
+            }
+
+            return this;
+        }
+    });
+
+    // Header warna hijau tua
+    jTable1.getTableHeader().setBackground(new java.awt.Color(0, 102, 0));
+    jTable1.getTableHeader().setForeground(java.awt.Color.WHITE);
+    jTable1.getTableHeader().setFont(jTable1.getTableHeader().getFont().deriveFont(java.awt.Font.BOLD));
+
+    // Kolom angka rata kanan
+    DefaultTableCellRenderer right = new DefaultTableCellRenderer();
+    right.setHorizontalAlignment(javax.swing.JLabel.RIGHT);
+    
+    DefaultTableCellRenderer center = new DefaultTableCellRenderer();
+center.setHorizontalAlignment(javax.swing.JLabel.CENTER);
+
+    jTable1.getColumn("No").setCellRenderer(center);
+    jTable1.getColumn("Subtotal").setCellRenderer(right);
+    jTable1.getColumn("Diskon").setCellRenderer(right);
+    jTable1.getColumn("PPN").setCellRenderer(right);
+    jTable1.getColumn("Total").setCellRenderer(right);
+}
+
+
 
 
     
@@ -89,7 +177,7 @@ private void tampilkanKeTabel(List<Tjualh> list) {
         jdtglAkhir = new com.toedter.calendar.JDateChooser();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
+        btnCari = new javax.swing.JButton();
         jPanel4 = new javax.swing.JPanel();
         btnPrint = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
@@ -103,6 +191,11 @@ private void tampilkanKeTabel(List<Tjualh> list) {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setBackground(new java.awt.Color(255, 255, 255));
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         jPanel5.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -128,10 +221,10 @@ private void tampilkanKeTabel(List<Tjualh> list) {
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel2.setText("Tanggal :");
 
-        jButton1.setText("cari");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btnCari.setText("cari");
+        btnCari.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnCariActionPerformed(evt);
             }
         });
 
@@ -141,16 +234,16 @@ private void tampilkanKeTabel(List<Tjualh> list) {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(135, 135, 135)
+                .addGap(112, 112, 112)
                 .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jdtglAwal, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jdtglAwal, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jdtglAkhir, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jButton1)
+                .addComponent(jdtglAkhir, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(42, 42, 42)
+                .addComponent(btnCari)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -158,14 +251,14 @@ private void tampilkanKeTabel(List<Tjualh> list) {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jdtglAwal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jdtglAkhir, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jdtglAwal, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jdtglAkhir, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(jButton1))
-                .addContainerGap(9, Short.MAX_VALUE))
+                    .addComponent(btnCari))
+                .addContainerGap(10, Short.MAX_VALUE))
         );
 
         jPanel4.setBackground(new java.awt.Color(0, 255, 204));
@@ -223,16 +316,16 @@ private void tampilkanKeTabel(List<Tjualh> list) {
             .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 810, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(14, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 810, Short.MAX_VALUE)
+                .addGap(14, 14, 14))
         );
         jPanel5Layout.setVerticalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 350, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 350, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(21, 21, 21))
         );
@@ -262,7 +355,7 @@ private void tampilkanKeTabel(List<Tjualh> list) {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
         // TODO add your handling code here:
          try {
         // Ambil tanggal dari JDateChooser
@@ -273,13 +366,34 @@ private void tampilkanKeTabel(List<Tjualh> list) {
         List<Tjualh> list = dao.getByDateRange(tglAwal, tglAkhir);
 
         // Menampilkan ke tabel
-        tampilkanKeTabel(list);
+        tampilkanKeTabelLaporan(list);
 
     } catch (Exception e) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(this, "Gagal filter: " + e.getMessage());
     }
-    }//GEN-LAST:event_jButton1ActionPerformed
+         
+    }//GEN-LAST:event_btnCariActionPerformed
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        // TODO add your handling code here:
+        initTableLaporan();
+                    jdtglAwal.setDateFormatString("dd/MM/yyyy");
+    jdtglAkhir.setDateFormatString("dd/MM/yyyy");
+         Date today = new Date();
+    jdtglAwal.setDate(today);
+
+    // Kalender berdasarkan hari ini
+    Calendar cal = Calendar.getInstance();
+    cal.setTime(today);
+
+    // Ambil hari terakhir bulan
+    int lastDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+    cal.set(Calendar.DAY_OF_MONTH, lastDay);
+
+    // Set ke tanggal akhir
+    jdtglAkhir.setDate(cal.getTime());
+    }//GEN-LAST:event_formWindowOpened
 
     /**
      * @param args the command line arguments
@@ -325,10 +439,10 @@ private void tampilkanKeTabel(List<Tjualh> list) {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnCancel;
+    private javax.swing.JButton btnCari;
     private javax.swing.JButton btnExit;
     private javax.swing.JButton btnPrint;
     private javax.swing.JCheckBox cmbAktif;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JMenu jMenu1;
