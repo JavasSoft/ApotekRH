@@ -155,7 +155,7 @@
             </Component>
             <Component class="javax.swing.JLabel" name="jLabel3">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Ver.1.0.0.01"/>
+                <Property name="text" type="java.lang.String" value="Ver.1.0.0.2"/>
               </Properties>
             </Component>
           </SubComponents>

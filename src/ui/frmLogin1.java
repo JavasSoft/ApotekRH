@@ -208,7 +208,7 @@ public class frmLogin1 extends javax.swing.JFrame {
         jLabel2.setText("Login");
         jLabel2.setToolTipText("");
 
-        jLabel3.setText("Ver.1.0.0.01");
+        jLabel3.setText("Ver.1.0.0.2");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
