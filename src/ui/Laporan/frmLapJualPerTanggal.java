@@ -369,12 +369,12 @@ center.setHorizontalAlignment(javax.swing.JLabel.CENTER);
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 324, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 324, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(txtGrandTotal)
                     .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(21, 21, 21))
         );
@@ -427,21 +427,25 @@ center.setHorizontalAlignment(javax.swing.JLabel.CENTER);
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
         // TODO add your handling code here:
         initTableLaporan();
-                    jdtglAwal.setDateFormatString("dd/MM/yyyy");
-    jdtglAkhir.setDateFormatString("dd/MM/yyyy");
-         Date today = new Date();
-    jdtglAwal.setDate(today);
+      // Set format tanggal
+jdtglAwal.setDateFormatString("dd/MM/yyyy");
+jdtglAkhir.setDateFormatString("dd/MM/yyyy");
 
-    // Kalender berdasarkan hari ini
-    Calendar cal = Calendar.getInstance();
-    cal.setTime(today);
+// Ambil tanggal sekarang
+Date today = new Date();
+Calendar cal = Calendar.getInstance();
+cal.setTime(today);
 
-    // Ambil hari terakhir bulan
-    int lastDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
-    cal.set(Calendar.DAY_OF_MONTH, lastDay);
+// Set tanggal awal ke 1 bulan ini
+cal.set(Calendar.DAY_OF_MONTH, 1);
+jdtglAwal.setDate(cal.getTime());
 
-    // Set ke tanggal akhir
-    jdtglAkhir.setDate(cal.getTime());
+// Set tanggal akhir ke hari terakhir bulan ini
+cal.setTime(today); // reset ke hari ini
+int lastDay = cal.getActualMaximum(Calendar.DAY_OF_MONTH);
+cal.set(Calendar.DAY_OF_MONTH, lastDay);
+jdtglAkhir.setDate(cal.getTime());
+
     }//GEN-LAST:event_formWindowOpened
 
     private void btnPrintActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPrintActionPerformed
@@ -463,7 +467,7 @@ while(rs.next()) count++;
 System.out.println("Jumlah record: " + count);
 
     // Path file jasper (pastikan path ini sesuai lokasi jasper kamu)
-    String reportPath = "src/ui/Laporan/Blank_A4.jasper";
+    String reportPath = "src/ui/Laporan/Jual.jasper";
 
     JasperPrint jp = JasperFillManager.fillReport(reportPath, param, conn);
     
