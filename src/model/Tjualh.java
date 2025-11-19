@@ -15,6 +15,7 @@ public class Tjualh {
     private double diskon;
     private double ppn;
     private double total;
+    private double nominal;
     private String status;
     private String insertUser;
     private java.sql.Timestamp insertTime;
@@ -49,6 +50,9 @@ public class Tjualh {
 
     public double getSubTotal() { return subTotal; }
     public void setSubTotal(double subTotal) { this.subTotal = subTotal; }
+    
+    public double getNominal() { return nominal; }
+    public void setNominal(double nominal) { this.nominal = nominal; }
 
     public double getDiskon() { return diskon; }
     public void setDiskon(double diskon) { this.diskon = diskon; }

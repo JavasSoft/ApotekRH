@@ -28,6 +28,7 @@ import ui.Master.BrowseAll.BrowseCustomer;
 import dao.TjualhDAO;
 import dao.TjualdDAO;
 import dao.TjurnalitemDAO;
+import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
 import model.ItemFull;
 import model.Session;
@@ -104,9 +105,20 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
            //TjualhDAO dao = new TjualhDAO(conn);
            cmbSatuan.addActionListener(e -> updateHargaBerdasarkanSatuan());
            txtJumlah.addActionListener(e -> addItemFromInput());
-            txtDiscPersen.addActionListener(e -> addItemFromInput());
-            txtDiscTotal.addActionListener(e -> addItemFromInput());
-            cmbJenisTras.addActionListener(e -> updateJatuhTempoVisibility());
+            txtDiscPersen.addActionListener(e -> {
+                addItemFromInput();
+                updateSubtotal();
+                    });
+            txtDiscTotal.addActionListener(e -> {
+                addItemFromInput();
+                updateSubtotal();
+                    });
+            cmbPPN.addActionListener(e -> updateSubtotal());
+            cmbJenisTras.addActionListener(e -> {
+                updateJatuhTempoVisibility();
+                updateBayarVisibility();
+                    });
+            
 
     }
     
@@ -201,28 +213,21 @@ private void loadDataFromDatabase() {
     }
     }
      
-//    private void updateNominalVisibility() {
-//        String jenis = cmbJenisTras.getSelectedItem().toString();
-//
-//        if (jenis.equalsIgnoreCase("Tunai")) {
-//            lblNominal.setVisible(true);
-//            txtNominal.setVisible(true);
-//            lblKembalian.setVisible(true);
-//            txtKembalian.setVisible(true);
-//
-//            txtNominal.setText("");
-//            txtKembalian.setText("0");
-//
-//        } else { // Kredit
-//            lblNominal.setVisible(false);
-//            txtNominal.setVisible(false);
-//            lblKembalian.setVisible(false);
-//            txtKembalian.setVisible(false);
-//
-//            txtNominal.setText("");
-//            txtKembalian.setText("");
-//        }
-//    }
+     
+    private void updateBayarVisibility() {
+        String jenis = cmbJenisTras.getSelectedItem().toString();
+
+        if (jenis.equalsIgnoreCase("Tunai")) {
+            btnBayar.setEnabled(true);
+            txtBayar.setText("");
+            txtKembalian.setText("0");
+            btnSimpan.setEnabled(false);
+
+        } else { // Kredit
+            btnBayar.setEnabled(false);
+            btnSimpan.setEnabled(true);
+        }
+    }
 
 
 private void initTable() {
@@ -324,14 +329,34 @@ private void updateDiscTotal() {
 }
 
 
- private String formatAngka(double value) {
-        DecimalFormat df = new DecimalFormat("#,##0");
-        return df.format(value);
-    }
+private String formatAngka(double value) {
+    DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+    symbols.setGroupingSeparator('.');
+    symbols.setDecimalSeparator(',');
 
-    private double parseAngka(String value) {
-        return Double.parseDouble(value.replace(",", "").replace(".", ""));
+    DecimalFormat df = new DecimalFormat("#,##0", symbols);
+    return df.format(value);
+}
+
+private double parseAngka(String value) {
+    if (value == null || value.trim().isEmpty()) return 0;
+
+    // hilangkan spasi
+    value = value.trim();
+
+    // Hilangkan pemisah ribuan (.)
+    value = value.replace(".", "");
+
+    // Ganti koma menjadi titik untuk parsing desimal
+    value = value.replace(",", ".");
+
+    try {
+        return Double.parseDouble(value);
+    } catch (Exception e) {
+        return 0;
     }
+}
+
 
     private void navaktif(){
      btnAwal.setEnabled(true);
@@ -358,7 +383,7 @@ private void updateDiscTotal() {
         jLabel1.setText("[Tambah]");
         btnUbah.setEnabled(false);
         btnHapus.setEnabled(false);
-        btnSimpan.setEnabled(true);
+        updateBayarVisibility();
         btnCancel.setEnabled(true);
         btnExit.setEnabled(true);
         navnonaktif();
@@ -442,7 +467,7 @@ private void clearInputFields() {
             }
 
             double discTotal = txtDiscTotal.getText().isEmpty() ? 0 : parseAngka(txtDiscTotal.getText());
-            double total = qty * harga;
+            double total = qty * harga - discTotal;
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
 
             for (int i = 0; i < jTable1.getRowCount(); i++) {
@@ -497,12 +522,24 @@ private void clearInputFields() {
 
     // === UPDATE SUBTOTAL ===
     public void updateSubtotal() {
-        double subtotal = 0;
-        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
-        for (int i = 0; i < model.getRowCount(); i++) {
-            subtotal += parseAngka(model.getValueAt(i, 8).toString());
-        }
-        lblSubtotal.setText(formatAngka(subtotal));
+double subtotal = 0;
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+
+    // Hitung subtotal dari tabel
+    for (int i = 0; i < model.getRowCount(); i++) {
+        subtotal += parseAngka(model.getValueAt(i, 8).toString());
+    }
+
+    double totalSetelahPPN = subtotal;
+
+    // Jika checkbox PPN dicentang → tambahkan 11%
+    if (cmbPPN.isSelected()) {
+        totalSetelahPPN = subtotal + (subtotal * 0.11);
+    }
+
+    // Tampilkan
+    lblSubtotal.setText(formatAngka(totalSetelahPPN));
+    jtTotal.setText(lblSubtotal.getText()); 
     }
     
 private void simpanTransaksi() {
@@ -549,6 +586,7 @@ private void simpanTransaksi() {
         jualh.setDiskon(0);
         jualh.setPpn(0);
         jualh.setTotal(parseAngka(lblSubtotal.getText()));
+        jualh.setNominal(parseAngka(txtBayar.getText()));
         jualh.setStatus(status);
         jualh.setInsertUser(user != null ? user.getUsername() : "admin");
 
@@ -633,9 +671,7 @@ private void simpanTransaksi() {
 }
 //simpan data
 private void simpan() {
-    System.out.println("DEBUG: simpan() terpanggil");
     String action = jLabel1.getText();
-    System.out.println("DEBUG: Label aksi = " + action);
      if (cmbJenis.getSelectedItem().toString().equalsIgnoreCase("Resep")) {
         if (txtDokter.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(null, 
@@ -805,6 +841,52 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         JOptionPane.showMessageDialog(null, "Anda sudah berada pada record pertama.");
     }
 }
+    
+    private boolean kembaliNegatif = false;
+    
+    private void prosesBayar() {
+    String input = txtBayar.getText();
+
+    String angka = input.replaceAll("\\D", "");
+    if (angka.isEmpty()) {
+        txtKembalian.setText("0");
+        kembaliNegatif = false;
+        return;
+    }
+
+    // Format ribuan
+    StringBuilder sb = new StringBuilder(angka);
+    for (int i = sb.length() - 3; i > 0; i -= 3) {
+        sb.insert(i, ".");
+    }
+
+    txtBayar.setText(sb.toString());
+    txtBayar.setCaretPosition(sb.length());
+
+    // Hitung kembalian
+    double nominal = Double.parseDouble(angka);
+    double subtotal = Double.parseDouble(lblSubtotal.getText().replace(".", ""));
+    double kembali = nominal - subtotal;
+
+    // Flag: apakah negatif?
+    kembaliNegatif = (kembali < 0);
+
+    txtKembalian.setText(formatRibuan(kembali));
+}
+
+// Format ribuan untuk angka double
+private String formatRibuan(double nilai) {
+    long n = (long) nilai;
+    String angka = String.valueOf(Math.abs(n));
+
+    StringBuilder sb = new StringBuilder(angka);
+    for (int i = sb.length() - 3; i > 0; i -= 3) {
+        sb.insert(i, ".");
+    }
+
+    return (n < 0 ? "-" : "") + sb.toString();
+}
+
 
 
     /**
@@ -822,14 +904,12 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         Pebayaran = new javax.swing.JPanel();
         jPanel8 = new javax.swing.JPanel();
         jLabel6 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
+        jtTotal = new javax.swing.JTextField();
         jLabel7 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
         jLabel15 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        txtBayar = new javax.swing.JTextField();
         jLabel16 = new javax.swing.JLabel();
-        jTextField3 = new javax.swing.JTextField();
+        txtKembalian = new javax.swing.JTextField();
         jRadioButton1 = new javax.swing.JRadioButton();
         jRadioButton2 = new javax.swing.JRadioButton();
         jPanel5 = new javax.swing.JPanel();
@@ -858,6 +938,8 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         btnExit = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
         cmbAktif = new javax.swing.JCheckBox();
+        btnBayar = new javax.swing.JButton();
+        cmbPPN = new javax.swing.JCheckBox();
         txtNoFaktur = new javax.swing.JTextField();
         jPanel6 = new javax.swing.JPanel();
         txtKodeItem = new javax.swing.JTextField();
@@ -884,15 +966,17 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         jTextField5 = new javax.swing.JTextField();
         cmbJenis = new javax.swing.JComboBox<>();
         jLabel14 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        txtLabel = new javax.swing.JTextField();
-        jLabel17 = new javax.swing.JLabel();
-        txtLabel1 = new javax.swing.JTextField();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
 
         txtIDJual.setText("jTextField3");
+
+        jdBayar.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jdBayarKeyReleased(evt);
+            }
+        });
 
         Pebayaran.setBackground(new java.awt.Color(255, 255, 255));
         Pebayaran.setMinimumSize(new java.awt.Dimension(415, 282));
@@ -925,13 +1009,21 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel7.setText("Total :");
 
-        jButton1.setText("No Print");
-
-        jButton2.setText("Print Nota");
-
         jLabel15.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel15.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel15.setText("Pembayaran :");
+
+        txtBayar.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtBayarKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtBayarKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtBayarKeyTyped(evt);
+            }
+        });
 
         jLabel16.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel16.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -954,19 +1046,14 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
                         .addGap(25, 25, 25)
                         .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jtTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(PebayaranLayout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(PebayaranLayout.createSequentialGroup()
-                                .addGap(6, 6, 6)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 194, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                            .addGroup(PebayaranLayout.createSequentialGroup()
                                 .addComponent(jLabel16, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(txtKembalian, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PebayaranLayout.createSequentialGroup()
                                 .addComponent(jLabel15, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -975,7 +1062,7 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
                                         .addComponent(jRadioButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(jRadioButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                                    .addComponent(txtBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))))))
                 .addContainerGap())
         );
         PebayaranLayout.setVerticalGroup(
@@ -984,7 +1071,7 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
                 .addComponent(jPanel8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jTextField1)
+                    .addComponent(jtTotal)
                     .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE))
                 .addGap(11, 11, 11)
                 .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -992,17 +1079,13 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
                     .addComponent(jRadioButton2))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jTextField2)
+                    .addComponent(txtBayar)
                     .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jTextField3)
+                    .addComponent(txtKembalian)
                     .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 14, Short.MAX_VALUE))
+                .addGap(0, 68, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout jdBayarLayout = new javax.swing.GroupLayout(jdBayar.getContentPane());
@@ -1220,11 +1303,6 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         jPanel4.setBackground(new java.awt.Color(0, 255, 204));
 
         btnSimpan.setText("Simpan");
-        btnSimpan.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSimpanActionPerformed(evt);
-            }
-        });
 
         btnExit.setText("Exit Ctrl + X");
 
@@ -1238,27 +1316,47 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
 
         cmbAktif.setText("Data Aktif");
 
+        btnBayar.setText("Bayar");
+        btnBayar.setActionCommand("Bayar");
+        btnBayar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBayarActionPerformed(evt);
+            }
+        });
+
+        cmbPPN.setText("PPN 11%");
+
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
                 .addComponent(cmbAktif)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cmbPPN)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnSimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnExit)
-                .addContainerGap())
+                .addGap(24, 24, 24))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(btnSimpan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnExit, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addComponent(cmbAktif))
+                .addComponent(cmbAktif)
+                .addComponent(cmbPPN))
+            .addGroup(jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnBayar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnSimpan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnExit, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         txtNoFaktur.setMinimumSize(new java.awt.Dimension(33, 22));
@@ -1459,12 +1557,6 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         jLabel14.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel14.setText("Jenis :");
 
-        jLabel5.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel5.setText("Bayar :");
-
-        jLabel17.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel17.setText("Kembalian :");
-
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
@@ -1493,16 +1585,6 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
                 .addGap(15, 15, 15))
             .addComponent(jPanel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(jPanel5Layout.createSequentialGroup()
-                .addGap(17, 17, 17)
-                .addComponent(jLabel5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(txtLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(27, 27, 27)
-                .addComponent(jLabel17)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(txtLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(jPanel5Layout.createSequentialGroup()
                 .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
@@ -1527,14 +1609,8 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(txtLabel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel17)
-                    .addComponent(txtLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(26, 26, 26))
+                .addGap(23, 23, 23))
         );
 
         jMenu1.setText("System");
@@ -1554,7 +1630,9 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -1629,8 +1707,7 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
         dialog.setVisible(true);}     // TODO add your handling code here:
     }//GEN-LAST:event_txtCustomerMouseClicked
 
-    private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
-// 1. Pastikan jdBayar mengambil ukuran sesuai konten
+    private void btnBayarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBayarActionPerformed
     jdBayar.pack(); 
     
     // 2. Set Posisi ke Tengah Layar
@@ -1640,8 +1717,42 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
     jdBayar.setResizable(false); 
     
     // 4. Tampilkan JDialog
-    jdBayar.setVisible(true);    // TODO add your handling code here:
-    }//GEN-LAST:event_btnSimpanActionPerformed
+     jdBayar.setVisible(true);   // TODO add your handling code here:
+    }//GEN-LAST:event_btnBayarActionPerformed
+
+    private void txtBayarKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBayarKeyPressed
+    if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+
+        // ❗ Jika kembalian minus → TOLAK enter
+        if (kembaliNegatif) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Pembayaran kurang! Silakan masukkan nominal yang cukup.",
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+            evt.consume();      // blok enter
+            txtBayar.requestFocus();
+            return;
+        }
+
+        // ❗ Jika kembalian cukup → lanjut seperti biasa
+        simpanTransaksi();
+        jdBayar.dispose();
+    }           // TODO add your handling code here:
+    }//GEN-LAST:event_txtBayarKeyPressed
+
+    private void txtBayarKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBayarKeyTyped
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtBayarKeyTyped
+
+    private void jdBayarKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jdBayarKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jdBayarKeyReleased
+
+    private void txtBayarKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBayarKeyReleased
+        prosesBayar();        // TODO add your handling code here:
+    }//GEN-LAST:event_txtBayarKeyReleased
 
     /**
      * @param args the command line arguments
@@ -1689,6 +1800,7 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
     private javax.swing.JPanel Pebayaran;
     private javax.swing.JButton btnAkhir;
     private javax.swing.JButton btnAwal;
+    private javax.swing.JButton btnBayar;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnExit;
     private javax.swing.JButton btnHapus;
@@ -1701,11 +1813,10 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
     private javax.swing.JCheckBox cmbAktif;
     private javax.swing.JComboBox<String> cmbJenis;
     private javax.swing.JComboBox<String> cmbJenisTras;
+    private javax.swing.JCheckBox cmbPPN;
     private javax.swing.JComboBox<String> cmbSatuan;
     private com.toedter.calendar.JDateChooser dtpJatuhTempo;
     private com.toedter.calendar.JDateChooser dtpTanggal;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
@@ -1714,11 +1825,9 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
     private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
-    private javax.swing.JLabel jLabel17;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
@@ -1738,17 +1847,16 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
     private javax.swing.JRadioButton jRadioButton2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
-    private javax.swing.JTextField jTextField1;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
     private javax.swing.JTextField jTextField5;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JDialog jdBayar;
+    private javax.swing.JTextField jtTotal;
     private javax.swing.JLabel lblCustomer;
     private javax.swing.JLabel lblJatuhTempo;
     private javax.swing.JLabel lblSubtotal;
     private javax.swing.JLabel recordLabel;
+    private javax.swing.JTextField txtBayar;
     private javax.swing.JTextField txtCustomer;
     private javax.swing.JTextField txtDiscPersen;
     private javax.swing.JTextField txtDiscTotal;
@@ -1756,9 +1864,8 @@ public void setCustomerData(int idCustomer, String namaCustomer) {
     private javax.swing.JLabel txtHarga;
     private javax.swing.JTextField txtIDJual;
     private javax.swing.JTextField txtJumlah;
+    private javax.swing.JTextField txtKembalian;
     private javax.swing.JTextField txtKodeItem;
-    private javax.swing.JTextField txtLabel;
-    private javax.swing.JTextField txtLabel1;
     private javax.swing.JLabel txtNama;
     private javax.swing.JTextField txtNoFaktur;
     // End of variables declaration//GEN-END:variables
