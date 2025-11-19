@@ -51,8 +51,8 @@ public String getLastKode(String prefix) throws SQLException {
     }
     public void insert(Tjualh jual) throws SQLException {
         String sql = "INSERT INTO tjualh (Kode, IDCust, Tanggal, JenisBayar, IDDokter, " +
-                     "JatuhTempo, SubTotal, Diskon, Ppn, Total, Status, InsertUser) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                     "JatuhTempo, SubTotal, Diskon, Ppn, Total, Nominal, Status, InsertUser) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, jual.getKode());
             ps.setObject(2, jual.getIdCust());
@@ -64,8 +64,9 @@ public String getLastKode(String prefix) throws SQLException {
             ps.setDouble(8, jual.getDiskon());
             ps.setDouble(9, jual.getPpn());
             ps.setDouble(10, jual.getTotal());
-            ps.setString(11, jual.getStatus());
-            ps.setString(12, jual.getInsertUser());
+            ps.setDouble(11, jual.getNominal());
+            ps.setString(12, jual.getStatus());
+            ps.setString(13, jual.getInsertUser());
             ps.executeUpdate();
         }
     }
@@ -95,6 +96,7 @@ public String getLastKode(String prefix) throws SQLException {
             h.setDiskon(rsHeader.getDouble("Diskon"));
             h.setPpn(rsHeader.getDouble("Ppn"));
             h.setTotal(rsHeader.getDouble("Total"));
+            h.setNominal(rsHeader.getDouble("Nominal"));
             h.setStatus(rsHeader.getString("Status"));
             h.setInsertUser(rsHeader.getString("InsertUser"));
             h.setUpdateUser(rsHeader.getString("UpdateUser"));
@@ -177,6 +179,7 @@ public String getLastKode(String prefix) throws SQLException {
                 penjualan.setDiskon(resultSetHeader.getDouble("Diskon"));
                 penjualan.setPpn(resultSetHeader.getDouble("Ppn"));
                 penjualan.setTotal(resultSetHeader.getDouble("Total"));
+                penjualan.setNominal(resultSetHeader.getDouble("Nominal"));
                 penjualan.setStatus(resultSetHeader.getString("Status"));
                 penjualan.setInsertUser(resultSetHeader.getString("InsertUser"));
                 penjualan.setUpdateUser(resultSetHeader.getString("UpdateUser"));
