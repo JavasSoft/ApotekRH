@@ -895,7 +895,7 @@ private String formatRibuan(double nilai) {
 }
 private void printNotaKecil() {
     try {
-        String toko = "TOKO MURAH JAYA";
+        String toko = "APOTEK RH";
         String alamat = "Jl. Kalijudan 15 – Surabaya";
         String tanggal = java.time.LocalDateTime.now()
                 .format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
@@ -907,6 +907,16 @@ private void printNotaKecil() {
         String total = jtTotal.getText();
         String bayar = txtBayar.getText();
         String kembali = txtKembalian.getText();
+                        System.out.println("=== DEBUG TABEL ===");
+        System.out.println("Row count: " + jTable1.getRowCount());
+
+        for (int i = 0; i < jTable1.getRowCount(); i++) {
+            System.out.println("Nama: " + jTable1.getValueAt(i, 3));
+            System.out.println("Qty : " + jTable1.getValueAt(i, 5));
+            System.out.println("Total: " + jTable1.getValueAt(i, 8));
+        }
+        System.out.println("====================");
+
 
         // Builder untuk isi nota
         StringBuilder sb = new StringBuilder();
