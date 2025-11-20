@@ -5,6 +5,7 @@ import java.sql.Date;
 public class TjualPiutang {
     private int idPiutang;
     private int idJualH;
+    private int idCust;
     private String noFaktur;
     private Date tanggal;
     private Date jatuhTempo;
@@ -15,6 +16,9 @@ public class TjualPiutang {
 
     public int getIdJualH() { return idJualH; }
     public void setIdJualH(int idJualH) { this.idJualH = idJualH; }
+    
+    public int getIdCust() { return idCust; }
+    public void setIdCust(int idCust) {this.idCust = idCust; }
 
     public String getNoFaktur() { return noFaktur; }
     public void setNoFaktur(String noFaktur) { this.noFaktur = noFaktur; }

@@ -12,6 +12,7 @@ import java.awt.event.KeyEvent;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -123,14 +124,14 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
     }
     
         private void btnALL() {
-        btnSimpan.addActionListener(evt -> simpan());
+//        btnSimpan.addActionListener(evt -> simpan());
          btnExit.addActionListener(evr -> dispose());
          btnTambah.addActionListener(evt -> tambah());
          btnUbah.addActionListener(evt -> ubah());
- //        btnAwal.addActionListener(evt -> data_awal());
- //        btnPrevious.addActionListener(evt -> previous());
- //        btnNext.addActionListener(evt -> next());
-  //       btnAkhir.addActionListener(evt -> data_terakhir());
+         btnAwal.addActionListener(evt -> data_awal());
+         btnPrevious.addActionListener(evt -> previous());
+         btnNext.addActionListener(evt -> next());
+         btnAkhir.addActionListener(evt -> data_terakhir());
         
     }
         
@@ -363,6 +364,7 @@ private double parseAngka(String value) {
      btnPrevious.setEnabled(true);
      btnNext.setEnabled(true);
      btnAkhir.setEnabled(true);
+     btnHapus.setEnabled(true);
 }
     private void navnonaktif(){
      btnAwal.setEnabled(false);
@@ -557,8 +559,8 @@ private void simpanTransaksi() {
         } else {
             status = "Open";
         }
-        User user = Session.getUser();
-    String username = user.getUsername();
+        
+        double ppnValue = cmbPPN.isSelected() ? 0.11 : 0.0;
 
     // Lanjutkan proses penyimpanan transaksi sesuai jenis pembayaran
 
@@ -583,8 +585,8 @@ private void simpanTransaksi() {
         }
         
         jualh.setSubTotal(parseAngka(lblSubtotal.getText()));
-        jualh.setDiskon(0);
-        jualh.setPpn(0);
+        jualh.setDiskon(parseAngka(txtDiscTotal.getText()));
+        jualh.setPpn(ppnValue);
         jualh.setTotal(parseAngka(lblSubtotal.getText()));
         jualh.setNominal(parseAngka(txtBayar.getText()));
         jualh.setStatus(status);
@@ -600,6 +602,19 @@ private void simpanTransaksi() {
             if (rs.next()) idJualH = rs.getInt("id");
         }
         
+        int idCust = 0;
+        String sqlGetCust = "SELECT IDCust FROM tjualh WHERE idJualH = ?";
+
+        try (PreparedStatement pst = conn.prepareStatement(sqlGetCust)) {
+            pst.setInt(1, idJualH);
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    idCust = rs.getInt("IDCust");
+                }
+            }
+        }
+        
+        
         // === INSERT PIUTANG JIKA KREDIT ===
         if (jenisBayar.equalsIgnoreCase("Kredit")) {
 
@@ -609,6 +624,7 @@ private void simpanTransaksi() {
         java.sql.Date dueDate = new java.sql.Date(dtpJatuhTempo.getDate().getTime());
 
         p.setIdJualH(idJualH);
+        p.setIdCust(idCust);
         p.setNoFaktur(noFaktur);
         p.setTanggal(tanggal);
         p.setJatuhTempo(dueDate);
@@ -629,6 +645,7 @@ private void simpanTransaksi() {
             int idItem = Integer.parseInt(model.getValueAt(i, 1).toString());
             double qty = parseAngka(model.getValueAt(i, 5).toString());
             double harga = parseAngka(model.getValueAt(i, 6).toString());
+            double diskon = parseAngka(model.getValueAt(i, 7).toString());
             double total = parseAngka(model.getValueAt(i, 8).toString());
 
             Tjuald juald = new Tjuald();
@@ -637,6 +654,7 @@ private void simpanTransaksi() {
             juald.setQty(qty);
             juald.setHarga(harga);
             juald.setTotal(total);
+            juald.setDiskon(diskon);
             juald.setQtyBase(qty);
 
             jualdDAO.insert(juald);
@@ -744,17 +762,6 @@ private void loadCurrentItem() {
         // DETAIL → isi ke JTable
         tampilkanDetailKeTabel(tjualh.getDetails());
 
-//        // Jika mau, tetap tampilkan detail pertama di textbox
-//        if (tjualh.getDetails() != null && !tjualh.getDetails().isEmpty()) {
-//            Tjuald detail = tjualh.getDetails().get(0);
-//            txtKodeItem.setText(String.valueOf(detail.getIdItemD()));
-//        } else {
-//            txtKodeItem.setText("");
-//            txtJumlah.setText("");
-//            txtHarga.setText("");
-//            lblSubtotal.setText("");
-//        }
-
         updateRecordLabel();
     } else {
         JOptionPane.showMessageDialog(null, "Indeks catatan tidak valid.");
@@ -781,7 +788,7 @@ private void tampilkanDetailKeTabel(List<Tjuald> details) {
                 satuan,          // Kolom 3 = Satuan
                 formatAngka(d.getQty()),      // Kolom 4 = Qty
                 formatAngka(d.getHarga()),
-                null,// Kolom 5 = Harga
+                formatAngka(d.getDiskon()),// Kolom 5 = Harga
                 //d.getDiskon() != null ? d.getDiskon() : 0,
                 formatAngka(d.getTotal())     // Kolom 7 = Total
             });
@@ -1303,6 +1310,11 @@ private String formatRibuan(double nilai) {
         jPanel4.setBackground(new java.awt.Color(0, 255, 204));
 
         btnSimpan.setText("Simpan");
+        btnSimpan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSimpanActionPerformed(evt);
+            }
+        });
 
         btnExit.setText("Exit Ctrl + X");
 
@@ -1317,7 +1329,6 @@ private String formatRibuan(double nilai) {
         cmbAktif.setText("Data Aktif");
 
         btnBayar.setText("Bayar");
-        btnBayar.setActionCommand("Bayar");
         btnBayar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBayarActionPerformed(evt);
@@ -1631,7 +1642,7 @@ private String formatRibuan(double nilai) {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, 508, Short.MAX_VALUE)
+                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, 508, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -1708,16 +1719,27 @@ private String formatRibuan(double nilai) {
     }//GEN-LAST:event_txtCustomerMouseClicked
 
     private void btnBayarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBayarActionPerformed
+
+    // Cek jumlah baris di tabel
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    int rowCount = model.getRowCount();
+
+    // Cek subtotal
+    double subtotal = parseAngka(lblSubtotal.getText());
+
+    if (rowCount == 0 || subtotal == 0) {
+        JOptionPane.showMessageDialog(this, 
+                "Data transaksi masih kosong!\nSilakan masukkan item terlebih dahulu.",
+                "Peringatan",
+                JOptionPane.WARNING_MESSAGE);
+        return; // Stop proses, jangan buka dialog
+    }
+
+    // --- Jika lolos validasi, tampilkan JDialog ---
     jdBayar.pack(); 
-    
-    // 2. Set Posisi ke Tengah Layar
-    jdBayar.setLocationRelativeTo(null); 
-    
-    // (Opsional) 3. Cegah user mengubah ukuran jendela, agar tata letak tetap rapi
-    jdBayar.setResizable(false); 
-    
-    // 4. Tampilkan JDialog
-     jdBayar.setVisible(true);   // TODO add your handling code here:
+    jdBayar.setLocationRelativeTo(null);
+    jdBayar.setResizable(false);
+    jdBayar.setVisible(true);  // TODO add your handling code here:
     }//GEN-LAST:event_btnBayarActionPerformed
 
     private void txtBayarKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBayarKeyPressed
@@ -1753,6 +1775,26 @@ private String formatRibuan(double nilai) {
     private void txtBayarKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBayarKeyReleased
         prosesBayar();        // TODO add your handling code here:
     }//GEN-LAST:event_txtBayarKeyReleased
+
+    private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
+            // Cek jumlah baris di tabel
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    int rowCount = model.getRowCount();
+
+    // Cek subtotal
+    double subtotal = parseAngka(lblSubtotal.getText());
+
+    if (rowCount == 0 || subtotal == 0) {
+        JOptionPane.showMessageDialog(this, 
+                "Data transaksi masih kosong!\nSilakan masukkan item terlebih dahulu.",
+                "Peringatan",
+                JOptionPane.WARNING_MESSAGE);
+        return; // Stop proses, jangan buka dialog
+    }
+    simpanTransaksi();
+
+                    // TODO add your handling code here:
+    }//GEN-LAST:event_btnSimpanActionPerformed
 
     /**
      * @param args the command line arguments

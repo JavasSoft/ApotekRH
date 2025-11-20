@@ -16,15 +16,16 @@ public class TjualdDAO {
     }
 
     public void insert(Tjuald detil) throws SQLException {
-        String sql = "INSERT INTO tjuald (IDJualH, IDItemD, Qty, Harga, Total, QtyBase) " +
-                     "VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO tjuald (IDJualH, IDItemD, Qty, Harga, Diskon, Total, QtyBase) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setObject(1, detil.getIdJualH());
             ps.setObject(2, detil.getIdItemD());
             ps.setDouble(3, detil.getQty());
             ps.setDouble(4, detil.getHarga());
-            ps.setDouble(5, detil.getTotal());
-            ps.setDouble(6, detil.getQtyBase());
+            ps.setDouble(5, detil.getDiskon());
+            ps.setDouble(6, detil.getTotal());
+            ps.setDouble(7, detil.getQtyBase());
             ps.executeUpdate();
         }
     }
@@ -41,6 +42,7 @@ public class TjualdDAO {
                     d.setIdItemD(rs.getInt("IDItemD"));
                     d.setQty(rs.getDouble("Qty"));
                     d.setHarga(rs.getDouble("Harga"));
+                    d.setDiskon(rs.getDouble("Diskon"));
                     d.setTotal(rs.getDouble("Total"));
                     list.add(d);
                 }

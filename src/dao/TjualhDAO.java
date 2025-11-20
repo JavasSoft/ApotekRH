@@ -114,7 +114,7 @@ public String getLastKode(String prefix) throws SQLException {
                 d.setIdItemD(rsDetail.getInt("IDItemD"));
                 d.setQty(rsDetail.getDouble("Qty"));
                 d.setHarga(rsDetail.getDouble("Harga"));
-                //d.setDiskon(rsDetail.getDouble("Diskon"));
+                d.setDiskon(rsDetail.getDouble("Diskon"));
                 d.setTotal(rsDetail.getDouble("Total"));
 
                 details.add(d);
@@ -211,6 +211,7 @@ public String getLastKode(String prefix) throws SQLException {
                         detail.setIdItemD(resultSetDetail.getInt("IDItemD"));
                         detail.setQty(resultSetDetail.getDouble("Qty"));
                         detail.setHarga(resultSetDetail.getDouble("Harga"));
+                        detail.setDiskon(resultSetDetail.getDouble("Diskon"));
                         detail.setTotal(resultSetDetail.getDouble("Total"));
                         listDetail.add(detail);
                     }

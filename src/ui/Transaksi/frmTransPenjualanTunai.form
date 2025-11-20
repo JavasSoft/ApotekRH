@@ -718,6 +718,9 @@
               <Properties>
                 <Property name="text" type="java.lang.String" value="Simpan"/>
               </Properties>
+              <Events>
+                <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnSimpanActionPerformed"/>
+              </Events>
             </Component>
             <Component class="javax.swing.JButton" name="btnExit">
               <Properties>
@@ -743,7 +746,6 @@
             <Component class="javax.swing.JButton" name="btnBayar">
               <Properties>
                 <Property name="text" type="java.lang.String" value="Bayar"/>
-                <Property name="actionCommand" type="java.lang.String" value="Bayar"/>
               </Properties>
               <Events>
                 <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnBayarActionPerformed"/>

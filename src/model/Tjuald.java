@@ -10,6 +10,7 @@ public class Tjuald {
     private Integer idItemD;
     private double qty;
     private double harga;
+    private double diskon;
     private double total;
     private double qtyBase;
 
@@ -28,6 +29,9 @@ public class Tjuald {
 
     public double getHarga() { return harga; }
     public void setHarga(double harga) { this.harga = harga; }
+    
+    public double getDiskon() { return diskon; }
+    public void setDiskon(double diskon) { this.diskon = diskon; }
 
     public double getTotal() { return total; }
     public void setTotal(double total) { this.total = total; }
