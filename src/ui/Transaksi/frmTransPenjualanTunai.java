@@ -893,6 +893,89 @@ private String formatRibuan(double nilai) {
 
     return (n < 0 ? "-" : "") + sb.toString();
 }
+private void printNotaKecil() {
+    try {
+        String toko = "TOKO MURAH JAYA";
+        String alamat = "Jl. Kalijudan 15 – Surabaya";
+        String tanggal = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+
+        String kasir = System.getProperty("user.name");
+
+        // Ambil total, bayar, kembali dari form
+        String subtotal = lblSubtotal.getText();
+        String total = jtTotal.getText();
+        String bayar = txtBayar.getText();
+        String kembali = txtKembalian.getText();
+
+        // Builder untuk isi nota
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(centerText(toko, 32)).append("\n");
+        sb.append(centerText(alamat, 32)).append("\n");
+        sb.append("--------------------------------\n");
+        sb.append("Tanggal : ").append(tanggal).append("\n");
+        sb.append("Kasir   : ").append(kasir).append("\n");
+        sb.append("--------------------------------\n");
+        sb.append(String.format("%-14s %4s %10s\n", "Item", "Qty", "Total"));
+
+        // Loop isi JTable
+        for (int i = 0; i < jTable1.getRowCount(); i++) {
+            String nama = jTable1.getValueAt(i, 3).toString();
+            String qty  = jTable1.getValueAt(i, 5).toString();
+            String totalItem = jTable1.getValueAt(i, 8).toString();
+
+            sb.append(String.format("%-14s %4s %10s\n",
+                    potong(nama, 14),
+                    qty,
+                    totalItem
+            ));
+        }
+
+        sb.append("--------------------------------\n");
+        sb.append(String.format("%-20s %10s\n", "Subtotal", subtotal));
+        sb.append(String.format("%-20s %10s\n", "Total", total));
+        sb.append(String.format("%-20s %10s\n", "Bayar", bayar));
+        sb.append(String.format("%-20s %10s\n", "Kembali", kembali));
+        sb.append("--------------------------------\n");
+        sb.append(centerText("Terima Kasih", 32)).append("\n");
+        sb.append("\n\n");
+
+        // Print
+        printRaw(sb.toString());
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Gagal print: " + e.getMessage());
+    }
+}
+private String centerText(String text, int width) {
+    int padSize = (width - text.length()) / 2;
+    if (padSize < 0) padSize = 0;
+    return " ".repeat(padSize) + text;
+}
+
+private String potong(String text, int max) {
+    return text.length() > max ? text.substring(0, max) : text;
+}
+
+private void printRaw(String data) throws Exception {
+    javax.print.PrintService service = javax.print.PrintServiceLookup.lookupDefaultPrintService();
+    if (service == null) {
+        JOptionPane.showMessageDialog(this, "Tidak ada default printer!");
+        return;
+    }
+
+    javax.print.DocPrintJob job = service.createPrintJob();
+    byte[] bytes = data.getBytes("GB18030"); // aman untuk ESC/POS
+
+    javax.print.Doc doc = new javax.print.SimpleDoc(
+            bytes,
+            javax.print.DocFlavor.BYTE_ARRAY.AUTOSENSE,
+            null
+    );
+
+    job.print(doc, null);
+}
 
 
 
@@ -1760,6 +1843,7 @@ private String formatRibuan(double nilai) {
 
         // ❗ Jika kembalian cukup → lanjut seperti biasa
         simpanTransaksi();
+        printNotaKecil();
         jdBayar.dispose();
     }           // TODO add your handling code here:
     }//GEN-LAST:event_txtBayarKeyPressed
