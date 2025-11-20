@@ -38,6 +38,7 @@ import model.Tjualh;
 import model.Tjuald;
 import model.Tjurnalitem;
 import ui.Master.BrowseAll.BrowseCustomer;
+import ui.Master.BrowseAll.BrowseJual;
 
 /**
  *
@@ -376,6 +377,7 @@ private double parseAngka(String value) {
         jLabel1.setText("[Browse]");
         btnSimpan.setEnabled(false);
         btnCancel.setEnabled(false);
+        btnBrowse.setEnabled(true);
         btnExit.setEnabled(false);
         navaktif();
         FormShow();
@@ -385,6 +387,7 @@ private double parseAngka(String value) {
         jLabel1.setText("[Tambah]");
         btnUbah.setEnabled(false);
         btnHapus.setEnabled(false);
+        btnBrowse.setEnabled(false);
         updateBayarVisibility();
         btnCancel.setEnabled(true);
         btnExit.setEnabled(true);
@@ -802,6 +805,46 @@ private void tampilkanDetailKeTabel(List<Tjuald> details) {
     }
 }
 
+
+private int selectedJualH;
+
+public void setSelectedJual(int idJualH) {
+    try {
+        this.selectedJualH = idJualH;
+
+        // Ambil data header lengkap beserta detailnya
+        Tjualh tjualh = tjualhDAO.getById(idJualH);
+
+        if (tjualh == null) {
+            JOptionPane.showMessageDialog(this,
+                "Data transaksi tidak ditemukan.");
+            return;
+        }
+
+        // Tampilkan HEADER ke form
+        txtIDJual.setText(String.valueOf(tjualh.getIdJualH()));
+        txtNoFaktur.setText(tjualh.getKode());
+        dtpTanggal.setDate(tjualh.getTanggal());
+        dtpJatuhTempo.setDate(tjualh.getJatuhTempo());
+        cmbJenisTras.setSelectedItem(tjualh.getJenisBayar());
+        txtDokter.setText(String.valueOf(tjualh.getIdDokter()));
+
+        lblSubtotal.setText(formatAngka(tjualh.getSubTotal()));
+        txtDiscTotal.setText(formatAngka(tjualh.getDiskon()));
+        txtHarga.setText(formatAngka(tjualh.getTotal()));
+
+        // Tampilkan DETAIL ke JTable
+        tampilkanDetailKeTabel(tjualh.getDetails());
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
+}
+
+
+
+
+
 public void setDokterData(int idDokter, String namaDokter) {
     // kalau kamu ingin menyimpan idDokter untuk keperluan simpan ke database,
     // buat variabel global di kelas, misalnya:
@@ -1066,6 +1109,7 @@ private void printRaw(String data) throws Exception {
         jTextField5 = new javax.swing.JTextField();
         cmbJenis = new javax.swing.JComboBox<>();
         jLabel14 = new javax.swing.JLabel();
+        btnBrowse = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -1599,7 +1643,7 @@ private void printRaw(String data) throws Exception {
                             .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(lblSubtotal, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(14, 14, 14))
+                .addContainerGap())
         );
 
         jPanel7.setBackground(new java.awt.Color(255, 255, 255));
@@ -1661,6 +1705,13 @@ private void printRaw(String data) throws Exception {
         jLabel14.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         jLabel14.setText("Jenis :");
 
+        btnBrowse.setText("jButton1");
+        btnBrowse.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBrowseActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
@@ -1672,6 +1723,8 @@ private void printRaw(String data) throws Exception {
                 .addComponent(jLabel8, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtNoFaktur, javax.swing.GroupLayout.PREFERRED_SIZE, 163, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnBrowse, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(9, 9, 9)
@@ -1697,7 +1750,7 @@ private void printRaw(String data) throws Exception {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(19, 19, 19)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
@@ -1705,14 +1758,15 @@ private void printRaw(String data) throws Exception {
                     .addComponent(cmbJenis)
                     .addComponent(txtDokter, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel14, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
+                    .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnBrowse, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(txtNoFaktur, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel7, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(13, 13, 13)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(23, 23, 23))
         );
@@ -1735,7 +1789,7 @@ private void printRaw(String data) throws Exception {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, 508, Short.MAX_VALUE)
+                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
@@ -1890,6 +1944,12 @@ private void printRaw(String data) throws Exception {
                     // TODO add your handling code here:
     }//GEN-LAST:event_btnSimpanActionPerformed
 
+    private void btnBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseActionPerformed
+        // TODO add your handling code here:
+        BrowseJual dialog = new BrowseJual(this, true, conn);
+        dialog.setVisible(true);
+    }//GEN-LAST:event_btnBrowseActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1937,6 +1997,7 @@ private void printRaw(String data) throws Exception {
     private javax.swing.JButton btnAkhir;
     private javax.swing.JButton btnAwal;
     private javax.swing.JButton btnBayar;
+    private javax.swing.JButton btnBrowse;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnExit;
     private javax.swing.JButton btnHapus;
@@ -2005,4 +2066,6 @@ private void printRaw(String data) throws Exception {
     private javax.swing.JLabel txtNama;
     private javax.swing.JTextField txtNoFaktur;
     // End of variables declaration//GEN-END:variables
+
+
 }

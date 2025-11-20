@@ -12,6 +12,8 @@ import javax.swing.JOptionPane;
 import model.Tjuald;
 import model.Dokter;
 import model.Customer;
+import model.Item;
+import model.ItemDetail;
 
 public class TjualhDAO {
     private Connection conn;
@@ -130,7 +132,63 @@ public String getLastKode(String prefix) throws SQLException {
 
     return list;
 }
+    
+    public Tjualh getById(int idJualH) {
+    Tjualh h = null;
 
+    String sqlHeader = "SELECT * FROM tjualh WHERE IDJualH = ?";
+    String sqlDetail = "SELECT * FROM tjuald WHERE IDJualH = ?";
+
+    try (PreparedStatement ps = conn.prepareStatement(sqlHeader)) {
+        ps.setInt(1, idJualH);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            h = new Tjualh();
+            h.setIdJualH(rs.getInt("IDJualH"));
+            h.setKode(rs.getString("Kode"));
+            h.setIdCust(rs.getInt("IDCust"));
+            h.setTanggal(rs.getDate("Tanggal"));
+            h.setJenisBayar(rs.getString("JenisBayar"));
+            h.setIdDokter(rs.getInt("IDDokter"));
+            h.setJatuhTempo(rs.getDate("JatuhTempo"));
+            h.setSubTotal(rs.getDouble("SubTotal"));
+            h.setDiskon(rs.getDouble("Diskon"));
+            h.setPpn(rs.getDouble("Ppn"));
+            h.setTotal(rs.getDouble("Total"));
+            h.setNominal(rs.getDouble("Nominal"));
+            h.setStatus(rs.getString("Status"));
+        }
+
+        // Ambil detail
+        if (h != null) {
+            PreparedStatement psd = conn.prepareStatement(sqlDetail);
+            psd.setInt(1, idJualH);
+            ResultSet rsd = psd.executeQuery();
+
+            List<Tjuald> details = new ArrayList<>();
+            while (rsd.next()) {
+                Tjuald d = new Tjuald();
+                d.setIdJualD(rsd.getInt("IDJualD"));
+                d.setIdJualH(rsd.getInt("IDJualH"));
+                d.setIdItemD(rsd.getInt("IDItemD"));
+                d.setQty(rsd.getDouble("Qty"));
+                d.setHarga(rsd.getDouble("Harga"));
+                d.setDiskon(rsd.getDouble("Diskon"));
+                d.setTotal(rsd.getDouble("Total"));
+                details.add(d);
+            }
+
+            h.setDetails(details);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return h;
+}
+    
     public void updateStatus(int idJualH, String status) throws SQLException {
         String sql = "UPDATE tjualh SET Status = ?, UpdateUser = ? WHERE IDJualH = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -140,91 +198,135 @@ public String getLastKode(String prefix) throws SQLException {
             ps.executeUpdate();
         }
     }
-      public List<Tjualh> getByDateRange(Date tanggalAwal, Date tanggalAkhir) throws SQLException {
-        List<Tjualh> listPenjualan = new ArrayList<>();
+    
+    public List<Tjualh> getByDateRange(Date tglAwal, Date tglAkhir) {
+    List<Tjualh> list = new ArrayList<>();
 
-        String sqlHeader =
-                "SELECT tjualh.*, " +
-                " mdokter.Kode AS KodeDokter, "+
-                " mdokter.Nama AS NamaDokter, " +
-                " mcus.Kode AS KodeCust, " +
-                " mcus.Nama AS NamaCust " +
-                "FROM tjualh " +
-                "LEFT JOIN mdokter ON tjualh.IDDokter = mdokter.IDDokter " +
-                "LEFT JOIN mcus ON tjualh.IDCust = mcus.IDCustomer " +
-                "WHERE tjualh.Tanggal BETWEEN ? AND ? " +
-                "ORDER BY tjualh.Tanggal ASC";
+    String sql = "SELECT * FROM tjualh WHERE Tanggal BETWEEN ? AND ? ORDER BY Tanggal DESC";
+    String sqlDetail = "SELECT * FROM tjuald WHERE IDJualH = ?";
 
-        String sqlDetail = "SELECT * FROM tjuald WHERE IDJualH = ?";
+    try (PreparedStatement psHeader = conn.prepareStatement(sql)) {
 
-        try (PreparedStatement preparedStatementHeader = conn.prepareStatement(sqlHeader)) {
+        psHeader.setDate(1, tglAwal);
+        psHeader.setDate(2, tglAkhir);
 
-            preparedStatementHeader.setDate(1, tanggalAwal);
-            preparedStatementHeader.setDate(2, tanggalAkhir);
+        ResultSet rsHeader = psHeader.executeQuery();
 
-            ResultSet resultSetHeader = preparedStatementHeader.executeQuery();
+        while (rsHeader.next()) {
 
-            while (resultSetHeader.next()) {
+            // ========== HEADER ==========
+            Tjualh h = new Tjualh();
+            h.setIdJualH(rsHeader.getInt("IDJualH"));
+            h.setKode(rsHeader.getString("Kode"));
+            h.setIdCust(rsHeader.getInt("IDCust"));
+            h.setTanggal(rsHeader.getDate("Tanggal"));
+            h.setJenisBayar(rsHeader.getString("JenisBayar"));
+            h.setIdDokter(rsHeader.getInt("IDDokter"));
+            h.setJatuhTempo(rsHeader.getDate("JatuhTempo"));
+            h.setSubTotal(rsHeader.getDouble("SubTotal"));
+            h.setDiskon(rsHeader.getDouble("Diskon"));
+            h.setPpn(rsHeader.getDouble("Ppn"));
+            h.setTotal(rsHeader.getDouble("Total"));
+            h.setNominal(rsHeader.getDouble("Nominal"));
+            h.setStatus(rsHeader.getString("Status"));
+            h.setInsertUser(rsHeader.getString("InsertUser"));
+            h.setUpdateUser(rsHeader.getString("UpdateUser"));
 
-                // ==== Ambil Header Penjualan ====
-                Tjualh penjualan = new Tjualh();
-                penjualan.setIdJualH(resultSetHeader.getInt("IDJualH"));
-                penjualan.setKode(resultSetHeader.getString("Kode"));
-                penjualan.setIdCust(resultSetHeader.getInt("IDCust"));
-                penjualan.setIdDokter(resultSetHeader.getInt("IDDokter"));
-                penjualan.setTanggal(resultSetHeader.getDate("Tanggal"));
-                penjualan.setJenisBayar(resultSetHeader.getString("JenisBayar"));
-                penjualan.setJatuhTempo(resultSetHeader.getDate("JatuhTempo"));
-                penjualan.setSubTotal(resultSetHeader.getDouble("SubTotal"));
-                penjualan.setDiskon(resultSetHeader.getDouble("Diskon"));
-                penjualan.setPpn(resultSetHeader.getDouble("Ppn"));
-                penjualan.setTotal(resultSetHeader.getDouble("Total"));
-                penjualan.setNominal(resultSetHeader.getDouble("Nominal"));
-                penjualan.setStatus(resultSetHeader.getString("Status"));
-                penjualan.setInsertUser(resultSetHeader.getString("InsertUser"));
-                penjualan.setUpdateUser(resultSetHeader.getString("UpdateUser"));
+            // ========== DETAIL ==========
+            try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail)) {
+                psDetail.setInt(1, h.getIdJualH());
+                ResultSet rsDetail = psDetail.executeQuery();
 
-                // ==== Ambil Dokter ====
-                Dokter dokter = new Dokter();
-                dokter.setIDDokter(resultSetHeader.getInt("IDDokter"));
-                dokter.setKode(resultSetHeader.getString("KodeDokter"));
-                dokter.setNama(resultSetHeader.getString("NamaDokter"));
-                penjualan.setDokter(dokter);
-
-                // ==== Ambil Customer ====
-                Customer customer = new Customer();
-                customer.setIDCustomer(resultSetHeader.getInt("IDCust"));
-                customer.setKode(resultSetHeader.getString("KodeCust"));
-                customer.setNama(resultSetHeader.getString("NamaCust"));
-                penjualan.setCustomer(customer);
-
-                // ==== Ambil Detail Penjualan ====
-                try (PreparedStatement preparedStatementDetail = conn.prepareStatement(sqlDetail)) {
-                    preparedStatementDetail.setInt(1, penjualan.getIdJualH());
-                    ResultSet resultSetDetail = preparedStatementDetail.executeQuery();
-
-                    List<Tjuald> listDetail = new ArrayList<>();
-                    while (resultSetDetail.next()) {
-                        Tjuald detail = new Tjuald();
-                        detail.setIdJualD(resultSetDetail.getInt("IDJualD"));
-                        detail.setIdJualH(resultSetDetail.getInt("IDJualH"));
-                        detail.setIdItemD(resultSetDetail.getInt("IDItemD"));
-                        detail.setQty(resultSetDetail.getDouble("Qty"));
-                        detail.setHarga(resultSetDetail.getDouble("Harga"));
-                        detail.setDiskon(resultSetDetail.getDouble("Diskon"));
-                        detail.setTotal(resultSetDetail.getDouble("Total"));
-                        listDetail.add(detail);
-                    }
-
-                    penjualan.setDetails(listDetail);
+                List<Tjuald> details = new ArrayList<>();
+                while (rsDetail.next()) {
+                    Tjuald d = new Tjuald();
+                    d.setIdJualD(rsDetail.getInt("IDJualD"));
+                    d.setIdJualH(rsDetail.getInt("IDJualH"));
+                    d.setIdItemD(rsDetail.getInt("IDItemD"));
+                    d.setQty(rsDetail.getDouble("Qty"));
+                    d.setHarga(rsDetail.getDouble("Harga"));
+                    d.setDiskon(rsDetail.getDouble("Diskon"));
+                    d.setTotal(rsDetail.getDouble("Total"));
+                    details.add(d);
                 }
-
-                listPenjualan.add(penjualan);
+                h.setDetails(details);
             }
+
+            list.add(h);
         }
 
-        return listPenjualan;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+
+    return list;
+}
+
+      
+    public List<Tjualh> searchJualByKode(String keyword) {
+    List<Tjualh> list = new ArrayList<>();
+
+    String sqlHeader = "SELECT * FROM tjualh WHERE Kode LIKE ?";
+    String sqlDetail = "SELECT * FROM tjuald WHERE IDJualH = ?";
+
+    try (PreparedStatement psHeader = conn.prepareStatement(sqlHeader)) {
+
+        psHeader.setString(1, "%" + keyword + "%");
+        ResultSet rsHeader = psHeader.executeQuery();
+
+        while (rsHeader.next()) {
+
+            // ==== HEADER ====
+            Tjualh h = new Tjualh();
+            h.setIdJualH(rsHeader.getInt("IDJualH"));
+            h.setKode(rsHeader.getString("Kode"));
+            h.setIdCust(rsHeader.getInt("IDCust"));
+            h.setTanggal(rsHeader.getDate("Tanggal"));
+            h.setJenisBayar(rsHeader.getString("JenisBayar"));
+            h.setIdDokter(rsHeader.getInt("IDDokter"));
+            h.setJatuhTempo(rsHeader.getDate("JatuhTempo"));
+            h.setSubTotal(rsHeader.getDouble("SubTotal"));
+            h.setDiskon(rsHeader.getDouble("Diskon"));
+            h.setPpn(rsHeader.getDouble("Ppn"));
+            h.setTotal(rsHeader.getDouble("Total"));
+            h.setNominal(rsHeader.getDouble("Nominal"));
+            h.setStatus(rsHeader.getString("Status"));
+            h.setInsertUser(rsHeader.getString("InsertUser"));
+            h.setUpdateUser(rsHeader.getString("UpdateUser"));
+
+            // ==== DETAIL ====
+            try (PreparedStatement psDetail = conn.prepareStatement(sqlDetail)) {
+                psDetail.setInt(1, h.getIdJualH());
+                ResultSet rsDetail = psDetail.executeQuery();
+
+                List<Tjuald> details = new ArrayList<>();
+
+                while (rsDetail.next()) {
+                    Tjuald d = new Tjuald();
+                    d.setIdJualD(rsDetail.getInt("IDJualD"));
+                    d.setIdJualH(rsDetail.getInt("IDJualH"));
+                    d.setIdItemD(rsDetail.getInt("IDItemD"));
+                    d.setQty(rsDetail.getDouble("Qty"));
+                    d.setHarga(rsDetail.getDouble("Harga"));
+                    d.setDiskon(rsDetail.getDouble("Diskon"));
+                    d.setTotal(rsDetail.getDouble("Total"));
+
+                    details.add(d);
+                }
+
+                h.setDetails(details); // pasang detail ke header
+            }
+
+            list.add(h);
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
+
 
 }
 
