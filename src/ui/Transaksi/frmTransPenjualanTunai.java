@@ -25,12 +25,14 @@ import model.User;
 import ui.Master.BrowseAll.BrowseItem;
 import ui.Master.BrowseAll.BrowseDokter;
 import ui.Master.BrowseAll.BrowsePelangganDialog;
-import ui.Master.BrowseAll.BrowseCustomer;
 import dao.TjualhDAO;
 import dao.TjualdDAO;
 import dao.TjurnalitemDAO;
+import java.awt.Color;
+import java.awt.Component;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
+import javax.swing.table.DefaultTableCellRenderer;
 import model.ItemFull;
 import model.Session;
 import model.TjualPiutang;
@@ -231,7 +233,6 @@ private void loadDataFromDatabase() {
         }
     }
 
-
 private void initTable() {
     DefaultTableModel model = new DefaultTableModel(
         new Object[]{"X", "ID","Kode", "Nama", "Satuan", "Qty", "Harga", "Diskon", "Total"}, 0
@@ -270,25 +271,29 @@ private void initTable() {
 
     // Warna baris bergantian (striped rows)
    // Warna baris bergantian (striped rows)
-jTable1.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellRenderer() {
+jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     @Override
-    public java.awt.Component getTableCellRendererComponent(JTable table, Object value, 
-            boolean isSelected, boolean hasFocus, int row, int column) {
-        super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+    public Component getTableCellRendererComponent(
+            JTable table, Object value, boolean isSelected,
+            boolean hasFocus, int row, int column) {
+
+        Component c = super.getTableCellRendererComponent(
+                table, value, isSelected, hasFocus, row, column);
+
+        setOpaque(true); // PENTING
+
         if (isSelected) {
-            setBackground(new java.awt.Color(135, 206, 250)); // biru muda saat dipilih
-            setForeground(java.awt.Color.BLACK);
+            c.setBackground(new Color(135, 206, 250));
+            c.setForeground(Color.BLACK);
         } else {
-            if (row % 2 == 0) {
-                setBackground(java.awt.Color.WHITE); // baris genap putih
-            } else {
-                setBackground(new java.awt.Color(204, 255, 204)); // baris ganjil hijau muda
-            }
-            setForeground(java.awt.Color.BLACK);
+            if (row % 2 == 0) c.setBackground(Color.WHITE);
+            else c.setBackground(new Color(204, 255, 204));
+            c.setForeground(Color.BLACK);
         }
-        return this;
+        return c;
     }
 });
+
 
 
     // Optional: header warna
@@ -304,8 +309,6 @@ jTable1.setDefaultRenderer(Object.class, new javax.swing.table.DefaultTableCellR
         jTable1.getColumnModel().getColumn(7).setCellRenderer(rightRenderer);
         jTable1.getColumnModel().getColumn(8).setCellRenderer(rightRenderer);
 }
-
-
 
 private void setupDiscEvents() {
     txtDiscPersen.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
