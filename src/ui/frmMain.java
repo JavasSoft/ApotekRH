@@ -4,8 +4,11 @@
  */
 package ui;
 
+import java.awt.Dimension;
 import javax.swing.JFrame;
 import javax.swing.Box;
+import javax.swing.JMenu;
+import javax.swing.JMenuItem;
 import javax.swing.SwingConstants;
 import model.User;
 import ui.Laporan.frmLapJualPerTanggal;
@@ -13,6 +16,7 @@ import ui.Master.frmMstCust;
 import ui.Master.frmMstSupplier;
 import ui.Master.frmMstDokter1;
 import ui.Master.frmMstItem;
+import ui.Transaksi.frmReturPenjualan;
 import ui.Transaksi.frmTransPenjualanTunai;
 import ui.Transaksi.frmTransPembelianBayar;
 
@@ -45,9 +49,22 @@ public class frmMain extends javax.swing.JFrame {
     jMenu1.setHorizontalAlignment(SwingConstants.CENTER);
     jMenu2.setHorizontalAlignment(SwingConstants.CENTER);
     jMenu3.setHorizontalAlignment(SwingConstants.CENTER);
+int lebarItem = 150;
+    setMenuItemWidth(jMenu1, lebarItem);
+    setMenuItemWidth(jMenu2, lebarItem);
+    setMenuItemWidth(jMenu3, lebarItem);
 }
 
-    
+private void setMenuItemWidth(JMenu menu, int width) {
+    int tinggi = 25; // tinggi default, bisa disesuaikan
+    for (int i = 0; i < menu.getItemCount(); i++) {
+        JMenuItem item = menu.getItem(i);
+        if (item != null) {
+            item.setPreferredSize(new Dimension(width, tinggi));
+        }
+    }
+}
+
     
 
     /**
@@ -92,6 +109,11 @@ public class frmMain extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("APOTEK RH FARMA");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowOpened(java.awt.event.WindowEvent evt) {
+                formWindowOpened(evt);
+            }
+        });
 
         jPanel1.setBackground(new java.awt.Color(255, 255, 255));
 
@@ -257,6 +279,7 @@ public class frmMain extends javax.swing.JFrame {
         jMenu2.setPreferredSize(new java.awt.Dimension(100, 22));
 
         jMenuItem5.setText("Penjualan");
+        jMenuItem5.setMinimumSize(new java.awt.Dimension(100, 22));
         jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jMenuItem5ActionPerformed(evt);
@@ -272,8 +295,13 @@ public class frmMain extends javax.swing.JFrame {
         });
         jMenu2.add(jMenuItem18);
 
-        jMenuItem7.setText("Hutang");
+        jMenuItem7.setText("Retur Penjualan");
         jMenuItem7.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem7ActionPerformed(evt);
+            }
+        });
         jMenu2.add(jMenuItem7);
 
         jMenuItem8.setText("Piutang");
@@ -397,6 +425,16 @@ public class frmMain extends javax.swing.JFrame {
                 frmTransPembelianBayar frmTransPembelianBayar = new frmTransPembelianBayar();
                 frmTransPembelianBayar.setVisible(true);         // TODO add your handling code here:
     }//GEN-LAST:event_jMenuItem18ActionPerformed
+
+    private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
+        // TODO add your handling code here:
+    }//GEN-LAST:event_formWindowOpened
+
+    private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem7ActionPerformed
+        // TODO add your handling code here:
+        frmReturPenjualan frmrj = new frmReturPenjualan();
+        frmrj.setVisible(true);
+    }//GEN-LAST:event_jMenuItem7ActionPerformed
 
     /**
      * @param args the command line arguments
