@@ -257,6 +257,7 @@ public class ParentTrans extends javax.swing.JFrame {
         btnCancel.setText("Cancel");
         btnCancel.setMinimumSize(new java.awt.Dimension(92, 23));
 
+        cmbAktif.setBackground(new java.awt.Color(0, 255, 204));
         cmbAktif.setText("Data Aktif");
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
