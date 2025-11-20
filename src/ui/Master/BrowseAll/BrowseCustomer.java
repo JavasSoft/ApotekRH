@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.table.DefaultTableCellRenderer;
 import ui.Master.frmMstCust;
+import ui.Transaksi.frmReturPenjualan;
 import ui.Transaksi.frmTransPenjualanTunai;
 
 public class BrowseCustomer extends javax.swing.JDialog {
@@ -140,8 +141,10 @@ public class BrowseCustomer extends javax.swing.JDialog {
                 } else if (getParent() instanceof frmTransPenjualanTunai) {
                     frmTransPenjualanTunai parentForm = (frmTransPenjualanTunai) getParent();
                     parentForm.setCustomerData(id, nama);
+                } else if (getParent() instanceof frmReturPenjualan) {
+                    frmReturPenjualan parentForm = (frmReturPenjualan) getParent();
+                    parentForm.setCustomerData(id, kode, nama);
                 }
-
                 dispose();
             } catch (Exception e) {
                 JOptionPane.showMessageDialog(this,
