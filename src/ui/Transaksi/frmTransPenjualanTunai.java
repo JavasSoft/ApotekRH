@@ -1949,7 +1949,7 @@ private void printRaw(String data) throws Exception {
 
     private void btnBrowseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseActionPerformed
         // TODO add your handling code here:
-        BrowseJual dialog = new BrowseJual(this, true, conn);
+        BrowseJual dialog = new BrowseJual(this, true, conn, null);
         dialog.setVisible(true);
     }//GEN-LAST:event_btnBrowseActionPerformed
 
