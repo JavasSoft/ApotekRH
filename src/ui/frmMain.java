@@ -19,6 +19,7 @@ import ui.Master.frmMstItem;
 import ui.Transaksi.frmReturPenjualan;
 import ui.Transaksi.frmTransPenjualanTunai;
 import ui.Transaksi.frmTransPembelianBayar;
+import ui.Transaksi.frmTransStok;
 
 
 
@@ -308,8 +309,13 @@ private void setMenuItemWidth(JMenu menu, int width) {
         jMenuItem8.setPreferredSize(new java.awt.Dimension(80, 30));
         jMenu2.add(jMenuItem8);
 
-        jMenuItem9.setText("Cashflow");
+        jMenuItem9.setText("Stok");
         jMenuItem9.setPreferredSize(new java.awt.Dimension(80, 30));
+        jMenuItem9.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem9ActionPerformed(evt);
+            }
+        });
         jMenu2.add(jMenuItem9);
 
         jMenuBar1.add(jMenu2);
@@ -435,6 +441,11 @@ private void setMenuItemWidth(JMenu menu, int width) {
         frmReturPenjualan frmrj = new frmReturPenjualan();
         frmrj.setVisible(true);
     }//GEN-LAST:event_jMenuItem7ActionPerformed
+
+    private void jMenuItem9ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem9ActionPerformed
+        frmTransStok stok = new frmTransStok();
+        stok.setVisible(true);        // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem9ActionPerformed
 
     /**
      * @param args the command line arguments
