@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.List;
 import javax.swing.table.DefaultTableCellRenderer;
 import ui.Master.frmMstItem;
+import ui.Transaksi.frmReturPenjualan;
 import ui.Transaksi.frmTransPenjualanTunai;
 //import ui.Transaksi.frmTransPo;
 
@@ -39,17 +40,21 @@ private int totalPages = 1;      // Total halaman
     /**
      * Creates new form BrowseBarangDialog
      */
-    public BrowseJual(java.awt.Frame parent, boolean modal, Connection conn) {
+    private Integer filterIdCust = null;
+
+    public BrowseJual(java.awt.Frame parent, boolean modal, Connection conn, Integer idCust) {
         super(parent, modal);
         initComponents();
         this.tjualhDAO = new TjualhDAO(conn);
+        this.filterIdCust = idCust;   // simpan IDCust jika ada
+
         setupTable();
         setupTableClickListener();
         setLocationRelativeTo(null);
-        setupTableClickListener();
-        jTable1.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-                loadData();
-    }
+
+    loadData();
+}
+
 
   private void setupTable() {
     String[] columnNames = {
@@ -102,16 +107,25 @@ private void setupTableClickListener() {
 }
 
 
-    private void loadData(){
-        try {
-            tjualList = tjualhDAO.getAll();
-        } catch (SQLException ex) {
-            System.getLogger(BrowseJual.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+private void loadData() {
+    try {
+        if (filterIdCust == null) {
+            tjualList = tjualhDAO.getAll();                 // Semua transaksi
+        } else {
+            tjualList = tjualhDAO.getByCustomer(filterIdCust);  // Filter berdasarkan customer
         }
-        updateTable(tjualList);
-        applyDisplayLimit();
-    }
+    } catch (SQLException ex) {
+    JOptionPane.showMessageDialog(this, 
+        "Gagal load data: " + ex.getMessage(),
+        "Error", JOptionPane.ERROR_MESSAGE);
+}
+
     
+
+    updateTable(tjualList);
+    applyDisplayLimit();
+}
+
 private void applyDisplayLimit() {
 
     // Hitung total halaman
@@ -172,21 +186,27 @@ private void selectRowAndClose() {
             int idJualH = Integer.parseInt(jTable1.getValueAt(selectedRow, 1).toString());
 
             if (getParent() instanceof frmTransPenjualanTunai) {
-                frmTransPenjualanTunai parentForm = (frmTransPenjualanTunai) getParent();
-                parentForm.setSelectedJual(idJualH);  // <- kirim nilai dan panggil FormShow()
+                frmTransPenjualanTunai parentForm =
+                        (frmTransPenjualanTunai) getParent();
+                parentForm.setSelectedJual(idJualH);
+            } 
+            else if (getParent() instanceof frmReturPenjualan) {
+                frmReturPenjualan parentForm =
+                        (frmReturPenjualan) getParent();
+                parentForm.setSelectedJual(idJualH);
             }
 
-            dispose(); // Tutup dialog
+            dispose();
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this,
-                    "Gagal membaca data: " + ex.getMessage(),
-                    "Error", JOptionPane.ERROR_MESSAGE);
+                "Gagal membaca data: " + ex.getMessage(),
+                "Error", JOptionPane.ERROR_MESSAGE);
         }
     } else {
         JOptionPane.showMessageDialog(this,
-                "Silakan pilih data transaksi terlebih dahulu.",
-                "Peringatan", JOptionPane.WARNING_MESSAGE);
+            "Silakan pilih data transaksi terlebih dahulu.",
+            "Peringatan", JOptionPane.WARNING_MESSAGE);
     }
 }
 
