@@ -326,7 +326,83 @@ public String getLastKode(String prefix) throws SQLException {
 
     return list;
 }
+    private Tjualh mapResultSetToTjualh(ResultSet rs) throws SQLException {
+        Tjualh h = new Tjualh();
 
+        h.setIdJualH(rs.getInt("IDJualH"));
+        h.setKode(rs.getString("Kode"));
+        h.setIdCust(rs.getInt("IDCust"));
+        h.setTanggal(rs.getDate("Tanggal"));
+        h.setJenisBayar(rs.getString("JenisBayar"));
+        h.setIdDokter(rs.getInt("IDDokter"));
+        h.setJatuhTempo(rs.getDate("JatuhTempo"));
+        h.setSubTotal(rs.getDouble("SubTotal"));
+        h.setDiskon(rs.getDouble("Diskon"));
+        h.setPpn(rs.getDouble("Ppn"));
+        h.setTotal(rs.getDouble("Total"));
+        h.setNominal(rs.getDouble("Nominal"));
+        h.setStatus(rs.getString("Status"));
+        h.setInsertUser(rs.getString("InsertUser"));
+        h.setUpdateUser(rs.getString("UpdateUser"));
+
+        return h;
+}
+
+    private List<Tjuald> getDetailsByJualH(int idJualH) throws SQLException {
+    List<Tjuald> list = new ArrayList<>();
+
+    String sql = "SELECT * FROM tjuald WHERE IDJualH = ?";
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, idJualH);
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            Tjuald d = new Tjuald();
+            d.setIdJualD(rs.getInt("IDJualD"));
+            d.setIdJualH(rs.getInt("IDJualH"));
+            d.setIdItemD(rs.getInt("IDItemD"));
+            d.setQty(rs.getDouble("Qty"));
+            d.setHarga(rs.getDouble("Harga"));
+            d.setDiskon(rs.getDouble("Diskon"));
+            d.setTotal(rs.getDouble("Total"));
+            list.add(d);
+        }
+    }
+    return list;
+}
+
+    
+public List<Tjualh> getByCustomer(int idCust) throws SQLException {
+    List<Tjualh> list = new ArrayList<>();
+    String sql = "SELECT * FROM tjualh WHERE IDCust = ? ORDER BY Tanggal DESC";
+
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, idCust);
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            Tjualh tj = mapResultSetToTjualh(rs);
+            tj.setDetails(getDetailsByJualH(tj.getIdJualH()));
+            list.add(tj);
+        }
+    }
+    return list;
+}
+
+
+public Tjualh getByIdSimple(int idJualH) throws SQLException {
+    String sql = "SELECT * FROM tjualh WHERE IDJualH = ?";
+
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setInt(1, idJualH);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            return mapResultSetToTjualh(rs);
+        }
+    }
+    return null;
+}
 
 }
 
