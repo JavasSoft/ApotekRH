@@ -3,7 +3,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package ui.Transaksi;
+import dao.ItemDAO;
 import dao.Koneksi;
+import dao.ReturPenjualanDAO;
 import dao.TjualhDAO;
 import ui.Master.*;
 import dao.cell.ButtonEditor;
@@ -16,12 +18,20 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import ui.Master.BrowseAll.BrowseCustomer;
 import java.sql.Statement;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import model.ItemFull;
+import model.Tjuald;
 import model.Tjualh;
+import model.Treturd;
+import model.Treturh;
 import ui.Master.BrowseAll.BrowseJual;
 
 /**
@@ -30,10 +40,14 @@ import ui.Master.BrowseAll.BrowseJual;
  */
 public class frmReturPenjualan extends javax.swing.JFrame {
     private Connection conn;
-     private Statement stat;
+    private Statement stat;
     private ResultSet rs;
     private String sql;
-     private TjualhDAO tjualhDAO;
+    private TjualhDAO tjualhDAO;
+    private ItemDAO itemDAO;
+    private Treturh treturh;
+    private Treturd  treturd;
+    private ReturPenjualanDAO returPenjualanDAO;
     private Integer selectedCustomerId;
       DefaultTableModel model;
     JTable tblDetail;
@@ -46,6 +60,8 @@ public class frmReturPenjualan extends javax.swing.JFrame {
            initializeDatabase();
                    initTable();
         tjualhDAO = new TjualhDAO(conn);
+        itemDAO   = new ItemDAO(conn); 
+        this.returPenjualanDAO = new ReturPenjualanDAO(conn);
         jToolBar1.setFloatable(false);
         jToolBar2.setFloatable(false);
         awal();
@@ -186,26 +202,139 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     // hanya tampilkan nama di text field
     txtCustomer.setText(namaCustomer);
 }
-    public void setSelectedJual(int idJualH) {
+    private String formatAngka(double value) {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setGroupingSeparator('.');
+        symbols.setDecimalSeparator(',');
+
+        DecimalFormat df = new DecimalFormat("#,##0", symbols);
+        return df.format(value);
+     }
+
+    private double parseAngka(String value) {
+        if (value == null || value.trim().isEmpty()) return 0;
+
+        // hilangkan spasi
+        value = value.trim();
+
+        // Hilangkan pemisah ribuan (.)
+        value = value.replace(".", "");
+
+        // Ganti koma menjadi titik untuk parsing desimal
+        value = value.replace(",", ".");
+
+        try {
+            return Double.parseDouble(value);
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+public void setSelectedJual(int idJualH) {
     try {
-        // Ambil hanya data header
-        Tjualh tjualh = tjualhDAO.getByIdSimple(idJualH);
+        // Ambil full header + detail
+        Tjualh tjualh = tjualhDAO.getById(idJualH);  // ← WAJIB FULL
 
         if (tjualh == null) {
-            JOptionPane.showMessageDialog(this,
-                "Data transaksi tidak ditemukan.");
+            JOptionPane.showMessageDialog(this, "Data transaksi tidak ditemukan.");
             return;
         }
 
-        // Tampilkan ke form Retur
         jtKodeNota.setText(tjualh.getKode());
 
-        // Tidak menampilkan detail di form retur
-        // Karena detailnya nanti dipilih di proses retur
+        // tampilkan detail
+        tampilkanDetailKeTabel(tjualh.getDetails());
 
     } catch (Exception ex) {
         ex.printStackTrace();
     }
+}
+
+    private void tampilkanDetailKeTabel(List<Tjuald> details) { 
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    model.setRowCount(0);
+
+    for (Tjuald d : details) {
+        try {
+            ItemFull item = itemDAO.getFullItem(d.getIdItemD());
+
+            String kode = item != null ? item.getKode() : "";
+            String nama = item != null ? item.getNama() : "";
+            String satuan = item != null ? item.getSatuanBesar() : "";
+
+            model.addRow(new Object[]{
+                "X",                        // 0
+                d.getIdItemD(),             // 1 (WAJIB! sebelumnya null)
+                kode,                       // 2
+                nama,                       // 3
+                satuan,                     // 4
+                formatAngka(d.getQty()),    // 5
+                formatAngka(d.getHarga()),  // 6
+                formatAngka(d.getTotal())   // 7
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Gagal memuat item detail: " + e.getMessage());
+        }
+    }
+}
+private void simpanReturDariForm() {
+    try {
+        Treturh retur = ambilDataReturDariForm();
+        ReturPenjualanDAO dao = new ReturPenjualanDAO(conn);
+        dao.simpanRetur(retur);
+
+        JOptionPane.showMessageDialog(this, "Retur berhasil disimpan! Kode: " + retur.getKode());
+        // Bersihkan form & table
+        jtKodeNota.setText("");
+        jtKodeCust.setText("");
+        txtCustomer.setText("");
+        ((DefaultTableModel) jTable1.getModel()).setRowCount(0);
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Gagal menyimpan retur: " + ex.getMessage());
+    }
+}
+
+private Treturh ambilDataReturDariForm() {
+    Treturh retur = new Treturh();
+    retur.setKode(jtKodeNota.getText());
+    retur.setIdCust(selectedCustomerId); // sudah diset di setCustomerData
+    retur.setTanggal(new java.sql.Date(new java.util.Date().getTime()));
+    retur.setInsertUser("admin"); // bisa diganti user login
+    retur.setStatus("OPEN");
+
+    // Hitung total
+    double total = 0;
+    List<Treturd> listDetail = new ArrayList<>();
+
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    for (int i = 0; i < model.getRowCount(); i++) {
+        int idItem = Integer.parseInt(model.getValueAt(i, 1).toString());
+        double qty = parseAngka(model.getValueAt(i, 5).toString());
+        double harga = parseAngka(model.getValueAt(i, 6).toString());
+        double subtotal = parseAngka(model.getValueAt(i, 7).toString());
+        String satuan = model.getValueAt(i, 4).toString();
+
+        total += subtotal;
+
+        Treturd d = new Treturd();
+        d.setIdItem(idItem);
+        d.setQty(qty);
+        d.setHarga(harga);
+        d.setTotal(subtotal);
+        d.setSatuan(satuan);
+
+        listDetail.add(d);
+    }
+
+    retur.setTotal(total);
+    retur.setDetails(listDetail);
+
+    return retur;
 }
 
 
@@ -420,6 +549,11 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         jPanel4.setBackground(new java.awt.Color(0, 255, 204));
 
         btnSimpan.setText("Simpan");
+        btnSimpan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSimpanActionPerformed(evt);
+            }
+        });
 
         btnExit.setText("Exit Ctrl + X");
 
@@ -712,6 +846,11 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                 BrowseCustomer dialog = new BrowseCustomer(this, true, conn);
         dialog.setVisible(true);
     }//GEN-LAST:event_btnBrowsCustActionPerformed
+
+    private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
+        // TODO add your handling code here:
+        simpanReturDariForm();
+    }//GEN-LAST:event_btnSimpanActionPerformed
 
     /**
      * @param args the command line arguments
