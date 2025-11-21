@@ -15,11 +15,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import ui.Master.BrowseAll.BrowseCustomer;
 import java.sql.Statement;
+import java.util.List;
+import javax.swing.DefaultCellEditor;
+import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import ui.Master.BrowseAll.BrowseItem;
 
 /**
@@ -40,9 +44,10 @@ public class frmTransStok extends javax.swing.JFrame {
      */
     public frmTransStok() {
         initComponents();
-                initTable();
-        jToolBar1.setFloatable(false);
-        jToolBar2.setFloatable(false);
+            initTable();
+            setupSatuanColumn();
+            jToolBar1.setFloatable(false);
+            jToolBar2.setFloatable(false);
         awal();
     }
     private void navaktif(){
@@ -97,16 +102,24 @@ public class frmTransStok extends javax.swing.JFrame {
         }
     }
     
+
+    
     private void initTable() {
     DefaultTableModel model = new DefaultTableModel(
-        new Object[]{"X", "ID","Kode", "Nama", "Satuan", "Stok", "Harga Jual", "Harga Beli"}, 0
+        new Object[]{"X", "ID", "Kode", "Nama", "Satuan", "Stok", "Harga Jual", "Harga Beli", "SatuanList"}, 0
     ) {
         @Override
         public boolean isCellEditable(int row, int column) {
-            return column == 0; // hanya kolom "X"
+            return column == 0 || column == 4 || column == 5 || column == 6 || column == 7;
         }
     };
     jTable1.setModel(model);
+
+     //sembunyikan kolom index 8
+    jTable1.getColumnModel().getColumn(8).setMinWidth(0);
+    jTable1.getColumnModel().getColumn(8).setMaxWidth(0);
+    jTable1.getColumnModel().getColumn(8).setWidth(0);
+
 
     // Hilangkan garis grid
     jTable1.setShowGrid(false);
@@ -158,8 +171,6 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     }
 });
 
-
-
     // Optional: header warna
     jTable1.getTableHeader().setBackground(new java.awt.Color(0, 102, 0)); // hijau tua
     jTable1.getTableHeader().setForeground(java.awt.Color.WHITE); // teks putih
@@ -171,8 +182,107 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         jTable1.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
         jTable1.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
         jTable1.getColumnModel().getColumn(7).setCellRenderer(rightRenderer);
-     
 }
+    
+    
+    
+    public void setItemData(
+    int idItem,
+    String kode,
+    String nama,
+    String satuanKecil,
+    String satuanBesar,
+    double hargaJual,
+    double hargaBeli
+) {
+    
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+
+    // Opsional: Cek duplikasi, seperti yang disarankan sebelumnya
+    for (int i = 0; i < model.getRowCount(); i++) {
+        String existingKode = model.getValueAt(i, 2).toString();
+        if (existingKode.equals(kode)) {
+//            JOptionPane.showMessageDialog(this, "Item dengan kode " + kode + " sudah ada di daftar.");
+            return;
+        }
+    }
+    
+    java.util.List<String> satuanList = new java.util.ArrayList<>();
+    
+    // Tambahkan satuan kecil
+    if (satuanKecil != null && !satuanKecil.isEmpty())
+        satuanList.add(satuanKecil);
+
+    // Tambahkan satuan besar, HANYA jika berbeda dengan satuan kecil
+    if (satuanBesar != null && !satuanBesar.isEmpty() && 
+        !satuanBesar.equalsIgnoreCase(satuanKecil))
+        satuanList.add(satuanBesar);
+
+    // Pastikan list tidak kosong
+    if (satuanList.isEmpty()) {
+        satuanList.add("N/A");
+    }
+
+    // 2. Masukkan ke tabel
+    model.addRow(new Object[]{
+    "X",
+    idItem,
+    kode,
+    nama,
+    satuanKecil,  // tampil di kolom Satuan
+    0,
+    hargaJual,
+    hargaBeli,  
+    satuanList   // Index 8 (SatuanList)// simpan list satuan (besar + kecil)
+    });
+ // Atur dropdown satuan
+}
+
+    private void setupSatuanColumn() {
+    TableColumn col = jTable1.getColumnModel().getColumn(4); // Kolom Satuan (Index 4)
+
+    // Gunakan DefaultCellEditor dengan JComboBox kosong di awal
+    col.setCellEditor(new DefaultCellEditor(new JComboBox<String>()) {
+        
+        // JComboBox ini dibuat SEKALI saat CellEditor diinisialisasi
+        private JComboBox<String> combo = (JComboBox<String>) getComponent(); 
+
+        @Override
+        public Component getTableCellEditorComponent(
+                JTable table, Object value, boolean isSelected, int row, int column) {
+            
+            // 1. Ambil list satuan dari kolom tersembunyi (Index 8)
+            @SuppressWarnings("unchecked")
+            List<String> list = (List<String>) table.getValueAt(row, 8); 
+            
+            // 2. Kosongkan item yang lama
+            combo.removeAllItems();
+
+            // 3. Isi ComboBox dengan item yang relevan untuk baris ini
+            if (list != null) {
+                for (String s : list) {
+                    combo.addItem(s);
+                }
+            }
+
+            // 4. Set nilai yang sedang diedit (nilai saat ini di tabel)
+            combo.setSelectedItem(value);
+
+            // 5. Kembalikan komponen editor yang sama
+            return combo;
+        }
+
+        // ✅ TAMBAH: PENTING UNTUK MEMASTIKAN NILAI TERSIMPAN
+        @Override
+        public Object getCellEditorValue() {
+            // Nilai yang dipilih dari combo box DIKEMBALIKAN dan DISIMPAN ke model tabel
+            return combo.getSelectedItem(); 
+        }
+    });
+}
+
+
+
 //    public void setCustomerData(int idCustomer, String kodeCustomer, String namaCustomer) {
 //    // kalau kamu ingin menyimpan idDokter untuk keperluan simpan ke database,
 //    // buat variabel global di kelas, misalnya:
@@ -220,6 +330,9 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         lblKode3 = new javax.swing.JLabel();
         jPanel6 = new javax.swing.JPanel();
         btnBrows = new javax.swing.JButton();
+        lblKode1 = new javax.swing.JLabel();
+        jtKode1 = new javax.swing.JTextField();
+        btnBrows1 = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -428,11 +541,16 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        jTable1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jTable1MouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(jTable1);
 
         lblKode.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         lblKode.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
-        lblKode.setText("Kode :");
+        lblKode.setText("Kode Barang :");
         lblKode.setMaximumSize(new java.awt.Dimension(33, 22));
         lblKode.setMinimumSize(new java.awt.Dimension(33, 22));
         lblKode.setPreferredSize(new java.awt.Dimension(33, 22));
@@ -482,6 +600,33 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             }
         });
 
+        lblKode1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        lblKode1.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        lblKode1.setText("Kode :");
+        lblKode1.setMaximumSize(new java.awt.Dimension(33, 22));
+        lblKode1.setMinimumSize(new java.awt.Dimension(33, 22));
+        lblKode1.setPreferredSize(new java.awt.Dimension(33, 22));
+
+        jtKode1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        jtKode1.setMaximumSize(new java.awt.Dimension(64, 26));
+        jtKode1.setMinimumSize(new java.awt.Dimension(64, 26));
+        jtKode1.setPreferredSize(new java.awt.Dimension(64, 26));
+        jtKode1.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusGained(java.awt.event.FocusEvent evt) {
+                jtKode1FocusGained(evt);
+            }
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                jtKode1FocusLost(evt);
+            }
+        });
+
+        btnBrows1.setText("jButton1");
+        btnBrows1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBrows1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
@@ -494,12 +639,21 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                     .addComponent(jScrollPane1)
                     .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel5Layout.createSequentialGroup()
-                        .addComponent(lblKode, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnBrows, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(48, 48, 48)
+                        .addGap(24, 24, 24)
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel5Layout.createSequentialGroup()
+                                .addComponent(lblKode, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnBrows, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addComponent(lblKode1, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jtKode1, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnBrows1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addGap(18, 18, 18)
                         .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -510,16 +664,27 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblKode, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnBrows, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(62, 62, 62))
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGap(12, 12, 12)
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jtKode1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnBrows1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblKode1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(btnBrows, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(lblKode, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 120, Short.MAX_VALUE)
-                .addGap(181, 181, 181)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -590,6 +755,22 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         dialog.setVisible(true);
     }//GEN-LAST:event_btnBrowsActionPerformed
 
+    private void jtKode1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jtKode1FocusGained
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jtKode1FocusGained
+
+    private void jtKode1FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jtKode1FocusLost
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jtKode1FocusLost
+
+    private void btnBrows1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrows1ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnBrows1ActionPerformed
+
+    private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jTable1MouseClicked
+
     /**
      * @param args the command line arguments
      */
@@ -636,6 +817,7 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     private javax.swing.JButton btnAkhir;
     private javax.swing.JButton btnAwal;
     private javax.swing.JButton btnBrows;
+    private javax.swing.JButton btnBrows1;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnExit;
     private javax.swing.JButton btnHapus;
@@ -663,7 +845,9 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JTextField jtKode;
+    private javax.swing.JTextField jtKode1;
     private javax.swing.JLabel lblKode;
+    private javax.swing.JLabel lblKode1;
     private javax.swing.JLabel lblKode3;
     // End of variables declaration//GEN-END:variables
 }
