@@ -4,6 +4,7 @@
  */
 package ui.Transaksi;
 import dao.Koneksi;
+import dao.TjualhDAO;
 import ui.Master.*;
 import dao.cell.ButtonEditor;
 import dao.cell.ButtonRenderer;
@@ -20,6 +21,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import model.Tjualh;
+import ui.Master.BrowseAll.BrowseJual;
 
 /**
  *
@@ -30,6 +33,7 @@ public class frmReturPenjualan extends javax.swing.JFrame {
      private Statement stat;
     private ResultSet rs;
     private String sql;
+     private TjualhDAO tjualhDAO;
     private Integer selectedCustomerId;
       DefaultTableModel model;
     JTable tblDetail;
@@ -39,7 +43,9 @@ public class frmReturPenjualan extends javax.swing.JFrame {
      */
     public frmReturPenjualan() {
         initComponents();
-                initTable();
+           initializeDatabase();
+                   initTable();
+        tjualhDAO = new TjualhDAO(conn);
         jToolBar1.setFloatable(false);
         jToolBar2.setFloatable(false);
         awal();
@@ -180,6 +186,28 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     // hanya tampilkan nama di text field
     txtCustomer.setText(namaCustomer);
 }
+    public void setSelectedJual(int idJualH) {
+    try {
+        // Ambil hanya data header
+        Tjualh tjualh = tjualhDAO.getByIdSimple(idJualH);
+
+        if (tjualh == null) {
+            JOptionPane.showMessageDialog(this,
+                "Data transaksi tidak ditemukan.");
+            return;
+        }
+
+        // Tampilkan ke form Retur
+        jtKodeNota.setText(tjualh.getKode());
+
+        // Tidak menampilkan detail di form retur
+        // Karena detailnya nanti dipilih di proses retur
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
+}
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -669,11 +697,14 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     private void formWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowOpened
         // TODO add your handling code here:
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);
-        initializeDatabase();
     }//GEN-LAST:event_formWindowOpened
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
+        int idCust = this.selectedCustomerId;  // IDCust yang dipilih user
+
+    BrowseJual browse = new BrowseJual(this, true, conn, idCust);
+    browse.setVisible(true);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void btnBrowsCustActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowsCustActionPerformed
