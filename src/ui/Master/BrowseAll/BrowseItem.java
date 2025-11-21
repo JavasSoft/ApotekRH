@@ -17,6 +17,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import ui.Master.frmMstItem;
 import ui.Transaksi.frmTransPenjualanTunai;
 import ui.Transaksi.frmTransPembelianBayar;
+import ui.Transaksi.frmTransStok;
 //import ui.Transaksi.frmTransPo;
 
 /**
@@ -200,6 +201,12 @@ private void selectRowAndClose() {
                 frmTransPembelianBayar parentForm = (frmTransPembelianBayar) getParent();
                 parentForm.setItemData(selectedID, selectedKode, selectedNama,  satuanKecil, satuanBesar, hargaJual,konversi);
             }
+            
+            else if (getParent() instanceof frmTransStok) {
+                frmTransStok parentForm = (frmTransStok) getParent();
+                parentForm.setItemData(selectedID, selectedKode, selectedNama,  satuanKecil, satuanBesar, hargaJual, konversi);
+            }
+
 
 
             dispose(); // Tutup dialog setelah memilih
