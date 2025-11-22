@@ -13,7 +13,7 @@ public class ItemDAO {
 
     // INSERT ITEM + DETAIL
     public boolean insertItem(Item item) {
-        String sqlItem = "INSERT INTO mitem (Kode, Nama, HargaBeli, Kategori, Aktif) VALUES (?, ?, ?, ?, ?)";
+        String sqlItem = "INSERT INTO mitem (Kode, Nama, HargaBeli, Kategori, Stok, Aktif) VALUES (?, ?, ?, ?, ?, ?)";
         String sqlDetail = "INSERT INTO mitemd (IDItem, SatuanBesar, Jumlah, Satuan, Konversi, HargaJual, LabaPersen) VALUES (?, ?, ?,?, ?, ?, ?)";
         try {
             conn.setAutoCommit(false);
@@ -24,7 +24,8 @@ public class ItemDAO {
             pstmt.setString(2, item.getNama());
             pstmt.setDouble(3, item.getHargaBeli());
             pstmt.setString(4, item.getKategori());
-            pstmt.setInt(5, item.getAktif());
+            pstmt.setDouble(5, item.getStok());
+            pstmt.setInt(6, item.getAktif());
             pstmt.executeUpdate();
 
             // Ambil IDItem yang baru
@@ -75,6 +76,7 @@ public class ItemDAO {
                 item.setNama(rsItem.getString("Nama"));
                 item.setHargaBeli(rsItem.getDouble("HargaBeli"));
                 item.setKategori(rsItem.getString("Kategori"));
+                item.setStok(rsItem.getDouble("Stok"));
                 item.setAktif(rsItem.getInt("Aktif"));
 
                 // Ambil detail-nya
@@ -151,6 +153,7 @@ public class ItemDAO {
             item.setNama(rsItem.getString("Nama"));
             item.setHargaBeli(rsItem.getDouble("HargaBeli"));
             item.setKategori(rsItem.getString("Kategori"));
+            item.setStok(rsItem.getDouble("Stok"));
             item.setAktif(rsItem.getInt("Aktif"));
 
             // Ambil detail dari tabel mitemd
@@ -198,7 +201,7 @@ public class ItemDAO {
     }
         
     public boolean updateItemWithDetail(Item item, ItemDetail detail) {
-    String sqlUpdateItem = "UPDATE mitem SET Kode=?, Nama=?, Kategori=?, HargaBeli=?, Aktif=? WHERE IDItem=?";
+    String sqlUpdateItem = "UPDATE mitem SET Kode=?, Nama=?, Kategori=?, Stok=?, HargaBeli=?, Aktif=? WHERE IDItem=?";
     String sqlDeleteDetail = "DELETE FROM mitemd WHERE IDItem=?";
     String sqlInsertDetail = "INSERT INTO mitemd (IDItem, SatuanBesar, Jumlah, Satuan, Konversi, HargaJual, LabaPersen) VALUES (?, ?, ?, ?, ?, ?, ?)";
 
@@ -210,9 +213,10 @@ public class ItemDAO {
             psItem.setString(1, item.getKode());
             psItem.setString(2, item.getNama());
             psItem.setString(3, item.getKategori());
-            psItem.setDouble(4, item.getHargaBeli());
-            psItem.setInt(5, item.getAktif());
-            psItem.setInt(6, item.getIDItem());
+            psItem.setDouble(4, item.getStok());
+            psItem.setDouble(5, item.getHargaBeli());
+            psItem.setInt(6, item.getAktif());
+            psItem.setInt(7, item.getIDItem());
             psItem.executeUpdate();
             System.out.println("✅ Updating IDItem = " + item.getIDItem());
         }
