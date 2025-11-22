@@ -10,6 +10,7 @@ import java.util.List;
 public class Treturh {
     private int idReturH;
     private String kode;
+    private int idJualh;
     private int idCust;
     private Date tanggal;
     private double total;
@@ -24,9 +25,12 @@ public class Treturh {
 
     public String getKode() { return kode; }
     public void setKode(String kode) { this.kode = kode; }
-
-    public int getIdCust() { return idCust; }
+    
+        public int getIdCust() { return idCust; }
     public void setIdCust(int idCust) { this.idCust = idCust; }
+
+    public int getIdjual() { return idJualh; }
+    public void setIdjual(int idJualh) { this.idJualh = idJualh; }
 
     public Date getTanggal() { return tanggal; }
     public void setTanggal(Date tanggal) { this.tanggal = tanggal; }
