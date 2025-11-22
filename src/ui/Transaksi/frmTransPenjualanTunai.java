@@ -960,6 +960,7 @@ private void printNotaKecil() {
         String kasir = System.getProperty("user.name");
 
         // Ambil total, bayar, kembali dari form
+        String diskon = txtDiscTotal.getText(); 
         String subtotal = lblSubtotal.getText();
         String total = jtTotal.getText();
         String bayar = txtBayar.getText();
@@ -1007,12 +1008,15 @@ private void printNotaKecil() {
         }
 
 
-        sb.append("--------------------------------\n");
-        sb.append(String.format("%-20s %10s\n", "Subtotal", subtotal));
-        sb.append(String.format("%-20s %10s\n", "Total", total));
-        sb.append(String.format("%-20s %10s\n", "Bayar", bayar));
-        sb.append(String.format("%-20s %10s\n", "Kembali", kembali));
-        sb.append("--------------------------------\n");
+           sb.append("--------------------------------\n");
+
+           sb.append(String.format("%-20s %10s\n", "Diskon",  "Rp " + diskon));
+           sb.append(String.format("%-20s %10s\n", "Grand",   "Rp " + total));
+           sb.append(String.format("%-20s %10s\n", "Tunai",   "Rp " + bayar));
+           sb.append(String.format("%-20s %10s\n", "Kembali", "Rp " + kembali));
+
+           sb.append("--------------------------------\n\n");
+
         sb.append(centerText("Terima Kasih", 32)).append("\n");
         sb.append("\n\n");
 
