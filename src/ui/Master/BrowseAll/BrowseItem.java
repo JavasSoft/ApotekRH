@@ -53,7 +53,7 @@ private int totalPages = 1;      // Total halaman
 
   private void setupTable() {
     String[] columnNames = {
-        "No", "IDItem", "Kode", "Nama", "Kategori",
+        "No", "IDItem", "Kode", "Nama", "Kategori", "Stok",
         "Harga Beli", "Aktif",
         "Satuan Kecil", "Satuan Besar", "Harga Jual",
         "Laba (%)", "Konversi"
@@ -68,7 +68,7 @@ private int totalPages = 1;      // Total halaman
     jTable1.setModel(tableModel);
 
     // Lebar kolom penting
-    int[] preferredWidths = {30, 0, 80, 200, 100, 80, 60, 100, 100, 100, 70, 70};
+    int[] preferredWidths = {30, 0, 80, 200, 100, 60, 80, 60, 100, 100, 100, 70, 70};
     for (int i = 0; i < preferredWidths.length; i++) {
         jTable1.getColumnModel().getColumn(i).setPreferredWidth(preferredWidths[i]);
     }
@@ -131,10 +131,6 @@ private void updatePageData() {
 }
 
 
- 
-
-
-
 private void updateTable(List<Item> itemList) {
     tableModel.setRowCount(0); // Hapus semua isi tabel dulu
     int noUrut = 1;
@@ -151,7 +147,8 @@ private void updateTable(List<Item> itemList) {
             item.getIDItem(),                // IDItem
             item.getKode(),                  // Kode
             item.getNama(),                  // Nama
-            item.getKategori(),              // Kategori
+            item.getKategori(),  
+            item.getStok(),            // Kategori
             item.getHargaBeli(),             // Harga Beli
             (item.getAktif() == 1) ? "Aktif" : "Tidak Aktif",  // Status aktif
             (detail != null) ? detail.getSatuan() : "",         // Satuan kecil
@@ -174,22 +171,22 @@ private void selectRowAndClose() {
             String selectedKode = jTable1.getValueAt(selectedRow, 2).toString();
             String selectedNama = jTable1.getValueAt(selectedRow, 3).toString();
             String selectedKategori = jTable1.getValueAt(selectedRow, 4).toString();
-            double selectedHargaBeli = Double.parseDouble(jTable1.getValueAt(selectedRow, 5).toString());
-            boolean isAktif = "Aktif".equalsIgnoreCase(jTable1.getValueAt(selectedRow, 6).toString());
+            double selectedStok = Double.parseDouble(jTable1.getValueAt(selectedRow, 5).toString());
+            double selectedHargaBeli = Double.parseDouble(jTable1.getValueAt(selectedRow, 6).toString());
+            boolean isAktif = "Aktif".equalsIgnoreCase(jTable1.getValueAt(selectedRow, 7).toString());
 
-            String satuanKecil = jTable1.getValueAt(selectedRow, 7).toString();
-            String satuanBesar = jTable1.getValueAt(selectedRow, 8).toString();
-            double hargaJual = Double.parseDouble(jTable1.getValueAt(selectedRow, 9).toString());
-            double labaPersen = Double.parseDouble(jTable1.getValueAt(selectedRow, 10).toString());
-            double konversi = Double.parseDouble(jTable1.getValueAt(selectedRow, 11).toString());
+            String satuanKecil = jTable1.getValueAt(selectedRow, 8).toString();
+            String satuanBesar = jTable1.getValueAt(selectedRow, 9).toString();
+            double hargaJual = Double.parseDouble(jTable1.getValueAt(selectedRow, 10).toString());
+            double labaPersen = Double.parseDouble(jTable1.getValueAt(selectedRow, 11).toString());
+            double konversi = Double.parseDouble(jTable1.getValueAt(selectedRow, 12).toString());
 
             // Kirim ke form utama
             if (getParent() instanceof frmMstItem) {
                 frmMstItem parentForm = (frmMstItem) getParent();
                 parentForm.setItemData(
-                    selectedID, selectedKode, selectedNama, selectedKategori,
-                    selectedHargaBeli, isAktif,
-                    satuanKecil, satuanBesar, hargaJual, labaPersen, konversi
+                    selectedID, selectedKode, selectedNama, selectedKategori, selectedStok,
+                    selectedHargaBeli, hargaJual, isAktif, satuanKecil, satuanBesar, labaPersen, konversi
                 );
             } 
             else if (getParent() instanceof frmTransPenjualanTunai) {
@@ -204,7 +201,7 @@ private void selectRowAndClose() {
             
             else if (getParent() instanceof frmTransStok) {
                 frmTransStok parentForm = (frmTransStok) getParent();
-                parentForm.setItemData(selectedID, selectedKode, selectedNama,  satuanKecil, satuanBesar, hargaJual, konversi);
+                parentForm.setItemData(selectedID, selectedKode, selectedNama,  satuanKecil, satuanBesar, hargaJual, selectedHargaBeli);
             }
 
 
