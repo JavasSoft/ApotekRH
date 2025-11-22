@@ -4,6 +4,7 @@
  */
 package ui.Transaksi;
 import dao.Koneksi;
+import dao.TStokDAO;
 import ui.Master.*;
 import dao.cell.ButtonEditor;
 import dao.cell.ButtonRenderer;
@@ -26,6 +27,8 @@ import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
+import model.Stok;
+import model.User;
 import ui.Master.BrowseAll.BrowseItem;
 
 /**
@@ -40,6 +43,9 @@ public class frmTransStok extends javax.swing.JFrame {
     private Integer selectedCustomerId;
       DefaultTableModel model;
     JTable tblDetail;
+    
+    
+
 
     /**
      * Creates new form ParentTrans
@@ -50,8 +56,11 @@ public class frmTransStok extends javax.swing.JFrame {
             setupSatuanColumn();
             jToolBar1.setFloatable(false);
             jToolBar2.setFloatable(false);
+            btnSimpan.addActionListener(evt -> simpanDataStok());
         awal();
     }
+    
+    
     private void navaktif(){
      btnAwal.setEnabled(true);
      btnPrevious.setEnabled(true);
@@ -66,7 +75,7 @@ public class frmTransStok extends javax.swing.JFrame {
     }
     private void awal(){
         jLabel1.setText("[Browse]");
-        btnSimpan.setEnabled(false);
+        btnSimpan.setEnabled(true);
         btnCancel.setEnabled(false);
         btnExit.setEnabled(false);
         navaktif();
@@ -316,6 +325,44 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         }
     });
 }
+    
+   private void simpanDataStok() {
+    try {
+        Connection conn = Koneksi.getConnection();
+        TStokDAO dao = new TStokDAO(conn);
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        java.util.List<Stok> list = new java.util.ArrayList<>();
+
+        String kodeForm = txtKode.getText().trim();
+        java.util.Date tanggalForm = dtpTanggal.getDate();
+
+        for (int i = 0; i < model.getRowCount(); i++) {
+            Stok t = new Stok();
+            t.setKode(kodeForm);
+            t.setTanggal(tanggalForm);
+            t.setIdItem(Integer.parseInt(model.getValueAt(i, 1).toString()));
+            t.setNama(model.getValueAt(i, 3).toString());
+            t.setSatuan(model.getValueAt(i, 4).toString());
+            t.setStok(Double.parseDouble(model.getValueAt(i, 5).toString()));
+            t.setHargaJual(Double.parseDouble(model.getValueAt(i, 6).toString()));
+            t.setHargaBeli(Double.parseDouble(model.getValueAt(i, 7).toString()));
+            t.setAktif(cmbAktif.isSelected());
+            list.add(t);
+        }
+
+        // insert ke tstok & tjurnalitem
+        dao.insertBatchWithJurnal(list, "Admin"); // bisa ganti "System" dengan user login
+
+        JOptionPane.showMessageDialog(this, "Data stok dan jurnal berhasil disimpan!");
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Gagal simpan: " + e.getMessage());
+    }
+}
+
+    
+
 
 
 
@@ -353,21 +400,21 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         btnUbah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTable1 = new javax.swing.JTable();
+        lblKode = new javax.swing.JLabel();
+        jtKode = new javax.swing.JTextField();
+        dtpTanggal = new com.toedter.calendar.JDateChooser();
+        lblKode3 = new javax.swing.JLabel();
+        jPanel6 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
         btnSimpan = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
         cmbAktif = new javax.swing.JCheckBox();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
-        lblKode = new javax.swing.JLabel();
-        jtKode = new javax.swing.JTextField();
-        jDateChooser1 = new com.toedter.calendar.JDateChooser();
-        lblKode3 = new javax.swing.JLabel();
-        jPanel6 = new javax.swing.JPanel();
         btnBrows = new javax.swing.JButton();
         lblKode1 = new javax.swing.JLabel();
-        jtKode1 = new javax.swing.JTextField();
+        txtKode = new javax.swing.JTextField();
         btnBrows1 = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
@@ -531,41 +578,6 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                         .addContainerGap())))
         );
 
-        jPanel4.setBackground(new java.awt.Color(0, 255, 204));
-
-        btnSimpan.setText("Simpan");
-
-        btnExit.setText("Exit Ctrl + X");
-
-        btnCancel.setText("Cancel");
-        btnCancel.setMinimumSize(new java.awt.Dimension(92, 23));
-
-        cmbAktif.setBackground(new java.awt.Color(0, 255, 204));
-        cmbAktif.setText("Data Aktif");
-
-        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
-        jPanel4.setLayout(jPanel4Layout);
-        jPanel4Layout.setHorizontalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
-                .addComponent(cmbAktif)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnSimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnExit)
-                .addGap(29, 29, 29))
-        );
-        jPanel4Layout.setVerticalGroup(
-            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(btnSimpan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnExit, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addComponent(cmbAktif))
-        );
-
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null, null, null, null},
@@ -604,10 +616,10 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             }
         });
 
-        jDateChooser1.setDateFormatString("dd/MM/yyyy");
-        jDateChooser1.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
-        jDateChooser1.setMinSelectableDate(new java.util.Date(-62135791098000L));
-        jDateChooser1.setPreferredSize(new java.awt.Dimension(85, 26));
+        dtpTanggal.setDateFormatString("dd/MM/yyyy");
+        dtpTanggal.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
+        dtpTanggal.setMinSelectableDate(new java.util.Date(-62135791098000L));
+        dtpTanggal.setPreferredSize(new java.awt.Dimension(85, 26));
 
         lblKode3.setFont(new java.awt.Font("Segoe UI", 0, 14)); // NOI18N
         lblKode3.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
@@ -618,15 +630,52 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
 
         jPanel6.setBackground(new java.awt.Color(255, 255, 255));
 
+        jPanel4.setBackground(new java.awt.Color(0, 255, 204));
+
+        btnSimpan.setText("Simpan");
+
+        btnExit.setText("Exit Ctrl + X");
+
+        btnCancel.setText("Cancel");
+        btnCancel.setMinimumSize(new java.awt.Dimension(92, 23));
+
+        cmbAktif.setBackground(new java.awt.Color(0, 255, 204));
+        cmbAktif.setText("Data Aktif");
+
+        javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
+        jPanel4.setLayout(jPanel4Layout);
+        jPanel4Layout.setHorizontalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addComponent(cmbAktif)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnSimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnExit)
+                .addGap(29, 29, 29))
+        );
+        jPanel4Layout.setVerticalGroup(
+            jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addComponent(btnSimpan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnExit, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(cmbAktif))
+        );
+
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addComponent(jPanel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 40, Short.MAX_VALUE)
+            .addGroup(jPanel6Layout.createSequentialGroup()
+                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 17, Short.MAX_VALUE))
         );
 
         btnBrows.setText("jButton1");
@@ -643,16 +692,16 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         lblKode1.setMinimumSize(new java.awt.Dimension(33, 22));
         lblKode1.setPreferredSize(new java.awt.Dimension(33, 22));
 
-        jtKode1.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jtKode1.setMaximumSize(new java.awt.Dimension(64, 26));
-        jtKode1.setMinimumSize(new java.awt.Dimension(64, 26));
-        jtKode1.setPreferredSize(new java.awt.Dimension(64, 26));
-        jtKode1.addFocusListener(new java.awt.event.FocusAdapter() {
+        txtKode.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
+        txtKode.setMaximumSize(new java.awt.Dimension(64, 26));
+        txtKode.setMinimumSize(new java.awt.Dimension(64, 26));
+        txtKode.setPreferredSize(new java.awt.Dimension(64, 26));
+        txtKode.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                jtKode1FocusGained(evt);
+                txtKodeFocusGained(evt);
             }
             public void focusLost(java.awt.event.FocusEvent evt) {
-                jtKode1FocusLost(evt);
+                txtKodeFocusLost(evt);
             }
         });
 
@@ -668,7 +717,6 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         jPanel5Layout.setHorizontalGroup(
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jPanel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addGap(21, 21, 21)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -686,13 +734,13 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                             .addGroup(jPanel5Layout.createSequentialGroup()
                                 .addComponent(lblKode1, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jtKode1, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(txtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btnBrows1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(18, 18, 18)
                         .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(dtpTanggal, javax.swing.GroupLayout.PREFERRED_SIZE, 150, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 566, Short.MAX_VALUE)))
                 .addGap(31, 31, 31))
         );
@@ -704,13 +752,13 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jDateChooser1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(dtpTanggal, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(62, 62, 62))
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jtKode1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(txtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(btnBrows1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(lblKode1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -722,9 +770,7 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(21, 21, 21))
+                .addGap(56, 56, 56))
         );
 
         jMenu1.setText("System");
@@ -791,13 +837,13 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         dialog.setVisible(true);
     }//GEN-LAST:event_btnBrowsActionPerformed
 
-    private void jtKode1FocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jtKode1FocusGained
+    private void txtKodeFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtKodeFocusGained
         // TODO add your handling code here:
-    }//GEN-LAST:event_jtKode1FocusGained
+    }//GEN-LAST:event_txtKodeFocusGained
 
-    private void jtKode1FocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_jtKode1FocusLost
+    private void txtKodeFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtKodeFocusLost
         // TODO add your handling code here:
-    }//GEN-LAST:event_jtKode1FocusLost
+    }//GEN-LAST:event_txtKodeFocusLost
 
     private void btnBrows1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrows1ActionPerformed
         // TODO add your handling code here:
@@ -863,7 +909,7 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     private javax.swing.JButton btnTambah;
     private javax.swing.JButton btnUbah;
     private javax.swing.JCheckBox cmbAktif;
-    private com.toedter.calendar.JDateChooser jDateChooser1;
+    private com.toedter.calendar.JDateChooser dtpTanggal;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -881,9 +927,9 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JTextField jtKode;
-    private javax.swing.JTextField jtKode1;
     private javax.swing.JLabel lblKode;
     private javax.swing.JLabel lblKode1;
     private javax.swing.JLabel lblKode3;
+    private javax.swing.JTextField txtKode;
     // End of variables declaration//GEN-END:variables
 }
