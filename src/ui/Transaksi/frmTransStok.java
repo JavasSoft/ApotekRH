@@ -16,6 +16,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import ui.Master.BrowseAll.BrowseCustomer;
 import java.sql.Statement;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
@@ -43,22 +47,45 @@ public class frmTransStok extends javax.swing.JFrame {
     private Integer selectedCustomerId;
       DefaultTableModel model;
     JTable tblDetail;
-    
-    
-
-
+    private List<Stok> list;
+    private int currentRecordIndex = 0;
+    private int totalInputs = 0;
+    private TStokDAO tStokDAO;
+ 
     /**
      * Creates new form ParentTrans
      */
     public frmTransStok() {
         initComponents();
+    initializeDatabase();   // ← WAJIB DULU BIAR conn TIDAK NULL
+    tStokDAO = new TStokDAO(conn); 
+    
             initTable();
             setupSatuanColumn();
             jToolBar1.setFloatable(false);
             jToolBar2.setFloatable(false);
             btnSimpan.addActionListener(evt -> simpanDataStok());
-        awal();
+            FormShow();
+            btnALL();
+             awal();
     }
+    
+    private void FormShow() {
+    loadDataFromDatabase();
+    loadCurrentItem();
+    }
+    
+        private void btnALL() {
+//        btnSimpan.addActionListener(evt -> simpan());
+         btnExit.addActionListener(evr -> dispose());
+         btnTambah.addActionListener(evt -> tambah());
+         btnUbah.addActionListener(evt -> ubah());
+         btnAwal.addActionListener(evt -> data_awal());
+         btnPrevious.addActionListener(evt -> previous());
+         btnNext.addActionListener(evt -> next());
+         btnAkhir.addActionListener(evt -> data_terakhir());
+        }
+
     
     
     private void navaktif(){
@@ -76,19 +103,25 @@ public class frmTransStok extends javax.swing.JFrame {
     private void awal(){
         jLabel1.setText("[Browse]");
         btnSimpan.setEnabled(true);
+        btnBrows.setEnabled(true);
         btnCancel.setEnabled(false);
         btnExit.setEnabled(false);
         navaktif();
+        FormShow();
     }
     private void tambah(){
+        clearInputFields();
+        IDotomatis();
         jLabel1.setText("[Tambah]");
         btnUbah.setEnabled(false);
         btnHapus.setEnabled(false);
-        btnSimpan.setEnabled(true);
+        btnBrows.setEnabled(false);
         btnCancel.setEnabled(true);
         btnExit.setEnabled(true);
         navnonaktif();
-        
+    ((DefaultTableModel) jTable1.getModel()).setRowCount(0);
+        dtpTanggal.setDate(new java.util.Date()); // set tanggal hari ini
+        dtpTanggal.setDateFormatString("dd/MM/yyyy"); // ubah format tampilan 
     }
     private void ubah(){
         jLabel1.setText("[Ubah]");
@@ -230,6 +263,60 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     centerRenderer.setHorizontalAlignment(javax.swing.JLabel.CENTER);
         jTable1.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
 }
+    
+    private void clearInputFields() {
+   // txtNoFaktur.setText("");
+    txtIDStok.setText("");
+    txtKode.setText("");
+}
+    
+    private void simpan() {
+        String action = jLabel1.getText();
+    if (action.equals("[Tambah]")) {
+        simpanDataStok();
+    } else if (action.equals("[Ubah]")) {
+        updateTrans();
+    } else {
+        JOptionPane.showMessageDialog(null, "Aksi tidak dikenali: " + action);
+    }
+  // clearInputFields();
+   tambah(); // Reset form / state awal
+}
+    
+    private void updateTrans(){
+        
+}
+    
+    private void IDotomatis() {
+    try {
+        LocalDate today = LocalDate.now();
+
+        String year  = String.format("%02d", today.getYear() % 100); 
+        String month = String.format("%02d", today.getMonthValue());
+
+        String prefix = "ST" + year + month; // contoh: ST2511
+
+        TStokDAO dao = new TStokDAO(conn);
+
+        String lastCode = dao.getLastKode(prefix);
+        String newCode;
+
+        if (lastCode != null && lastCode.startsWith(prefix)) {
+            int number = Integer.parseInt(lastCode.substring(prefix.length()));
+            number++;
+            newCode = prefix + String.format("%05d", number); 
+        } else {
+            newCode = prefix + "00001";
+        }
+
+        txtKode.setText(newCode);
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, 
+            "Terjadi kesalahan generate kode: " + e.getMessage());
+    }
+}
+
    
     public void setItemData(
     int idItem,
@@ -360,6 +447,119 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         JOptionPane.showMessageDialog(this, "Gagal simpan: " + e.getMessage());
     }
 }
+   
+   private String formatAngka(double value) {
+    DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+    symbols.setGroupingSeparator('.');
+    symbols.setDecimalSeparator(',');
+
+    DecimalFormat df = new DecimalFormat("#,##0", symbols);
+    return df.format(value);
+}
+
+private double parseAngka(String value) {
+    if (value == null || value.trim().isEmpty()) return 0;
+
+    // hilangkan spasi
+    value = value.trim();
+
+    // Hilangkan pemisah ribuan (.)
+    value = value.replace(".", "");
+
+    // Ganti koma menjadi titik untuk parsing desimal
+    value = value.replace(",", ".");
+
+    try {
+        return Double.parseDouble(value);
+    } catch (Exception e) {
+        return 0;
+    }
+}
+   
+   private void loadDataFromDatabase() {
+    try {
+        list = tStokDAO.getAll(); 
+        totalInputs = list.size();
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this,
+            "Gagal mengambil data stok: " + e.getMessage());
+        return;
+    }
+
+    if (list == null || list.isEmpty()) {
+        JOptionPane.showMessageDialog(null, "Data stok belum ada di database.");
+        return;
+    }
+
+    currentRecordIndex = 0;
+    loadCurrentItem();
+}
+
+   private void loadCurrentItem() {
+    if (currentRecordIndex < 0 || currentRecordIndex >= list.size()) {
+        JOptionPane.showMessageDialog(null, "Indeks catatan tidak valid.");
+        return;
+    }
+
+    Stok s = list.get(currentRecordIndex);
+
+    txtKode.setText(s.getKode());
+    dtpTanggal.setDate(s.getTanggal());
+
+
+    // tampilkan ke tabel hanya 1 baris
+    tampilkanKeTabel(s);
+
+    updateRecordLabel();
+}
+   
+   private void tampilkanKeTabel(Stok s) {
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    model.setRowCount(0);
+
+    model.addRow(new Object[]{
+    "X",                     // 0
+    s.getId(),               // 1 (IDStok)
+    s.getKodeItem(),             // 2
+    s.getNama(),             // 3
+    s.getSatuan(),           // 4
+    formatAngka(s.getStok()),        // 5
+    formatAngka(s.getHargaJual()),   // 6
+    formatAngka(s.getHargaBeli()),   // 7
+    s.getSatuan()            // 8 (SatuanList → dropdown, sementara isi sama dulu)
+    });
+}
+   
+   private void updateRecordLabel() {
+    recordLabel.setText("Record: " + (currentRecordIndex + 1) + " dari " + totalInputs);
+}
+    private void data_awal() {
+    currentRecordIndex = 0; // Data pertama
+    loadCurrentItem();
+}
+    private void data_terakhir() {
+    currentRecordIndex = totalInputs - 1; // Data terakhir
+    loadCurrentItem();
+}
+    private void next() {
+    if (currentRecordIndex < totalInputs - 1) { // Pastikan tidak melebihi jumlah total input
+        currentRecordIndex++;
+        loadCurrentItem();
+    } else {
+        JOptionPane.showMessageDialog(null, "Anda sudah berada pada record terakhir.");
+    }
+}
+    private void previous() {
+    if (currentRecordIndex > 0) { // Pastikan tidak kurang dari record pertama
+        currentRecordIndex--;
+        loadCurrentItem();
+    } else {
+        JOptionPane.showMessageDialog(null, "Anda sudah berada pada record pertama.");
+    }
+}
+
+
 
     
 
@@ -384,6 +584,7 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        txtIDStok = new javax.swing.JTextField();
         jPanel5 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
@@ -399,7 +600,7 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         btnTambah = new javax.swing.JButton();
         btnUbah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
-        jLabel5 = new javax.swing.JLabel();
+        recordLabel = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
         lblKode = new javax.swing.JLabel();
@@ -412,13 +613,15 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         btnExit = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
         cmbAktif = new javax.swing.JCheckBox();
-        btnBrows = new javax.swing.JButton();
+        btnBrowsItem = new javax.swing.JButton();
         lblKode1 = new javax.swing.JLabel();
         txtKode = new javax.swing.JTextField();
-        btnBrows1 = new javax.swing.JButton();
+        btnBrows = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
+
+        txtIDStok.setText("jTextField3");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setBackground(new java.awt.Color(255, 255, 255));
@@ -548,9 +751,9 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         btnHapus.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(btnHapus);
 
-        jLabel5.setBackground(new java.awt.Color(0, 0, 0));
-        jLabel5.setForeground(new java.awt.Color(0, 102, 0));
-        jLabel5.setText("1 of 9999");
+        recordLabel.setBackground(new java.awt.Color(0, 0, 0));
+        recordLabel.setForeground(new java.awt.Color(0, 102, 0));
+        recordLabel.setText("1 of 9999");
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -560,7 +763,7 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                 .addGap(37, 37, 37)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jLabel5)
+                .addComponent(recordLabel)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
@@ -574,7 +777,7 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                         .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(recordLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addContainerGap())))
         );
 
@@ -638,6 +841,11 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
 
         btnCancel.setText("Cancel");
         btnCancel.setMinimumSize(new java.awt.Dimension(92, 23));
+        btnCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCancelActionPerformed(evt);
+            }
+        });
 
         cmbAktif.setBackground(new java.awt.Color(0, 255, 204));
         cmbAktif.setText("Data Aktif");
@@ -678,10 +886,10 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                 .addGap(0, 17, Short.MAX_VALUE))
         );
 
-        btnBrows.setText("jButton1");
-        btnBrows.addActionListener(new java.awt.event.ActionListener() {
+        btnBrowsItem.setText("jButton1");
+        btnBrowsItem.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnBrowsActionPerformed(evt);
+                btnBrowsItemActionPerformed(evt);
             }
         });
 
@@ -705,10 +913,10 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             }
         });
 
-        btnBrows1.setText("jButton1");
-        btnBrows1.addActionListener(new java.awt.event.ActionListener() {
+        btnBrows.setText("jButton1");
+        btnBrows.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnBrows1ActionPerformed(evt);
+                btnBrowsActionPerformed(evt);
             }
         });
 
@@ -730,13 +938,13 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(jtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnBrows, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addComponent(btnBrowsItem, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel5Layout.createSequentialGroup()
                                 .addComponent(lblKode1, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(txtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 219, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnBrows1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(btnBrows, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(18, 18, 18)
                         .addComponent(lblKode3, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -759,12 +967,12 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
                         .addGap(12, 12, 12)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(txtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnBrows1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnBrows, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(lblKode1, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jtKode, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(btnBrows, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(btnBrowsItem, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(lblKode, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -831,11 +1039,11 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         setLocationRelativeTo(null);
     }//GEN-LAST:event_formWindowOpened
 
-    private void btnBrowsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowsActionPerformed
+    private void btnBrowsItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowsItemActionPerformed
         // TODO add your handling code here:
         BrowseItem dialog = new BrowseItem(this, true, conn);
         dialog.setVisible(true);
-    }//GEN-LAST:event_btnBrowsActionPerformed
+    }//GEN-LAST:event_btnBrowsItemActionPerformed
 
     private void txtKodeFocusGained(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_txtKodeFocusGained
         // TODO add your handling code here:
@@ -845,13 +1053,17 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtKodeFocusLost
 
-    private void btnBrows1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrows1ActionPerformed
+    private void btnBrowsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowsActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_btnBrows1ActionPerformed
+    }//GEN-LAST:event_btnBrowsActionPerformed
 
     private void jTable1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jTable1MouseClicked
         // TODO add your handling code here:
     }//GEN-LAST:event_jTable1MouseClicked
+
+    private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
+        awal();//DO add your handling code here:      // TODO add your handling code here:
+    }//GEN-LAST:event_btnCancelActionPerformed
 
     /**
      * @param args the command line arguments
@@ -899,7 +1111,7 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     private javax.swing.JButton btnAkhir;
     private javax.swing.JButton btnAwal;
     private javax.swing.JButton btnBrows;
-    private javax.swing.JButton btnBrows1;
+    private javax.swing.JButton btnBrowsItem;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnExit;
     private javax.swing.JButton btnHapus;
@@ -912,7 +1124,6 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     private com.toedter.calendar.JDateChooser dtpTanggal;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
@@ -930,6 +1141,8 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     private javax.swing.JLabel lblKode;
     private javax.swing.JLabel lblKode1;
     private javax.swing.JLabel lblKode3;
+    private javax.swing.JLabel recordLabel;
+    private javax.swing.JTextField txtIDStok;
     private javax.swing.JTextField txtKode;
     // End of variables declaration//GEN-END:variables
 }
