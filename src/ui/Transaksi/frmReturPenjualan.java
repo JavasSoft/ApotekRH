@@ -20,6 +20,7 @@ import ui.Master.BrowseAll.BrowseCustomer;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JFrame;
@@ -49,6 +50,7 @@ public class frmReturPenjualan extends javax.swing.JFrame {
     private Treturd  treturd;
     private ReturPenjualanDAO returPenjualanDAO;
     private Integer selectedCustomerId;
+    private Integer selectedIdJualH;
       DefaultTableModel model;
     JTable tblDetail;
 
@@ -233,6 +235,7 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
 public void setSelectedJual(int idJualH) {
     try {
         // Ambil full header + detail
+        int IDJual = 0;
         Tjualh tjualh = tjualhDAO.getById(idJualH);  // ← WAJIB FULL
 
         if (tjualh == null) {
@@ -241,6 +244,8 @@ public void setSelectedJual(int idJualH) {
         }
 
         jtKodeNota.setText(tjualh.getKode());
+         selectedIdJualH = tjualh.getIdJualH();
+        
 
         // tampilkan detail
         tampilkanDetailKeTabel(tjualh.getDetails());
@@ -280,8 +285,22 @@ public void setSelectedJual(int idJualH) {
         }
     }
 }
+    private void simpan() {
+    String action = jLabel1.getText(); // Mendapatkan teks dari JLabel
+
+    if (action.equals("[Tambah]")) {
+        simpanReturDariForm();
+    } else if (action.equals("[Ubah]")) {
+        updateretur();
+    } else {
+        JOptionPane.showMessageDialog(null, "Aksi tidak dikenali: " + action);
+    }
+
+    awal(); // Reset form / state awal
+}
 private void simpanReturDariForm() {
     try {
+        IDotomatis();
         Treturh retur = ambilDataReturDariForm();
         ReturPenjualanDAO dao = new ReturPenjualanDAO(conn);
         dao.simpanRetur(retur);
@@ -298,10 +317,41 @@ private void simpanReturDariForm() {
         JOptionPane.showMessageDialog(this, "Gagal menyimpan retur: " + ex.getMessage());
     }
 }
+private void IDotomatis() {
+    try {
+        // Buat prefix dinamis berdasarkan tahun & bulan
+        LocalDate today = LocalDate.now();
+        String year  = String.format("%02d", today.getYear() % 100); // 25
+        String month = String.format("%02d", today.getMonthValue()); // 11
 
+        String prefix = "RT" + year + month; // contoh: PJ2511
+            ReturPenjualanDAO dao = new ReturPenjualanDAO(conn);
+        // Ambil kode terakhir berdasarkan prefix baru
+        String lastCode = dao.getLastKode(prefix);
+        String newCode;
+
+        if (lastCode != null && lastCode.startsWith(prefix)) {
+            // Ambil angka urut setelah prefix
+            int number = Integer.parseInt(lastCode.substring(prefix.length()));
+            number++; // increment
+            newCode = prefix + String.format("%05d", number); // hasil: PJ251100001
+        } else {
+            // Jika belum ada data untuk bulan tersebut
+            newCode = prefix + "00001";
+        }
+
+        jtKode.setText(newCode);
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(null, "Terjadi kesalahan: " + e.getMessage());
+    }
+}
+
+private void updateretur(){}
 private Treturh ambilDataReturDariForm() {
     Treturh retur = new Treturh();
-    retur.setKode(jtKodeNota.getText());
+    retur.setKode(jtKode.getText());
+    retur.setIdjual(selectedCustomerId);
     retur.setIdCust(selectedCustomerId); // sudah diset di setCustomerData
     retur.setTanggal(new java.sql.Date(new java.util.Date().getTime()));
     retur.setInsertUser("admin"); // bisa diganti user login
@@ -849,7 +899,7 @@ private Treturh ambilDataReturDariForm() {
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:
-        simpanReturDariForm();
+        simpan();
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     /**
