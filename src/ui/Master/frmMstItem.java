@@ -196,6 +196,7 @@ private void saveItem() {
         String kode = jtKode.getText().trim();
         String nama = txtNama.getText().trim();
         String kategori = cmbKategori.getSelectedItem().toString();
+        double stok = Double.parseDouble(txtStok.getText().trim());
         double hargaBeli = Double.parseDouble(txtHargaBeli.getText().trim());
         String satuanBesar = cmbSatuanBesar.getSelectedItem().toString();
         String satuanKecil = cmbSatuanKecil.getSelectedItem().toString();
@@ -215,6 +216,7 @@ private void saveItem() {
         item.setKode(kode);
         item.setNama(nama);
         item.setKategori(kategori);
+        item.setStok(stok);
         item.setHargaBeli(hargaBeli);
         item.setAktif(aktif);
 
@@ -264,6 +266,7 @@ private void updateItem() {
         String kode = jtKode.getText().trim();
         String nama = txtNama.getText().trim();
         String kategori = cmbKategori.getSelectedItem().toString();
+        double stok = Double.parseDouble(txtStok.getText().trim());
         String satuanBesar = cmbSatuanBesar.getSelectedItem().toString();
         double hargaBeli = Double.parseDouble(txtHargaBeli.getText().trim());
         String satuanKecil = cmbSatuanKecil.getSelectedItem().toString();
@@ -283,6 +286,7 @@ private void updateItem() {
         item.setKode(kode);
         item.setNama(nama);
         item.setKategori(kategori);
+        item.setStok(stok);
         item.setHargaBeli(hargaBeli);
         item.setAktif(aktif);
 
@@ -326,16 +330,14 @@ private void loadDataFromDatabase() {
     }
 }
 
-public void setItemData(int idItem, String kode, String nama, String kategori,
-                        double hargaBeli, boolean aktif,
-                        String satuanKecil, String satuanBesar,
-                        double hargaJual, double labaPersen, double konversi) {
+public void setItemData(int idItem, String kode, String nama, String kategori, double stok, double hargaBeli, double hargaJual, boolean aktif, String satuanKecil, String satuanBesar, double labaPersen,  double konversi) {
 
     // === Set data master ===
     txtIDItem.setText(String.valueOf(idItem));
     jtKode.setText(kode);
     txtNama.setText(nama);
     cmbKategori.setSelectedItem(kategori);
+    txtStok.setText(String.valueOf(stok));
     txtHargaBeli.setText(String.valueOf(hargaBeli));
     cmbAktif.setSelected(aktif);
 
@@ -367,6 +369,7 @@ private void loadCurrentItem() {
         jtKode.setText(item.getKode());
         txtNama.setText(item.getNama());
         cmbKategori.setSelectedItem(item.getKategori());
+        txtStok.setText(String.valueOf(item.getStok()));
         txtHargaBeli.setText(String.valueOf(item.getHargaBeli()));
         cmbAktif.setSelected(item.getAktif() == 1);
 
@@ -463,6 +466,7 @@ private void loadCurrentItem() {
         txtKonversi = new javax.swing.JTextField();
         txtHargaJual = new javax.swing.JTextField();
         txtLabaPersen = new javax.swing.JTextField();
+        txtStok = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
         txtNama = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
@@ -703,6 +707,14 @@ private void loadCurrentItem() {
             }
         });
 
+        txtStok.setBorder(javax.swing.BorderFactory.createTitledBorder("Stok"));
+        txtStok.setMinimumSize(new java.awt.Dimension(33, 22));
+        txtStok.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtStokActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
         jPanel6.setLayout(jPanel6Layout);
         jPanel6Layout.setHorizontalGroup(
@@ -716,7 +728,9 @@ private void loadCurrentItem() {
                 .addComponent(txtHargaJual, javax.swing.GroupLayout.PREFERRED_SIZE, 109, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtLabaPersen, javax.swing.GroupLayout.PREFERRED_SIZE, 54, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(299, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(txtStok, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(240, Short.MAX_VALUE))
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -725,7 +739,8 @@ private void loadCurrentItem() {
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(txtHargaJual, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(txtLabaPersen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(txtLabaPersen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(txtStok, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(cmbSatuanKecil, javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(txtKonversi, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(81, Short.MAX_VALUE))
@@ -882,6 +897,10 @@ private void loadCurrentItem() {
         }
     }//GEN-LAST:event_txtLabaPersenKeyReleased
 
+    private void txtStokActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtStokActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtStokActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -967,6 +986,7 @@ private void loadCurrentItem() {
     private javax.swing.JTextField txtKonversi;
     private javax.swing.JTextField txtLabaPersen;
     private javax.swing.JTextField txtNama;
+    private javax.swing.JTextField txtStok;
     // End of variables declaration//GEN-END:variables
 
     private ItemDAO ItemDAO(Connection conn) {
