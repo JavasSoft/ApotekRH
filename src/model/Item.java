@@ -7,6 +7,7 @@ public class Item {
     private String Nama;
     private double HargaBeli;
     private String Kategori;
+    private double Stok;
     private int Aktif;
     private List<ItemDetail> details;
     
@@ -25,6 +26,10 @@ public class Item {
 
     public String getKategori() { return Kategori; }
     public void setKategori(String Kategori) { this.Kategori = Kategori; }
+
+    public double getStok() { return Stok; }
+    public void setStok(double Stok) { this.Stok = Stok; }
+
 
 public int getAktif() {
     return Aktif;
