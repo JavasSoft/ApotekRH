@@ -1,6 +1,8 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Stok {
     private int id;
@@ -13,6 +15,10 @@ public class Stok {
     private double hargaBeli;
     private double hargaJual;
     private boolean aktif;
+    private String kodeItem;
+
+    public String getKodeItem() { return kodeItem; }
+    public void setKodeItem(String kodeItem) { this.kodeItem = kodeItem; }
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
