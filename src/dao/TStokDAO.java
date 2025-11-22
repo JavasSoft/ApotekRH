@@ -1,6 +1,7 @@
 package dao;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 import model.Stok;
 
@@ -110,4 +111,86 @@ public class TStokDAO {
             conn.setAutoCommit(true);
         }
     }
+    
+    public List<Stok> getAll() throws SQLException {
+    List<Stok> list = new ArrayList<>();
+
+    String sql = 
+    "SELECT tstok.*, mitem.Kode AS KodeItem " +
+    "FROM tstok " +
+    "LEFT JOIN mitem ON tstok.IDItem = mitem.IDItem " +
+    "ORDER BY tstok.Tanggal, tstok.IDStok";
+
+
+    try (PreparedStatement ps = conn.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) {
+            Stok s = new Stok();
+            s.setId(rs.getInt("IDStok"));
+            s.setIdItem(rs.getInt("IDItem"));
+            s.setKode(rs.getString("Kode"));
+            s.setKodeItem(rs.getString("KodeItem"));
+            s.setTanggal(rs.getDate("Tanggal"));
+            s.setNama(rs.getString("Nama"));
+            s.setSatuan(rs.getString("Satuan"));
+            s.setStok(rs.getDouble("Stok"));
+            s.setHargaBeli(rs.getDouble("HargaBeli"));
+            s.setHargaJual(rs.getDouble("HargaJual"));
+            s.setAktif(rs.getBoolean("Aktif"));
+
+            list.add(s);
+        }
+    }
+
+    return list;
+    }
+    
+    public String getLastKode(String prefix) throws SQLException { 
+    String sql = "SELECT Kode FROM tstok WHERE Kode LIKE ? ORDER BY Kode DESC LIMIT 1";
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setString(1, prefix + "%");
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getString("Kode");
+        }
+    }
+    return null;
 }
+    
+    public Stok getByKode(String kode) throws SQLException {
+    String sql = "SELECT * FROM tstok WHERE Kode = ?";
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setString(1, kode);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            Stok s = new Stok();
+            s.setId(rs.getInt("IDStok"));
+            s.setIdItem(rs.getInt("IDItem"));
+            s.setKode(rs.getString("Kode"));
+            s.setNama(rs.getString("Nama"));
+            s.setSatuan(rs.getString("Satuan"));
+            s.setStok(rs.getDouble("Stok"));
+            s.setHargaBeli(rs.getDouble("HargaBeli"));
+            s.setHargaJual(rs.getDouble("HargaJual"));
+            return s;
+        }
+    }
+    return null;
+}
+
+    
+    public void updateByKode(Stok s) throws SQLException {
+    String sql = "UPDATE tstok SET Stok=?, HargaBeli=?, HargaJual=? WHERE Kode=?";
+    
+    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+        ps.setDouble(1, s.getStok());
+        ps.setDouble(2, s.getHargaBeli());
+        ps.setDouble(3, s.getHargaJual());
+        ps.setString(4, s.getKode());
+        ps.executeUpdate();
+    }
+}
+
+}
+
