@@ -16,9 +16,11 @@ import java.sql.SQLException;
 import ui.Master.BrowseAll.BrowseCustomer;
 import java.sql.Statement;
 import java.util.List;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -112,8 +114,40 @@ public class frmTransStok extends javax.swing.JFrame {
         public boolean isCellEditable(int row, int column) {
             return column == 0 || column == 4 || column == 5 || column == 6 || column == 7;
         }
+        
     };
     jTable1.setModel(model);
+    
+     DefaultTableCellRenderer paddingRenderer = new DefaultTableCellRenderer() {
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable table, Object value, boolean isSelected,
+                boolean hasFocus, int row, int column) {
+
+            Component c = super.getTableCellRendererComponent(
+                    table, value, isSelected, hasFocus, row, column);
+
+            if (c instanceof JLabel) {
+                // padding kiri/kanan/atas/bawah
+                ((JLabel) c).setBorder(
+                    BorderFactory.createEmptyBorder(20, 20, 20, 20)
+                );
+            }
+
+            return c;
+        }
+    };
+
+    // Terapkan padding ke semua kolom kecuali tombol X
+    for (int i = 1; i < jTable1.getColumnCount(); i++) {
+        jTable1.getColumnModel().getColumn(i).setCellRenderer(paddingRenderer);
+    }
+
+    // === SUPAYA ROW LEBIH TINGGI ===
+    jTable1.setRowHeight(28);
+
+    // === SET AUTO RESIZE (BIKIN LEBAR RAPI) ===
+    jTable1.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
 
      //sembunyikan kolom index 8
     jTable1.getColumnModel().getColumn(8).setMinWidth(0);
@@ -139,10 +173,10 @@ public class frmTransStok extends javax.swing.JFrame {
     jTable1.getColumn("X").setPreferredWidth(30);
     jTable1.getColumn("Kode").setPreferredWidth(200);
     jTable1.getColumn("Nama").setPreferredWidth(400);
-    jTable1.getColumn("Satuan").setPreferredWidth(50);
+    jTable1.getColumn("Satuan").setPreferredWidth(190);
     jTable1.getColumn("Stok").setPreferredWidth(50);
-    jTable1.getColumn("Harga Beli").setPreferredWidth(120);
-    jTable1.getColumn("Harga Jual").setPreferredWidth(120);
+    jTable1.getColumn("Harga Beli").setPreferredWidth(162);
+    jTable1.getColumn("Harga Jual").setPreferredWidth(162);
 
 
 
@@ -182,10 +216,12 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         jTable1.getColumnModel().getColumn(5).setCellRenderer(rightRenderer);
         jTable1.getColumnModel().getColumn(6).setCellRenderer(rightRenderer);
         jTable1.getColumnModel().getColumn(7).setCellRenderer(rightRenderer);
+    
+    javax.swing.table.DefaultTableCellRenderer centerRenderer = new javax.swing.table.DefaultTableCellRenderer();
+    centerRenderer.setHorizontalAlignment(javax.swing.JLabel.CENTER);
+        jTable1.getColumnModel().getColumn(4).setCellRenderer(centerRenderer);
 }
-    
-    
-    
+   
     public void setItemData(
     int idItem,
     String kode,
