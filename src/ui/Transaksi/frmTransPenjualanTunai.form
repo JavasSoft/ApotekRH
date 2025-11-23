@@ -301,11 +301,13 @@
                   <Component id="jLabel11" min="-2" pref="90" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="txtDokter" min="-2" pref="148" max="-2" attributes="0"/>
-                  <EmptySpace max="-2" attributes="0"/>
-                  <Component id="jLabel14" min="-2" pref="90" max="-2" attributes="0"/>
+                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
+                  <Component id="btnBrowseDokter" min="-2" pref="36" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="32" max="-2" attributes="0"/>
+                  <Component id="jLabel14" min="-2" pref="42" max="-2" attributes="0"/>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="cmbJenis" min="-2" pref="97" max="-2" attributes="0"/>
-                  <EmptySpace pref="399" max="32767" attributes="0"/>
+                  <EmptySpace max="32767" attributes="0"/>
                   <Component id="jTextField5" min="-2" pref="103" max="-2" attributes="0"/>
                   <EmptySpace min="-2" pref="15" max="-2" attributes="0"/>
               </Group>
@@ -327,9 +329,14 @@
                           <Component id="jLabel8" alignment="3" max="32767" attributes="0"/>
                       </Group>
                       <Component id="dtpTanggal" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
-                      <Component id="cmbJenis" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
-                      <Component id="txtDokter" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
-                      <Component id="jLabel14" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
+                      <Group type="103" alignment="0" groupAlignment="3" attributes="0">
+                          <Component id="txtDokter" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
+                          <Component id="btnBrowseDokter" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
+                      </Group>
+                      <Group type="103" alignment="0" groupAlignment="3" attributes="0">
+                          <Component id="jLabel14" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
+                          <Component id="cmbJenis" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
+                      </Group>
                       <Component id="jTextField5" alignment="0" max="32767" attributes="0"/>
                       <Component id="jLabel11" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
                       <Component id="btnBrowse" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
@@ -1137,6 +1144,7 @@
           </Properties>
           <Events>
             <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="txtDokterMouseClicked"/>
+            <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="txtDokterKeyPressed"/>
           </Events>
         </Component>
         <Component class="javax.swing.JTextField" name="jTextField5">
@@ -1174,6 +1182,14 @@
           </Properties>
           <Events>
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnBrowseActionPerformed"/>
+          </Events>
+        </Component>
+        <Component class="javax.swing.JButton" name="btnBrowseDokter">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="jButton1"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnBrowseDokterActionPerformed"/>
           </Events>
         </Component>
       </SubComponents>

@@ -816,10 +816,6 @@ private void tampilkanDetailKeTabel(List<Tjuald> details) {
     }
 }
 
-
-
-
-
 private int selectedJualH;
 
 public void setSelectedJual(int idJualH) {
@@ -854,10 +850,6 @@ public void setSelectedJual(int idJualH) {
         ex.printStackTrace();
     }
 }
-
-
-
-
 
 public void setDokterData(int idDokter, String namaDokter) {
     // kalau kamu ingin menyimpan idDokter untuk keperluan simpan ke database,
@@ -1137,6 +1129,7 @@ private void printRaw(String data) throws Exception {
         cmbJenis = new javax.swing.JComboBox<>();
         jLabel14 = new javax.swing.JLabel();
         btnBrowse = new javax.swing.JButton();
+        btnBrowseDokter = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
@@ -1758,6 +1751,11 @@ private void printRaw(String data) throws Exception {
                 txtDokterMouseClicked(evt);
             }
         });
+        txtDokter.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtDokterKeyPressed(evt);
+            }
+        });
 
         jTextField5.setMinimumSize(new java.awt.Dimension(33, 22));
 
@@ -1771,6 +1769,13 @@ private void printRaw(String data) throws Exception {
         btnBrowse.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBrowseActionPerformed(evt);
+            }
+        });
+
+        btnBrowseDokter.setText("jButton1");
+        btnBrowseDokter.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBrowseDokterActionPerformed(evt);
             }
         });
 
@@ -1795,11 +1800,13 @@ private void printRaw(String data) throws Exception {
                 .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtDokter, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(btnBrowseDokter, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(32, 32, 32)
+                .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cmbJenis, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 399, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(15, 15, 15))
             .addComponent(jPanel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1817,9 +1824,12 @@ private void printRaw(String data) throws Exception {
                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jLabel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addComponent(dtpTanggal, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(cmbJenis, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtDokter, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(txtDokter, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnBrowseDokter, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(cmbJenis, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnBrowse, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -2013,6 +2023,14 @@ private void printRaw(String data) throws Exception {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtDiscPersenActionPerformed
 
+    private void txtDokterKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtDokterKeyPressed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtDokterKeyPressed
+
+    private void btnBrowseDokterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseDokterActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_btnBrowseDokterActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -2061,6 +2079,7 @@ private void printRaw(String data) throws Exception {
     private javax.swing.JButton btnAwal;
     private javax.swing.JButton btnBayar;
     private javax.swing.JButton btnBrowse;
+    private javax.swing.JButton btnBrowseDokter;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnExit;
     private javax.swing.JButton btnHapus;
