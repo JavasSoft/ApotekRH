@@ -158,39 +158,91 @@ public class TStokDAO {
     return null;
 }
     
-    public Stok getByKode(String kode) throws SQLException {
-    String sql = "SELECT * FROM tstok WHERE Kode = ?";
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setString(1, kode);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            Stok s = new Stok();
-            s.setId(rs.getInt("IDStok"));
-            s.setIdItem(rs.getInt("IDItem"));
-            s.setKode(rs.getString("Kode"));
-            s.setNama(rs.getString("Nama"));
-            s.setSatuan(rs.getString("Satuan"));
-            s.setStok(rs.getDouble("Stok"));
-            s.setHargaBeli(rs.getDouble("HargaBeli"));
-            s.setHargaJual(rs.getDouble("HargaJual"));
-            return s;
+    public void updateBatchWithJurnal(List<Stok> list, String currentUser) throws SQLException {
+    conn.setAutoCommit(false);
+
+    String sqlUpdateStok = 
+        "UPDATE tstok SET Tanggal=?, Nama=?, Satuan=?, Stok=?, HargaBeli=?, HargaJual=?, aktif=? " +
+        "WHERE IDStok=?";
+
+    String sqlUpdateJurnal = 
+        "UPDATE tjurnalitem SET Tanggal=?, QtyMasuk=?, Satuan=?, Keterangan=?, InsertUser=? " +
+        "WHERE IDItem=? AND KodeTrans=? AND JenisTrans='StokAwal'";
+
+    String sqlUpdateMitem = 
+        "UPDATE mitem SET Stok=?, HargaBeli=? WHERE IDItem=?";
+
+    String sqlUpdateMitemd = 
+        "UPDATE mitemd SET HargaJual=? WHERE IDItem=? AND Satuan=?";
+
+    try (PreparedStatement psStok = conn.prepareStatement(sqlUpdateStok);
+         PreparedStatement psJurnal = conn.prepareStatement(sqlUpdateJurnal);
+         PreparedStatement psUpdateMitem = conn.prepareStatement(sqlUpdateMitem);
+         PreparedStatement psUpdateMitemd = conn.prepareStatement(sqlUpdateMitemd)) {
+
+        for (Stok t : list) {
+
+            // === UPDATE tstok ===
+            psStok.setDate(1, new java.sql.Date(t.getTanggal().getTime()));
+            psStok.setString(2, t.getNama());
+            psStok.setString(3, t.getSatuan());
+            psStok.setDouble(4, t.getStok());
+            psStok.setDouble(5, t.getHargaBeli());
+            psStok.setDouble(6, t.getHargaJual());
+            psStok.setBoolean(7, t.isAktif());
+            psStok.setInt(8, t.getId());
+            psStok.addBatch();
+
+            // === UPDATE tjurnalitem ===
+            psJurnal.setDate(1, new java.sql.Date(t.getTanggal().getTime()));
+            psJurnal.setDouble(2, t.getStok());
+            psJurnal.setString(3, t.getSatuan());
+            psJurnal.setString(4, "Update Stok " + t.getKode());
+            psJurnal.setString(5, currentUser);
+            psJurnal.setInt(6, t.getIdItem());
+            psJurnal.setString(7, t.getKode());
+            psJurnal.addBatch();
+
+            // === Hitung stok aktual di mitem ===
+            double konversi = 1;
+            try (PreparedStatement psKonv = conn.prepareStatement(
+                "SELECT Konversi FROM mitemd WHERE IDItem=? AND Satuan=?")) {
+                psKonv.setInt(1, t.getIdItem());
+                psKonv.setString(2, t.getSatuan());
+                ResultSet rs = psKonv.executeQuery();
+                if (rs.next()) konversi = rs.getDouble("Konversi");
+            }
+
+            double stokBaru = t.getStok() * konversi;
+
+            // === UPDATE mitem ===
+            psUpdateMitem.setDouble(1, stokBaru);
+            psUpdateMitem.setDouble(2, t.getHargaBeli());
+            psUpdateMitem.setInt(3, t.getIdItem());
+            psUpdateMitem.addBatch();
+
+            // === UPDATE harga jual mitemd ===
+            psUpdateMitemd.setDouble(1, t.getHargaJual());
+            psUpdateMitemd.setInt(2, t.getIdItem());
+            psUpdateMitemd.setString(3, t.getSatuan());
+            psUpdateMitemd.addBatch();
         }
+
+        // Eksekusi batch update
+        psStok.executeBatch();
+        psJurnal.executeBatch();
+        psUpdateMitem.executeBatch();
+        psUpdateMitemd.executeBatch();
+
+        conn.commit();
+
+    } catch (SQLException e) {
+        conn.rollback();
+        throw e;
+    } finally {
+        conn.setAutoCommit(true);
     }
-    return null;
 }
 
     
-    public void updateByKode(Stok s) throws SQLException {
-    String sql = "UPDATE tstok SET Stok=?, HargaBeli=?, HargaJual=? WHERE Kode=?";
-    
-    try (PreparedStatement ps = conn.prepareStatement(sql)) {
-        ps.setDouble(1, s.getStok());
-        ps.setDouble(2, s.getHargaBeli());
-        ps.setDouble(3, s.getHargaJual());
-        ps.setString(4, s.getKode());
-        ps.executeUpdate();
-    }
 }
-
-}
-
