@@ -64,7 +64,7 @@ public class frmTransStok extends javax.swing.JFrame {
             setupSatuanColumn();
             jToolBar1.setFloatable(false);
             jToolBar2.setFloatable(false);
-            btnSimpan.addActionListener(evt -> simpanDataStok());
+            btnSimpan.addActionListener(evt -> simpan());
             FormShow();
             btnALL();
              awal();
@@ -150,7 +150,7 @@ public class frmTransStok extends javax.swing.JFrame {
     
     private void initTable() {
     DefaultTableModel model = new DefaultTableModel(
-        new Object[]{"X", "ID", "Kode", "Nama", "Satuan", "Stok", "Harga Jual", "Harga Beli", "SatuanList"}, 0
+        new Object[]{"X", "ID", "Kode", "Nama", "Satuan", "Stok", "Harga Jual", "Harga Beli", "SatuanList", "IDItem"}, 0
     ) {
         @Override
         public boolean isCellEditable(int row, int column) {
@@ -195,6 +195,10 @@ public class frmTransStok extends javax.swing.JFrame {
     jTable1.getColumnModel().getColumn(8).setMinWidth(0);
     jTable1.getColumnModel().getColumn(8).setMaxWidth(0);
     jTable1.getColumnModel().getColumn(8).setWidth(0);
+    
+    jTable1.getColumnModel().getColumn(9).setMinWidth(0);
+    jTable1.getColumnModel().getColumn(9).setMaxWidth(0);
+    jTable1.getColumnModel().getColumn(9).setWidth(0);
 
 
     // Hilangkan garis grid
@@ -283,9 +287,47 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
    tambah(); // Reset form / state awal
 }
     
-    private void updateTrans(){
-        
+    private void updateTrans() {
+    try {
+        Connection conn = Koneksi.getConnection();
+        TStokDAO dao = new TStokDAO(conn);
+
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        java.util.List<Stok> list = new java.util.ArrayList<>();
+
+        String kodeForm = txtKode.getText().trim();
+        java.util.Date tanggalForm = dtpTanggal.getDate();
+
+        for (int i = 0; i < model.getRowCount(); i++) {
+            Stok t = new Stok();
+
+            // Ambil IDStok dari kolom tersembunyi di tabel
+            t.setId(Integer.parseInt(model.getValueAt(i, 1).toString())); // IDStok
+           // t.setIdItem(Integer.parseInt(model.getValueAt(i, 2).toString())); 
+            t.setIdItem(Integer.parseInt(model.getValueAt(i, 9).toString()));// IDItem
+            t.setKode(txtKode.getText().trim());
+            t.setTanggal(tanggalForm);
+            t.setNama(model.getValueAt(i, 3).toString());
+            t.setSatuan(model.getValueAt(i, 4).toString());
+            t.setStok(parseAngka(model.getValueAt(i, 5).toString()));
+            t.setHargaJual(parseAngka(model.getValueAt(i, 6).toString()));
+            t.setHargaBeli(parseAngka(model.getValueAt(i, 7).toString()));
+            t.setAktif(cmbAktif.isSelected());
+
+            list.add(t);
+        }
+
+        dao.updateBatchWithJurnal(list, "Admin");
+
+        JOptionPane.showMessageDialog(this, "Data berhasil diupdate!");
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, "Gagal update: " + e.getMessage());
+    }
 }
+
+
     
     private void IDotomatis() {
     try {
@@ -358,6 +400,7 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
     // 2. Masukkan ke tabel
     model.addRow(new Object[]{
     "X",
+        
     idItem,
     kode,
     nama,
@@ -497,39 +540,44 @@ private double parseAngka(String value) {
 }
 
    private void loadCurrentItem() {
-    if (currentRecordIndex < 0 || currentRecordIndex >= list.size()) {
-        JOptionPane.showMessageDialog(null, "Indeks catatan tidak valid.");
-        return;
-    }
+    if (currentRecordIndex < 0 || currentRecordIndex >= list.size()) return;
 
     Stok s = list.get(currentRecordIndex);
 
     txtKode.setText(s.getKode());
     dtpTanggal.setDate(s.getTanggal());
 
+    // filter data dengan kode yang sama
+    List<Stok> sameKodeList = list.stream()
+        .filter(item -> item.getKode().equals(s.getKode()))
+        .toList();
 
-    // tampilkan ke tabel hanya 1 baris
-    tampilkanKeTabel(s);
+    tampilkanKeTabel(sameKodeList);
 
     updateRecordLabel();
 }
+
    
-   private void tampilkanKeTabel(Stok s) {
+   private void tampilkanKeTabel(List<Stok> data) {
     DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
     model.setRowCount(0);
 
-    model.addRow(new Object[]{
-    "X",                     // 0
-    s.getId(),               // 1 (IDStok)
-    s.getKodeItem(),             // 2
-    s.getNama(),             // 3
-    s.getSatuan(),           // 4
-    formatAngka(s.getStok()),        // 5
-    formatAngka(s.getHargaJual()),   // 6
-    formatAngka(s.getHargaBeli()),   // 7
-    s.getSatuan()            // 8 (SatuanList → dropdown, sementara isi sama dulu)
-    });
+    for (Stok s : data) {
+        model.addRow(new Object[]{
+            "X",
+            s.getId(),
+            s.getKodeItem(),
+            s.getNama(),
+            s.getSatuan(),
+            formatAngka(s.getStok()),
+            formatAngka(s.getHargaJual()),
+            formatAngka(s.getHargaBeli()),
+            s.getSatuan(),
+            s.getIdItem()
+        });
+    }
 }
+
    
    private void updateRecordLabel() {
     recordLabel.setText("Record: " + (currentRecordIndex + 1) + " dari " + totalInputs);
