@@ -24,10 +24,22 @@ import ui.Master.BrowseAll.BrowseItem;
 import dao.TbelihDAO;
 import dao.TbelidDAO;
 import dao.TjurnalitemDAO;
+import model.TbeliHutang;
+import dao.TbeliHutangDAO;
+import dao.TjualPiutangDAO;
+import dao.TjualhDAO;
+import java.awt.Color;
+import java.awt.Component;
+import java.sql.PreparedStatement;
+import java.time.LocalDate;
+import javax.swing.table.DefaultTableCellRenderer;
+import model.ItemFull;
 import model.Tbelih;
 import model.Tbelid;
+import model.TjualPiutang;
 import model.Tjurnalitem;
 import ui.Master.BrowseAll.BrowseSupplier;
+//import ui.Master.BrowseAll.BrowseBeli;
 
 /**
  * @author Admin
@@ -39,6 +51,11 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     private ResultSet rs;
     private String sql;
     private User user;
+    
+    private TbelidDAO tbelidDAO;
+    private Tbelid tbelid;
+    private Tbelih tbelih;
+    private TbelihDAO tbelihDAO;
 
     private List<Item> itemsList = new ArrayList<>();
     private String selectedSatuanKecil;
@@ -46,17 +63,23 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     private String selectedSatuanBesar;
     private double selectedKonversi;
     private double setSubtotal = 0;
-    private int selectedSupplierId = 0;
+    private Integer selectedSupplierId;
+    private List<Tbelih> list = new ArrayList<>();
+    private int totalInputs;
+    private int currentRecordIndex;
     DefaultTableModel model;
     JTable tblDetail;
 
     public frmTransPembelianBayar() {
         initComponents();
+        //initializeDatabase();
         FormCreate();
+        this.tbelihDAO = new TbelihDAO(conn);
+        itemDAO = new ItemDAO(conn);
         btnALL();
         jToolBar1.setFloatable(false);
         jToolBar2.setFloatable(false);
-        awal();
+        tambah();
         FrmProjec();
     }
 
@@ -67,6 +90,11 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
         lblSubtotal.setText(formatAngka(0));
         txtNama.setText("< Nama Item >");
     }
+    
+    private void FormShow(){
+         loadDataFromDatabase();
+         loadCurrentItem(); 
+    }
 
     private void FormCreate(){
         initializeDatabase();
@@ -75,13 +103,58 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
         setupJenisListener(); 
         cmbSatuan.addActionListener(e -> updateHargaBerdasarkanSatuan());
         txtJumlah.addActionListener(e -> addItemFromInput());
-        txtDiscPersen.addActionListener(e -> addItemFromInput());
-        txtDiscTotal.addActionListener(e -> addItemFromInput());
+        txtDiscPersen.addActionListener(e ->{ addItemFromInput();  
+                             updateSubtotal();
+                    });
+        txtDiscTotal.addActionListener(e -> {addItemFromInput(); updateSubtotal();
+                    });
+         cmbJenisTras.addActionListener(e -> {
+                updateJatuhTempoVisibility();
+                updateBayarVisibility();
+                    });
     }
+    
+     private void btnALL() {
+//        btnSimpan.addActionListener(evt -> simpan());
+         btnExit.addActionListener(evr -> dispose());
+         btnTambah.addActionListener(evt -> tambah());
+         btnUbah.addActionListener(evt -> ubah());
+         btnAwal.addActionListener(evt -> data_awal());
+         btnPrevious.addActionListener(evt -> previous());
+         btnNext.addActionListener(evt -> next());
+         btnAkhir.addActionListener(evt -> data_terakhir());
+        
+    }
+     
+     private void loadDataFromDatabase() {
+    try {
+        list = tbelihDAO.getAll(); 
+        totalInputs = list.size();
+// ← butuh try-catch
+    } catch (Exception e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(this, 
+            "Gagal mengambil data penjualan: " + e.getMessage());
+        return;
+    }
+
+    if (list == null) {
+        list = new ArrayList<>();
+    }
+
+    if (list.isEmpty()) {
+        JOptionPane.showMessageDialog(null, "Data Item belum ada di database.");
+    } else {
+        currentRecordIndex = 0;
+        loadCurrentItem();
+    }
+}
+     
+     
     
     private void addItemFromInput() {
         try {
-            if (txtIDItem.getText().isEmpty() || txtNama.getText().isEmpty() ||
+            if (txtIDBeli.getText().isEmpty() || txtNama.getText().isEmpty() ||
                 txtJumlah.getText().isEmpty() || txtHarga.getText().isEmpty()) {
                 JOptionPane.showMessageDialog(this, "Semua field harus diisi!");
                 return;
@@ -92,7 +165,7 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
                 return;
             }
 
-            int idItem = Integer.parseInt(txtIDItem.getText());
+            int idItem = Integer.parseInt(txtIDBeli.getText());
             String kode = txtKodeItem.getText();
             String nama = txtNama.getText();
             String satuan = cmbSatuan.getSelectedItem().toString();
@@ -105,7 +178,7 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
             }
 
             double discTotal = txtDiscTotal.getText().isEmpty() ? 0 : parseAngka(txtDiscTotal.getText());
-            double total = qty * harga;
+            double total = qty * harga - discTotal;
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
 
             for (int i = 0; i < jTable1.getRowCount(); i++) {
@@ -149,10 +222,11 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
             subtotal += parseAngka(model.getValueAt(i, 8).toString());
         }
         lblSubtotal.setText(formatAngka(subtotal));
+        jtTotal.setText(lblSubtotal.getText()); 
     }
     
     private void clearInputFields() {
-    txtIDItem.setText("");
+    txtIDBeli.setText("");
     txtKodeItem.setText("");
     txtSupplier.setText("");
      txtNama.setText("< Nama Item >");
@@ -162,6 +236,8 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     txtDiscPersen.setText("");
     txtDiscTotal.setText("");
     }
+    
+    
     
     private void updateHargaBerdasarkanSatuan() {
         try {
@@ -176,13 +252,6 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
         } catch (Exception e) {
             txtHarga.setText("0");
         }
-    }
-
-    private void btnALL() {
-        btnSimpan.addActionListener(evt -> simpan());
-        btnExit.addActionListener(evr -> dispose());
-        btnTambah.addActionListener(evt -> tambah());
-        btnUbah.addActionListener(evt -> ubah());
     }
 
     private void initializeDatabase() {
@@ -207,6 +276,45 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
             }
         });
     }
+    
+    private void updateJatuhTempoVisibility() {
+    // Berlaku hanya saat mode tambah
+    if (!jLabel1.getText().equals("[Tambah]")) return;
+
+    String jenis = cmbJenisTras.getSelectedItem().toString();
+
+    if (jenis.equalsIgnoreCase("Tunai")) {
+        dtpJatuhTempo.setVisible(false);
+        lblJatuhTempo.setVisible(false); // label jatuh tempo
+        dtpJatuhTempo.setDate(null);
+
+    } else if (jenis.equalsIgnoreCase("Kredit")) {
+        dtpJatuhTempo.setVisible(true);
+        lblJatuhTempo.setVisible(true);
+
+        // set default +7 hari dari tanggal transaksi
+        java.util.Calendar cal = java.util.Calendar.getInstance();
+        cal.setTime(dtpTanggal.getDate());
+        cal.add(java.util.Calendar.DAY_OF_MONTH, 7);
+        dtpJatuhTempo.setDate(cal.getTime());
+    }
+}
+    
+    private void updateBayarVisibility() {
+        String jenis = cmbJenisTras.getSelectedItem().toString();
+
+        if (jenis.equalsIgnoreCase("Tunai")) {
+            btnBayar.setEnabled(true);
+            txtBayar.setText("");
+            txtKembalian.setText("0");
+            btnSimpan.setEnabled(false);
+
+        } else { // Kredit
+            btnBayar.setEnabled(false);
+            btnSimpan.setEnabled(true);
+        }
+    }
+
 
     // === TABEL DETAIL ===
     private void initTable() {
@@ -240,8 +348,32 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
         javax.swing.table.DefaultTableCellRenderer rightRenderer = new javax.swing.table.DefaultTableCellRenderer();
         rightRenderer.setHorizontalAlignment(javax.swing.JLabel.RIGHT);
         for (int i = 5; i <= 8; i++) jTable1.getColumnModel().getColumn(i).setCellRenderer(rightRenderer);
-    }
+        
+        
+        jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+    @Override
+    public Component getTableCellRendererComponent(
+            JTable table, Object value, boolean isSelected,
+            boolean hasFocus, int row, int column) {
 
+        Component c = super.getTableCellRendererComponent(
+                table, value, isSelected, hasFocus, row, column);
+
+        setOpaque(true); // PENTING
+
+        if (isSelected) {
+            c.setBackground(new Color(135, 206, 250));
+            c.setForeground(Color.BLACK);
+        } else {
+            if (row % 2 == 0) c.setBackground(Color.WHITE);
+            else c.setBackground(new Color(204, 255, 204));
+            c.setForeground(Color.BLACK);
+        }
+        return c;
+    }
+});
+    }
+    
     private void setupDiscEvents() {
         txtDiscPersen.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             public void insertUpdate(javax.swing.event.DocumentEvent e) { updateDiscTotal(); }
@@ -249,6 +381,21 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
             public void changedUpdate(javax.swing.event.DocumentEvent e) { updateDiscTotal(); }
         });
     }
+    
+    private void updateDiscTotal() {
+    try {
+        double persen = txtDiscPersen.getText().isEmpty() ? 0 : Double.parseDouble(txtDiscPersen.getText());
+        double harga = parseAngka(txtHarga.getText());
+        int qty = txtJumlah.getText().isEmpty() ? 0 : Integer.parseInt(txtJumlah.getText());
+
+        double total = harga * qty;
+        double discTotal = (persen / 100) * total;
+
+        txtDiscTotal.setText(formatAngka(discTotal));
+    } catch (Exception e) {
+        txtDiscTotal.setText(formatAngka(0));
+    }
+}
     
     private void navaktif(){
      btnAwal.setEnabled(true);
@@ -268,16 +415,23 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
         btnCancel.setEnabled(false);
         btnExit.setEnabled(false);
         navaktif();
+        FormShow();
     }
     private void tambah(){
+        generateNoFaktur();
         jLabel1.setText("[Tambah]");
         btnUbah.setEnabled(false);
         btnHapus.setEnabled(false);
         btnSimpan.setEnabled(true);
         btnCancel.setEnabled(true);
         btnExit.setEnabled(true);
+        updateBayarVisibility();
         navnonaktif();
-        
+        ((DefaultTableModel) jTable1.getModel()).setRowCount(0);
+        dtpTanggal.setDate(new java.util.Date()); // set tanggal hari ini
+        dtpTanggal.setDateFormatString("dd/MM/yyyy"); // ubah format tampilan 
+        updateJatuhTempoVisibility();
+        clearInputFields();
     }
     private void ubah(){
         jLabel1.setText("[Ubah]");
@@ -288,19 +442,14 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
         btnExit.setEnabled(true);
         navaktif();
     }
-
-    private void updateDiscTotal() {
-        try {
-            double persen = txtDiscPersen.getText().isEmpty() ? 0 : Double.parseDouble(txtDiscPersen.getText());
-            double harga = parseAngka(txtHarga.getText());
-            int qty = txtJumlah.getText().isEmpty() ? 0 : Integer.parseInt(txtJumlah.getText());
-            double total = harga * qty;
-            double discTotal = (persen / 100) * total;
-            txtDiscTotal.setText(formatAngka(discTotal));
-        } catch (Exception e) {
-            txtDiscTotal.setText(formatAngka(0));
-        }
+    
+    private void clearInputSelectedFields() {
+        selectedSupplierId = null;
+        txtSupplier.setText("");
+        dtpJatuhTempo.setDate(null);
     }
+    
+    
 
     private String formatAngka(double value) {
         DecimalFormat df = new DecimalFormat("#,##0");
@@ -312,33 +461,83 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     }
 
     // === GENERATE NO FAKTUR BELI ===
-    private String generateNoFaktur() {
-        String prefix = "PB";
-        String datePart = new java.text.SimpleDateFormat("yyMMdd").format(new java.util.Date());
-        String uniquePart = String.format("%03d", (int)(Math.random() * 999));
-        return prefix + datePart + uniquePart;
+    private void generateNoFaktur() {
+    try {
+        // Prefix berdasarkan tahun dan bulan
+        LocalDate today = LocalDate.now();
+        String year  = String.format("%02d", today.getYear() % 100); // contoh: 25
+        String month = String.format("%02d", today.getMonthValue()); // contoh: 11
+
+        String prefix = "PB" + year + month; // contoh: PB2511
+
+        // DAO khusus header pembelian
+        TbelihDAO dao = new TbelihDAO(conn);
+
+        // Ambil nomor terakhir dari database
+        String lastCode = dao.getLastKode(prefix);
+        String newCode;
+
+        if (lastCode != null && lastCode.startsWith(prefix)) {
+
+            // Ambil angka urut setelah prefix, misal PB251100015 → 00015
+            int number = Integer.parseInt(lastCode.substring(prefix.length()));
+
+            number++; // increment nomor urut
+
+            newCode = prefix + String.format("%05d", number); 
+            // contoh hasil: PB251100016
+
+        } else {
+            // Jika belum ada transaksi bulan ini
+            newCode = prefix + "00001"; // PB251100001
+        }
+
+        txtNoFaktur.setText(newCode);
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, 
+            "Error generate nomor faktur: " + e.getMessage());
+        e.printStackTrace();
     }
+}
+
 
     // === SIMPAN TRANSAKSI PEMBELIAN ===
     private void simpanTransaksi() {
         try {
             conn.setAutoCommit(false);
-
-            String noFaktur = generateNoFaktur();
+            
+            
+            String noFaktur = txtNoFaktur.getText();
             java.sql.Date tanggal = new java.sql.Date(System.currentTimeMillis());
-            String jenisBayar = "Tunai";
+            String jenisBayar = cmbJenisTras.getSelectedItem().toString(); 
+             String status = "";
+                if ("Tunai".equals(jenisBayar)) {
+                    status = "Lunas";  
+                } else {
+                    status = "Open";
+                }
+                
+                 double ppnValue = cmbPPN.isSelected() ? 0.11 : 0.0;
 
             // --- HEADER ---
             Tbelih belih = new Tbelih();
             belih.setKode(noFaktur);
             belih.setTanggal(tanggal);
             belih.setJenisBayar(jenisBayar);
-            belih.setIdSupplier(selectedSupplierId);
+            belih.setJatuhTempo(tanggal);
+            if (selectedSupplierId == null || selectedSupplierId == 0) {
+                belih.setIdSupplier(null);
+                } else {
+                    belih.setIdSupplier(selectedSupplierId);
+                }
+            
             belih.setSubTotal(parseAngka(lblSubtotal.getText()));
             belih.setDiskon(0);
-            belih.setPpn(0);
+            belih.setPpn(ppnValue);
             belih.setTotal(parseAngka(lblSubtotal.getText()));
-            belih.setStatus("Open");
+            belih.setNominal(parseAngka(txtBayar.getText()));
+            belih.setStatus(status);
             belih.setInsertUser(user != null ? user.getUsername() : "admin");
 
             TbelihDAO belihDAO = new TbelihDAO(conn);
@@ -350,6 +549,39 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
                  ResultSet rs = st.executeQuery("SELECT LAST_INSERT_ID() AS id")) {
                 if (rs.next()) idBeliH = rs.getInt("id");
             }
+            
+            int idSupplier = 0;
+            String sqlGetSupp = "SELECT IDSupplier FROM tbelih WHERE idBeliH = ?";
+            
+            try (PreparedStatement pst = conn.prepareStatement(sqlGetSupp)) {
+            pst.setInt(1, idBeliH);
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    idSupplier = rs.getInt("IDCust");
+                }
+            }
+        }
+            
+            // === INSERT HUTANG JIKA KREDIT ===
+        if (jenisBayar.equalsIgnoreCase("Kredit")) {
+
+        TbeliHutangDAO pdao = new TbeliHutangDAO(conn);
+        TbeliHutang p = new TbeliHutang();
+        
+        java.sql.Date dueDate = new java.sql.Date(dtpJatuhTempo.getDate().getTime());
+        
+        
+        p.setIdBeliH(idBeliH);
+        p.setIdSupplier(idSupplier);
+        p.setNoFaktur(noFaktur);
+        p.setTanggal(tanggal);
+        p.setJatuhTempo(dueDate);
+        p.setSisaHutang(parseAngka(lblSubtotal.getText())); // piutang awal = total
+
+        pdao.insert(p);
+
+        System.out.println("DEBUG: Hutang berhasil disimpan untuk transaksi kredit.");
+        }
 
             // --- DETAIL ---
             DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
@@ -360,6 +592,7 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
                 int idItem = Integer.parseInt(model.getValueAt(i, 1).toString());
                 double qty = parseAngka(model.getValueAt(i, 5).toString());
                 double harga = parseAngka(model.getValueAt(i, 6).toString());
+                double diskon = parseAngka(model.getValueAt(i, 7).toString());
                 double total = parseAngka(model.getValueAt(i, 8).toString());
 
                 Tbelid belid = new Tbelid();
@@ -368,6 +601,7 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
                 belid.setQty(qty);
                 belid.setHarga(harga);
                 belid.setTotal(total);
+                belid.setDiskon(diskon);
                 belid.setQtyBase(qty);
 
                 belidDAO.insert(belid);
@@ -389,9 +623,12 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
 
             conn.commit();
             JOptionPane.showMessageDialog(this, "Transaksi pembelian berhasil disimpan!\nNo Faktur: " + noFaktur);
+            printNotaKecil();
             clearInputFields();
+            clearInputSelectedFields();
             ((DefaultTableModel) jTable1.getModel()).setRowCount(0);
             lblSubtotal.setText("0");
+            generateNoFaktur();
         } catch (Exception e) {
             try { conn.rollback(); } catch (Exception ex) { ex.printStackTrace(); }
             e.printStackTrace();
@@ -401,7 +638,7 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     
     public void setItemData(int idItem, String kode, String nama, String satuanKecil,
             String satuanBesar, double hargaJual, double konversi) {
-        txtIDItem.setText(String.valueOf(idItem));
+        txtIDBeli.setText(String.valueOf(idItem));
         txtKodeItem.setText(kode);
         txtNama.setText(nama);
         txtHarga.setText(formatAngka(hargaJual));
@@ -419,13 +656,11 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     }
     
     private void simpan() {
-        System.out.println("DEBUG: simpan() terpanggil");
         String action = jLabel1.getText();
-        System.out.println("DEBUG: Label aksi = " + action);
 
-        if (action.equals("[Tambah]")) simpanTransaksi();
-        else if (action.equals("[Ubah]")) updateTrans();
-        else JOptionPane.showMessageDialog(null, "Aksi tidak dikenali: " + action);
+        if (action.equals("[Tambah]")) { simpanTransaksi();
+        } else if (action.equals("[Ubah]")) { updateTrans();
+        } else  { JOptionPane.showMessageDialog(null, "Aksi tidak dikenali: " + action);}
 
         awal();
     }
@@ -441,6 +676,280 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     // hanya tampilkan nama di text field
     txtSupplier.setText(namaSupplier);
 }
+    
+    private void loadCurrentItem() {
+    if (currentRecordIndex >= 0 && currentRecordIndex < list.size()) {
+
+        Tbelih tjbelih = list.get(currentRecordIndex); // ganti Tjualh → Tbelih
+
+        // HEADER
+        txtIDBeli.setText(String.valueOf(tjbelih.getIdBeliH())); // ganti ID field
+        txtNoFaktur.setText(tjbelih.getKode());
+        dtpTanggal.setDate(tjbelih.getTanggal());
+        dtpJatuhTempo.setDate(tjbelih.getJatuhTempo());
+        txtSupplier.setText(String.valueOf(tjbelih.getIdSupplier())); // ganti txtCustomer → txtSupplier
+
+        lblSubtotal.setText(formatAngka(tjbelih.getSubTotal()));
+        txtDiscTotal.setText(formatAngka(tjbelih.getDiskon()));
+        txtHarga.setText(formatAngka(tjbelih.getTotal()));
+
+        // DETAIL → isi ke JTable
+        tampilkanDetailKeTabel(tjbelih.getDetails());
+
+        updateRecordLabel();
+    } else {
+        JOptionPane.showMessageDialog(null, "Indeks catatan tidak valid.");
+    }
+}
+    
+    private void tampilkanDetailKeTabel(List<Tbelid> details) { 
+    DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    model.setRowCount(0);
+
+    for (Tbelid d : details) {
+        try {
+            ItemFull item = itemDAO.getFullItem(d.getIdItemD());
+
+            String kode = item != null ? item.getKode() : "";
+            String nama = item != null ? item.getNama() : "";
+            String satuan = item != null ? item.getSatuanBesar() : "";
+
+            model.addRow(new Object[]{
+                "X",                        // 0 Tombol hapus
+                d.getIdItemD(),             // 1 ID item
+                kode,                       // 2 Kode item
+                nama,                       // 3 Nama item
+                satuan,                     // 4 Satuan
+                formatAngka(d.getQty()),    // 5 Qty
+                formatAngka(d.getHarga()),  // 6 Harga
+                formatAngka(d.getDiskon()), // 7 Diskon
+                formatAngka(d.getTotal())   // 8 Total
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this,
+                "Gagal memuat item detail: " + e.getMessage());
+        }
+    }
+}
+    
+    private int selectedBeliH;
+
+public void setSelectedBeli(int idBeliH) {
+    try {
+        this.selectedBeliH = idBeliH;
+
+        // Ambil data header lengkap beserta detailnya
+        Tbelih tbelih = tbelihDAO.getById(idBeliH);
+
+        if (tbelih == null) {
+            JOptionPane.showMessageDialog(this,
+                "Data transaksi tidak ditemukan.");
+            return;
+        }
+
+        // Tampilkan HEADER ke form
+        txtIDBeli.setText(String.valueOf(tbelih.getIdBeliH()));
+        txtNoFaktur.setText(tbelih.getKode());
+        dtpTanggal.setDate(tbelih.getTanggal());
+        dtpJatuhTempo.setDate(tbelih.getJatuhTempo());
+        cmbJenisTras.setSelectedItem(tbelih.getJenisBayar());
+        txtSupplier.setText(String.valueOf(tbelih.getIdSupplier()));
+
+        lblSubtotal.setText(formatAngka(tbelih.getSubTotal()));
+        txtDiscTotal.setText(formatAngka(tbelih.getDiskon()));
+        txtHarga.setText(formatAngka(tbelih.getTotal()));
+
+        // Tampilkan DETAIL ke JTable
+        tampilkanDetailKeTabel(tbelih.getDetails());
+
+    } catch (Exception ex) {
+        ex.printStackTrace();
+    }
+}
+
+private void updateRecordLabel() {
+    recordLabel.setText("Record: " + (currentRecordIndex + 1) + " dari " + totalInputs);
+}
+    private void data_awal() {
+    currentRecordIndex = 0; // Data pertama
+    loadCurrentItem();
+}
+    private void data_terakhir() {
+    currentRecordIndex = totalInputs - 1; // Data terakhir
+    loadCurrentItem();
+}
+    private void next() {
+    if (currentRecordIndex < totalInputs - 1) { // Pastikan tidak melebihi jumlah total input
+        currentRecordIndex++;
+        loadCurrentItem();
+    } else {
+        JOptionPane.showMessageDialog(null, "Anda sudah berada pada record terakhir.");
+    }
+}
+    private void previous() {
+    if (currentRecordIndex > 0) { // Pastikan tidak kurang dari record pertama
+        currentRecordIndex--;
+        loadCurrentItem();
+    } else {
+        JOptionPane.showMessageDialog(null, "Anda sudah berada pada record pertama.");
+    }
+}
+    
+    private boolean kembaliNegatif = false;
+    
+    private void prosesBayar() {
+    String input = txtBayar.getText();
+
+    String angka = input.replaceAll("\\D", "");
+    if (angka.isEmpty()) {
+        txtKembalian.setText("0");
+        kembaliNegatif = false;
+        return;
+    }
+
+    // Format ribuan
+    StringBuilder sb = new StringBuilder(angka);
+    for (int i = sb.length() - 3; i > 0; i -= 3) {
+        sb.insert(i, ".");
+    }
+
+    txtBayar.setText(sb.toString());
+    txtBayar.setCaretPosition(sb.length());
+
+    // Hitung kembalian
+    double nominal = Double.parseDouble(angka);
+    double subtotal = Double.parseDouble(lblSubtotal.getText().replace(".", ""));
+    double kembali = nominal - subtotal;
+
+    // Flag: apakah negatif?
+    kembaliNegatif = (kembali < 0);
+
+    txtKembalian.setText(formatRibuan(kembali));
+}
+
+// Format ribuan untuk angka double
+private String formatRibuan(double nilai) {
+    long n = (long) nilai;
+    String angka = String.valueOf(Math.abs(n));
+
+    StringBuilder sb = new StringBuilder(angka);
+    for (int i = sb.length() - 3; i > 0; i -= 3) {
+        sb.insert(i, ".");
+    }
+
+    return (n < 0 ? "-" : "") + sb.toString();
+}
+private void printNotaKecil() {
+    try {
+        String toko = "APOTEK RH";
+        String alamat = "Jl. Kalijudan 15 – Surabaya";
+        String tanggal = java.time.LocalDateTime.now()
+                .format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+
+        String kasir = System.getProperty("user.name");
+
+        // Ambil total, bayar, kembali dari form
+        String diskon = txtDiscTotal.getText(); 
+        String subtotal = lblSubtotal.getText();
+        String total = jtTotal.getText();
+        String bayar = txtBayar.getText();
+        String kembali = txtKembalian.getText();
+                        System.out.println("=== DEBUG TABEL ===");
+        System.out.println("Row count: " + jTable1.getRowCount());
+
+        for (int i = 0; i < jTable1.getRowCount(); i++) {
+            System.out.println("Nama: " + jTable1.getValueAt(i, 3));
+            System.out.println("Qty : " + jTable1.getValueAt(i, 5));
+            System.out.println("Total: " + jTable1.getValueAt(i, 8));
+        }
+        System.out.println("====================");
+
+
+        // Builder untuk isi nota
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(centerText(toko, 32)).append("\n");
+        sb.append(centerText(alamat, 32)).append("\n");
+        sb.append("--------------------------------\n");
+        sb.append("Tanggal : ").append(tanggal).append("\n");
+        sb.append("Kasir   : ").append(kasir).append("\n");
+        sb.append("--------------------------------\n");
+        sb.append(String.format("%-14s %4s %10s\n", "Item", "Qty", "Total"));
+
+        // Loop isi JTable
+        for (int i = 0; i < jTable1.getRowCount(); i++) {
+
+            String nama = jTable1.getValueAt(i, 3).toString();
+            String qty  = jTable1.getValueAt(i, 5).toString();
+            String harga = jTable1.getValueAt(i, 6).toString();
+            String subtotalItem = jTable1.getValueAt(i, 8).toString();
+
+            // Baris nama
+            sb.append(potong(nama, 32)).append("\n");
+
+            // Baris "harga x qty     subtotal"
+            String line2 = String.format("%s x %s", harga, qty);
+
+            sb.append(String.format("%-20s %12s\n",
+                    potong(line2, 20),
+                    subtotalItem
+            ));
+        }
+
+
+           sb.append("--------------------------------\n");
+
+           sb.append(String.format("%-20s %10s\n", "Diskon",  "Rp " + diskon));
+           sb.append(String.format("%-20s %10s\n", "Grand",   "Rp " + total));
+           sb.append(String.format("%-20s %10s\n", "Tunai",   "Rp " + bayar));
+           sb.append(String.format("%-20s %10s\n", "Kembali", "Rp " + kembali));
+
+           sb.append("--------------------------------\n\n");
+
+        sb.append(centerText("Terima Kasih", 32)).append("\n");
+        sb.append("\n\n");
+
+        // Print
+        printRaw(sb.toString());
+
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Gagal print: " + e.getMessage());
+    }
+}
+private String centerText(String text, int width) {
+    int padSize = (width - text.length()) / 2;
+    if (padSize < 0) padSize = 0;
+    return " ".repeat(padSize) + text;
+}
+
+private String potong(String text, int max) {
+    return text.length() > max ? text.substring(0, max) : text;
+}
+
+private void printRaw(String data) throws Exception {
+    javax.print.PrintService service = javax.print.PrintServiceLookup.lookupDefaultPrintService();
+    if (service == null) {
+        JOptionPane.showMessageDialog(this, "Tidak ada default printer!");
+        return;
+    }
+
+    javax.print.DocPrintJob job = service.createPrintJob();
+    byte[] bytes = data.getBytes("GB18030"); // aman untuk ESC/POS
+
+    javax.print.Doc doc = new javax.print.SimpleDoc(
+            bytes,
+            javax.print.DocFlavor.BYTE_ARRAY.AUTOSENSE,
+            null
+    );
+
+    job.print(doc, null);
+}
+
+
+
+
 
 
     /**
@@ -452,7 +961,19 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        txtIDItem = new javax.swing.JTextField();
+        txtIDBeli = new javax.swing.JTextField();
+        jdBayar = new javax.swing.JDialog();
+        Pebayaran = new javax.swing.JPanel();
+        jPanel8 = new javax.swing.JPanel();
+        jLabel6 = new javax.swing.JLabel();
+        jtTotal = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel15 = new javax.swing.JLabel();
+        txtBayar = new javax.swing.JTextField();
+        jLabel16 = new javax.swing.JLabel();
+        txtKembalian = new javax.swing.JTextField();
+        jRadioButton1 = new javax.swing.JRadioButton();
+        jRadioButton2 = new javax.swing.JRadioButton();
         jPanel5 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
@@ -468,12 +989,17 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
         btnTambah = new javax.swing.JButton();
         btnUbah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
-        jLabel5 = new javax.swing.JLabel();
+        recordLabel = new javax.swing.JLabel();
+        dtpJatuhTempo = new com.toedter.calendar.JDateChooser();
+        lblJatuhTempo = new javax.swing.JLabel();
+        cmbJenisTras = new javax.swing.JComboBox<>();
         jPanel4 = new javax.swing.JPanel();
         btnSimpan = new javax.swing.JButton();
         btnExit = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
         cmbAktif = new javax.swing.JCheckBox();
+        cmbPPN = new javax.swing.JCheckBox();
+        btnBayar = new javax.swing.JButton();
         txtNoFaktur = new javax.swing.JTextField();
         jPanel6 = new javax.swing.JPanel();
         txtKodeItem = new javax.swing.JTextField();
@@ -504,7 +1030,142 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
 
-        txtIDItem.setText("jTextField3");
+        txtIDBeli.setText("jTextField3");
+
+        jdBayar.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                jdBayarKeyReleased(evt);
+            }
+        });
+
+        Pebayaran.setBackground(new java.awt.Color(255, 255, 255));
+        Pebayaran.setMinimumSize(new java.awt.Dimension(415, 282));
+
+        jPanel8.setBackground(new java.awt.Color(0, 255, 204));
+
+        jLabel6.setBackground(new java.awt.Color(255, 255, 255));
+        jLabel6.setFont(new java.awt.Font("Segoe UI", 0, 18)); // NOI18N
+        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel6.setText("Pembayaran");
+
+        javax.swing.GroupLayout jPanel8Layout = new javax.swing.GroupLayout(jPanel8);
+        jPanel8.setLayout(jPanel8Layout);
+        jPanel8Layout.setHorizontalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel8Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+        jPanel8Layout.setVerticalGroup(
+            jPanel8Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel8Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jLabel7.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel7.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel7.setText("Total :");
+
+        jLabel15.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel15.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel15.setText("Pembayaran :");
+
+        txtBayar.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                txtBayarKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtBayarKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                txtBayarKeyTyped(evt);
+            }
+        });
+
+        jLabel16.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
+        jLabel16.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel16.setText("Kembali :");
+
+        jRadioButton1.setText("Tunai");
+
+        jRadioButton2.setText("Transfer");
+
+        javax.swing.GroupLayout PebayaranLayout = new javax.swing.GroupLayout(Pebayaran);
+        Pebayaran.setLayout(PebayaranLayout);
+        PebayaranLayout.setHorizontalGroup(
+            PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addComponent(jPanel8, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addGroup(PebayaranLayout.createSequentialGroup()
+                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(PebayaranLayout.createSequentialGroup()
+                        .addGap(25, 25, 25)
+                        .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jtTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(PebayaranLayout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(PebayaranLayout.createSequentialGroup()
+                                .addComponent(jLabel16, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(txtKembalian, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, PebayaranLayout.createSequentialGroup()
+                                .addComponent(jLabel15, javax.swing.GroupLayout.DEFAULT_SIZE, 158, Short.MAX_VALUE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(PebayaranLayout.createSequentialGroup()
+                                        .addComponent(jRadioButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(jRadioButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 119, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(txtBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 233, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                .addContainerGap())
+        );
+        PebayaranLayout.setVerticalGroup(
+            PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(PebayaranLayout.createSequentialGroup()
+                .addComponent(jPanel8, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jtTotal)
+                    .addComponent(jLabel7, javax.swing.GroupLayout.DEFAULT_SIZE, 36, Short.MAX_VALUE))
+                .addGap(11, 11, 11)
+                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jRadioButton1)
+                    .addComponent(jRadioButton2))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(txtBayar)
+                    .addComponent(jLabel15, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(PebayaranLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(txtKembalian)
+                    .addComponent(jLabel16, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 68, Short.MAX_VALUE))
+        );
+
+        javax.swing.GroupLayout jdBayarLayout = new javax.swing.GroupLayout(jdBayar.getContentPane());
+        jdBayar.getContentPane().setLayout(jdBayarLayout);
+        jdBayarLayout.setHorizontalGroup(
+            jdBayarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 415, Short.MAX_VALUE)
+            .addGroup(jdBayarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jdBayarLayout.createSequentialGroup()
+                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addComponent(Pebayaran, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
+        jdBayarLayout.setVerticalGroup(
+            jdBayarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(jdBayarLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jdBayarLayout.createSequentialGroup()
+                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addComponent(Pebayaran, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGap(0, 0, Short.MAX_VALUE)))
+        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Transaksi Penjualan Tunai");
@@ -629,9 +1290,15 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
         btnHapus.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         jToolBar1.add(btnHapus);
 
-        jLabel5.setBackground(new java.awt.Color(0, 0, 0));
-        jLabel5.setForeground(new java.awt.Color(0, 102, 0));
-        jLabel5.setText("1 of 9999");
+        recordLabel.setBackground(new java.awt.Color(0, 0, 0));
+        recordLabel.setForeground(new java.awt.Color(0, 102, 0));
+        recordLabel.setText("1 of 9999");
+
+        lblJatuhTempo.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        lblJatuhTempo.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        lblJatuhTempo.setText("Jatuh Tempo :");
+
+        cmbJenisTras.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Tunai", "Kredit" }));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -641,7 +1308,13 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
                 .addGap(37, 37, 37)
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jLabel5)
+                .addComponent(recordLabel)
+                .addGap(34, 34, 34)
+                .addComponent(cmbJenisTras, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(lblJatuhTempo, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(12, 12, 12)
+                .addComponent(dtpJatuhTempo, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
@@ -649,26 +1322,50 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(dtpJatuhTempo, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(recordLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(cmbJenisTras, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblJatuhTempo))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())))
+                        .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap())
         );
 
         jPanel4.setBackground(new java.awt.Color(0, 255, 204));
 
         btnSimpan.setText("Simpan");
+        btnSimpan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSimpanActionPerformed(evt);
+            }
+        });
 
         btnExit.setText("Exit Ctrl + X");
 
         btnCancel.setText("Cancel");
         btnCancel.setMinimumSize(new java.awt.Dimension(92, 23));
+        btnCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCancelActionPerformed(evt);
+            }
+        });
 
         cmbAktif.setText("Data Aktif");
+
+        cmbPPN.setText("PPN 11%");
+
+        btnBayar.setText("Bayar");
+        btnBayar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnBayarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -676,21 +1373,31 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
                 .addComponent(cmbAktif)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(cmbPPN)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnSimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnBayar, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
+                .addComponent(btnSimpan, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(btnExit)
-                .addContainerGap())
+                .addGap(12, 12, 12))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                .addComponent(btnSimpan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnExit, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addComponent(cmbAktif))
+                .addComponent(cmbAktif)
+                .addComponent(cmbPPN))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnBayar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnSimpan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnExit, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         txtNoFaktur.setMinimumSize(new java.awt.Dimension(33, 22));
@@ -827,7 +1534,7 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
                             .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addComponent(lblSubtotal, javax.swing.GroupLayout.PREFERRED_SIZE, 86, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(14, 14, 14))
+                .addContainerGap())
         );
 
         jPanel7.setBackground(new java.awt.Color(255, 255, 255));
@@ -858,8 +1565,8 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
         jPanel7Layout.setVerticalGroup(
             jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel7Layout.createSequentialGroup()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 182, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 27, Short.MAX_VALUE))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 314, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
 
         jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -971,27 +1678,27 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
 
     private void btnTambahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTambahActionPerformed
         // TODO add your handling code here:
-        tambah();
-        
-        // === AUTO GENERATE NO FAKTUR ===
-    String noFaktur = generateNoFaktur();
-    txtNoFaktur.setText(noFaktur);
-    
-    // === SET TANGGAL HARI INI ===
-    dtpTanggal.setDate(new java.util.Date());
-    
-    // === ATUR FIELD DOKTER BERDASARKAN JENIS PENJUALAN ===
-    Object selectedJenis = cmbJenis.getSelectedItem();
-    if (selectedJenis != null) {
-        String jenis = selectedJenis.toString();
-        if (jenis.equalsIgnoreCase("Biasa")) {
-            txtSupplier.setEnabled(false);
-            txtSupplier.setText(""); // Kosongkan jika tidak perlu
-        } else if (jenis.equalsIgnoreCase("Resep")) {
-            txtSupplier.setEnabled(true);
-        }
-    }
-    clearInputFields();
+//        tambah();
+//        
+//        // === AUTO GENERATE NO FAKTUR ===
+//    String noFaktur = generateNoFaktur();
+//    txtNoFaktur.setText(noFaktur);
+//    
+//    // === SET TANGGAL HARI INI ===
+//    dtpTanggal.setDate(new java.util.Date());
+//    
+//    // === ATUR FIELD DOKTER BERDASARKAN JENIS PENJUALAN ===
+//    Object selectedJenis = cmbJenis.getSelectedItem();
+//    if (selectedJenis != null) {
+//        String jenis = selectedJenis.toString();
+//        if (jenis.equalsIgnoreCase("Biasa")) {
+//            txtSupplier.setEnabled(false);
+//            txtSupplier.setText(""); // Kosongkan jika tidak perlu
+//        } else if (jenis.equalsIgnoreCase("Resep")) {
+//            txtSupplier.setEnabled(true);
+//        }
+//    }
+//    clearInputFields();
     }//GEN-LAST:event_btnTambahActionPerformed
 
     private void btnUbahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUbahActionPerformed
@@ -1046,6 +1753,86 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     }           // TODO add your handling code here:
     }//GEN-LAST:event_txtSupplierMouseClicked
 
+    private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
+       awal();//DO add your handling code here:
+        clearInputFields(); // TODO add your handling code here:
+    }//GEN-LAST:event_btnCancelActionPerformed
+
+    private void txtBayarKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBayarKeyPressed
+        if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
+
+            // ❗ Jika kembalian minus → TOLAK enter
+            if (kembaliNegatif) {
+                JOptionPane.showMessageDialog(
+                    this,
+                    "Pembayaran kurang! Silakan masukkan nominal yang cukup.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE
+                );
+                evt.consume();      // blok enter
+                txtBayar.requestFocus();
+                return;
+            }
+
+            // ❗ Jika kembalian cukup → lanjut seperti biasa
+            simpanTransaksi();
+            jdBayar.dispose();
+        }           // TODO add your handling code here:
+    }//GEN-LAST:event_txtBayarKeyPressed
+
+    private void txtBayarKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBayarKeyReleased
+        prosesBayar();        // TODO add your handling code here:
+    }//GEN-LAST:event_txtBayarKeyReleased
+
+    private void txtBayarKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtBayarKeyTyped
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtBayarKeyTyped
+
+    private void jdBayarKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_jdBayarKeyReleased
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jdBayarKeyReleased
+
+    private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+    int rowCount = model.getRowCount();
+
+    // Cek subtotal
+    double subtotal = parseAngka(lblSubtotal.getText());
+
+    if (rowCount == 0 || subtotal == 0) {
+        JOptionPane.showMessageDialog(this, 
+                "Data transaksi masih kosong!\nSilakan masukkan item terlebih dahulu.",
+                "Peringatan",
+                JOptionPane.WARNING_MESSAGE);
+        return; // Stop proses, jangan buka dialog
+    }
+    simpanTransaksi();
+    }//GEN-LAST:event_btnSimpanActionPerformed
+
+    private void btnBayarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBayarActionPerformed
+
+        // Cek jumlah baris di tabel
+        DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
+        int rowCount = model.getRowCount();
+
+        // Cek subtotal
+        double subtotal = parseAngka(lblSubtotal.getText());
+
+        if (rowCount == 0 || subtotal == 0) {
+            JOptionPane.showMessageDialog(this,
+                "Data transaksi masih kosong!\nSilakan masukkan item terlebih dahulu.",
+                "Peringatan",
+                JOptionPane.WARNING_MESSAGE);
+            return; // Stop proses, jangan buka dialog
+        }
+
+        // --- Jika lolos validasi, tampilkan JDialog ---
+        jdBayar.pack();
+        jdBayar.setLocationRelativeTo(null);
+        jdBayar.setResizable(false);
+        jdBayar.setVisible(true);  // TODO add your handling code here:
+    }//GEN-LAST:event_btnBayarActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1089,8 +1876,10 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
 //    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel Pebayaran;
     private javax.swing.JButton btnAkhir;
     private javax.swing.JButton btnAwal;
+    private javax.swing.JButton btnBayar;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnExit;
     private javax.swing.JButton btnHapus;
@@ -1101,7 +1890,10 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     private javax.swing.JButton btnUbah;
     private javax.swing.JCheckBox cmbAktif;
     private javax.swing.JComboBox<String> cmbJenis;
+    private javax.swing.JComboBox<String> cmbJenisTras;
+    private javax.swing.JCheckBox cmbPPN;
     private javax.swing.JComboBox<String> cmbSatuan;
+    private com.toedter.calendar.JDateChooser dtpJatuhTempo;
     private com.toedter.calendar.JDateChooser dtpTanggal;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -1109,10 +1901,13 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel14;
+    private javax.swing.JLabel jLabel15;
+    private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
     private javax.swing.JMenu jMenu1;
@@ -1125,17 +1920,26 @@ public class frmTransPembelianBayar extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel5;
     private javax.swing.JPanel jPanel6;
     private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
+    private javax.swing.JRadioButton jRadioButton1;
+    private javax.swing.JRadioButton jRadioButton2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
     private javax.swing.JTextField jTextField5;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JDialog jdBayar;
+    private javax.swing.JTextField jtTotal;
+    private javax.swing.JLabel lblJatuhTempo;
     private javax.swing.JLabel lblSubtotal;
+    private javax.swing.JLabel recordLabel;
+    private javax.swing.JTextField txtBayar;
     private javax.swing.JTextField txtDiscPersen;
     private javax.swing.JTextField txtDiscTotal;
     private javax.swing.JLabel txtHarga;
-    private javax.swing.JTextField txtIDItem;
+    private javax.swing.JTextField txtIDBeli;
     private javax.swing.JTextField txtJumlah;
+    private javax.swing.JTextField txtKembalian;
     private javax.swing.JTextField txtKodeItem;
     private javax.swing.JLabel txtNama;
     private javax.swing.JTextField txtNoFaktur;
