@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
 public class Tbelid {
@@ -10,63 +6,32 @@ public class Tbelid {
     private Integer idItemD;
     private double qty;
     private double harga;
+    private double diskon;
     private double total;
     private double qtyBase;
 
     // Getter dan Setter
-    public int getIdBeliD() {
-        return idBeliD;
-    }
+    public int getIdBeliD() { return idBeliD; }
+    public void setIdBeliD(int idBeliD) { this.idBeliD = idBeliD; }
 
-    public void setIdBeliD(int idBeliD) {
-        this.idBeliD = idBeliD;
-    }
+    public Integer getIdBeliH() { return idBeliH; }
+    public void setIdBeliH(Integer idBeliH) { this.idBeliH = idBeliH; }
 
-    public Integer getIdBeliH() {
-        return idBeliH;
-    }
+    public Integer getIdItemD() { return idItemD; }
+    public void setIdItemD(Integer idItemD) { this.idItemD = idItemD; }
 
-    public void setIdBeliH(Integer idBeliH) {
-        this.idBeliH = idBeliH;
-    }
+    public double getQty() { return qty; }
+    public void setQty(double qty) { this.qty = qty; }
 
-    public Integer getIdItemD() {
-        return idItemD;
-    }
+    public double getHarga() { return harga; }
+    public void setHarga(double harga) { this.harga = harga; }
 
-    public void setIdItemD(Integer idItemD) {
-        this.idItemD = idItemD;
-    }
+    public double getDiskon() { return diskon; }
+    public void setDiskon(double diskon) { this.diskon = diskon; }
 
-    public double getQty() {
-        return qty;
-    }
+    public double getTotal() { return total; }
+    public void setTotal(double total) { this.total = total; }
 
-    public void setQty(double qty) {
-        this.qty = qty;
-    }
-
-    public double getHarga() {
-        return harga;
-    }
-
-    public void setHarga(double harga) {
-        this.harga = harga;
-    }
-
-    public double getTotal() {
-        return total;
-    }
-
-    public void setTotal(double total) {
-        this.total = total;
-    }
-
-    public double getQtyBase() {
-        return qtyBase;
-    }
-
-    public void setQtyBase(double qtyBase) {
-        this.qtyBase = qtyBase;
-    }
+    public double getQtyBase() { return qtyBase; }
+    public void setQtyBase(double qtyBase) { this.qtyBase = qtyBase; }
 }
