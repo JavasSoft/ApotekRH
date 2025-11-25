@@ -243,6 +243,9 @@
     <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
       <Color blue="ff" green="ff" red="ff" type="rgb"/>
     </Property>
+    <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+      <Dimension value="[1223, 631]"/>
+    </Property>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="menuBar" type="java.lang.String" value="jMenuBar1"/>
@@ -279,6 +282,12 @@
         <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
           <Color blue="ff" green="ff" red="ff" type="rgb"/>
         </Property>
+        <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+          <Dimension value="[1223, 631]"/>
+        </Property>
+        <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+          <Dimension value="[1223, 631]"/>
+        </Property>
       </Properties>
 
       <Layout>
@@ -308,8 +317,6 @@
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="cmbJenis" min="-2" pref="97" max="-2" attributes="0"/>
                   <EmptySpace max="32767" attributes="0"/>
-                  <Component id="jTextField5" min="-2" pref="103" max="-2" attributes="0"/>
-                  <EmptySpace min="-2" pref="15" max="-2" attributes="0"/>
               </Group>
               <Component id="jPanel7" alignment="1" max="32767" attributes="0"/>
               <Group type="102" alignment="0" attributes="0">
@@ -322,7 +329,7 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="1" attributes="0">
                   <Component id="jPanel1" min="-2" max="-2" attributes="0"/>
-                  <EmptySpace min="-2" pref="19" max="-2" attributes="0"/>
+                  <EmptySpace type="unrelated" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="0" attributes="0">
                       <Group type="103" groupAlignment="3" attributes="0">
                           <Component id="jLabel3" alignment="3" max="32767" attributes="0"/>
@@ -333,14 +340,13 @@
                           <Component id="txtDokter" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
                           <Component id="btnBrowseDokter" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
                       </Group>
+                      <Component id="jLabel11" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
+                      <Component id="btnBrowse" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
+                      <Component id="txtNoFaktur" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
                       <Group type="103" alignment="0" groupAlignment="3" attributes="0">
                           <Component id="jLabel14" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
                           <Component id="cmbJenis" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
                       </Group>
-                      <Component id="jTextField5" alignment="0" max="32767" attributes="0"/>
-                      <Component id="jLabel11" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
-                      <Component id="btnBrowse" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
-                      <Component id="txtNoFaktur" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
                   </Group>
                   <EmptySpace max="-2" attributes="0"/>
                   <Component id="jPanel6" min="-2" max="-2" attributes="0"/>
@@ -369,9 +375,9 @@
                       <Component id="jToolBar1" min="-2" pref="181" max="-2" attributes="0"/>
                       <EmptySpace type="separate" max="-2" attributes="0"/>
                       <Component id="recordLabel" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="53" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="59" max="-2" attributes="0"/>
                       <Component id="cmbJenisTras" min="-2" pref="137" max="-2" attributes="0"/>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="lblJatuhTempo" min="-2" pref="124" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="dtpJatuhTempo" min="-2" pref="141" max="-2" attributes="0"/>
@@ -390,7 +396,7 @@
                       <Component id="jPanel2" min="-2" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Group type="102" alignment="1" attributes="0">
-                              <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                              <EmptySpace min="0" pref="7" max="32767" attributes="0"/>
                               <Component id="jToolBar1" min="-2" pref="42" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" attributes="0">
@@ -690,6 +696,7 @@
             <DimensionLayout dim="0">
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="1" attributes="0">
+                      <EmptySpace min="-2" pref="22" max="-2" attributes="0"/>
                       <Component id="cmbAktif" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="cmbPPN" min="-2" max="-2" attributes="0"/>
@@ -701,7 +708,7 @@
                       <Component id="btnCancel" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="btnExit" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace min="-2" pref="24" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="307" max="-2" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -791,16 +798,13 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="jPanel9" max="32767" attributes="0"/>
                   <Group type="102" attributes="0">
-                      <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="102" attributes="0">
-                              <EmptySpace max="32767" attributes="0"/>
-                              <Component id="txtHarga" min="-2" pref="438" max="-2" attributes="0"/>
-                          </Group>
-                          <Component id="txtNama" alignment="0" min="-2" pref="902" max="-2" attributes="0"/>
-                      </Group>
-                      <EmptySpace type="separate" max="-2" attributes="0"/>
-                      <Component id="lblSubtotal" min="-2" pref="669" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
+                      <Component id="txtNama" min="-2" pref="625" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="154" max="-2" attributes="0"/>
+                      <Component id="txtHarga" min="-2" pref="123" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="178" max="-2" attributes="0"/>
+                      <Component id="lblSubtotal" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace pref="276" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -808,16 +812,15 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
                       <Component id="jPanel9" min="-2" max="-2" attributes="0"/>
-                      <EmptySpace max="-2" attributes="0"/>
+                      <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
-                          <Group type="102" attributes="0">
-                              <Component id="txtNama" min="-2" pref="41" max="-2" attributes="0"/>
-                              <EmptySpace max="-2" attributes="0"/>
-                              <Component id="txtHarga" min="-2" max="-2" attributes="0"/>
+                          <Group type="103" groupAlignment="3" attributes="0">
+                              <Component id="txtNama" alignment="3" min="-2" pref="41" max="-2" attributes="0"/>
+                              <Component id="txtHarga" alignment="3" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <Component id="lblSubtotal" min="-2" pref="62" max="-2" attributes="0"/>
+                          <Component id="lblSubtotal" alignment="0" min="-2" pref="62" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                      <EmptySpace min="0" pref="11" max="32767" attributes="0"/>
                   </Group>
               </Group>
             </DimensionLayout>
@@ -874,11 +877,13 @@
                           <EmptySpace type="separate" max="-2" attributes="0"/>
                           <Component id="jLabel12" min="-2" pref="60" max="-2" attributes="0"/>
                           <EmptySpace type="separate" max="-2" attributes="0"/>
-                          <Component id="txtDiscPersen" min="-2" max="-2" attributes="0"/>
-                          <EmptySpace min="-2" pref="29" max="-2" attributes="0"/>
+                          <Component id="txtDiscPersen" min="-2" pref="43" max="-2" attributes="0"/>
+                          <EmptySpace type="separate" max="-2" attributes="0"/>
                           <Component id="jLabel13" min="-2" pref="26" max="-2" attributes="0"/>
                           <EmptySpace type="separate" max="-2" attributes="0"/>
                           <Component id="txtDiscTotal" min="-2" pref="99" max="-2" attributes="0"/>
+                          <EmptySpace min="-2" pref="50" max="-2" attributes="0"/>
+                          <Component id="jTextField5" min="-2" pref="103" max="-2" attributes="0"/>
                           <EmptySpace max="32767" attributes="0"/>
                       </Group>
                   </Group>
@@ -890,19 +895,25 @@
                           <Group type="103" groupAlignment="1" attributes="0">
                               <Component id="jLabel13" max="32767" attributes="0"/>
                               <Component id="txtDiscPersen" alignment="1" max="32767" attributes="0"/>
-                              <Group type="102" alignment="0" attributes="0">
-                                  <EmptySpace min="2" pref="2" max="-2" attributes="0"/>
-                                  <Group type="103" groupAlignment="3" attributes="0">
-                                      <Component id="cmbSatuan" alignment="3" min="-2" pref="32" max="-2" attributes="0"/>
-                                      <Component id="jLabel10" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
-                                      <Component id="jLabel9" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
-                                  </Group>
-                              </Group>
-                              <Component id="jLabel2" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
-                              <Component id="jLabel12" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
                               <Component id="txtKodeItem" alignment="1" pref="35" max="32767" attributes="0"/>
                               <Component id="txtJumlah" alignment="0" max="32767" attributes="0"/>
                               <Component id="txtDiscTotal" alignment="0" max="32767" attributes="0"/>
+                              <Group type="102" alignment="0" attributes="0">
+                                  <Group type="103" groupAlignment="1" attributes="0">
+                                      <Group type="102" alignment="0" attributes="0">
+                                          <EmptySpace min="2" pref="2" max="-2" attributes="0"/>
+                                          <Group type="103" groupAlignment="3" attributes="0">
+                                              <Component id="cmbSatuan" alignment="3" min="-2" pref="32" max="-2" attributes="0"/>
+                                              <Component id="jLabel10" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
+                                              <Component id="jLabel9" alignment="3" min="-2" pref="30" max="-2" attributes="0"/>
+                                          </Group>
+                                      </Group>
+                                      <Component id="jLabel2" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
+                                      <Component id="jLabel12" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
+                                      <Component id="jTextField5" alignment="0" min="-2" pref="30" max="-2" attributes="0"/>
+                                  </Group>
+                                  <EmptySpace min="0" pref="0" max="32767" attributes="0"/>
+                              </Group>
                           </Group>
                           <EmptySpace max="-2" attributes="0"/>
                       </Group>
@@ -1047,6 +1058,13 @@
                     </Property>
                   </Properties>
                 </Component>
+                <Component class="javax.swing.JTextField" name="jTextField5">
+                  <Properties>
+                    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
+                      <Dimension value="[33, 22]"/>
+                    </Property>
+                  </Properties>
+                </Component>
               </SubComponents>
             </Container>
           </SubComponents>
@@ -1146,13 +1164,6 @@
             <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="txtDokterMouseClicked"/>
             <EventHandler event="keyPressed" listener="java.awt.event.KeyListener" parameters="java.awt.event.KeyEvent" handler="txtDokterKeyPressed"/>
           </Events>
-        </Component>
-        <Component class="javax.swing.JTextField" name="jTextField5">
-          <Properties>
-            <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-              <Dimension value="[33, 22]"/>
-            </Property>
-          </Properties>
         </Component>
         <Component class="javax.swing.JComboBox" name="cmbJenis">
           <Properties>

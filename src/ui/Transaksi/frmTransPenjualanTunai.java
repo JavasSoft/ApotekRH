@@ -30,8 +30,11 @@ import dao.TjualdDAO;
 import dao.TjurnalitemDAO;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
 import javax.swing.table.DefaultTableCellRenderer;
 import model.ItemFull;
 import model.Session;
@@ -122,6 +125,40 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
                 updateJatuhTempoVisibility();
                 updateBayarVisibility();
                     });
+            
+            txtDiscPersen.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (txtDiscPersen.getText().equals("0")) {
+                    txtDiscPersen.setText("");
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (txtDiscPersen.getText().trim().isEmpty()) {
+                    txtDiscPersen.setText("0");
+                }
+            }
+        });
+            
+            txtDiscTotal.addFocusListener(new java.awt.event.FocusAdapter() {
+    @Override
+    public void focusGained(java.awt.event.FocusEvent e) {
+        if (txtDiscTotal.getText().equals("0")) {
+            txtDiscTotal.setText("");
+        }
+    }
+
+    @Override
+    public void focusLost(java.awt.event.FocusEvent e) {
+        if (txtDiscTotal.getText().trim().isEmpty()) {
+            txtDiscTotal.setText("0");
+        }
+    }
+});
+
+
             
 
     }
@@ -243,6 +280,31 @@ private void initTable() {
         }
     };
     jTable1.setModel(model);
+    
+    // Tambahkan jarak antar sel (padding horizontal & vertical)
+jTable1.setRowHeight(28); // tinggi baris
+jTable1.setIntercellSpacing(new Dimension(6, 6)); // jarak antar cell
+
+// Renderer untuk memberi padding kiri/kanan
+DefaultTableCellRenderer paddingRenderer = new DefaultTableCellRenderer() {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
+            boolean hasFocus, int row, int col) {
+
+        Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+
+        if (c instanceof JLabel lbl) {
+            lbl.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); 
+        }
+        return c;
+    }
+};
+
+// Terapkan renderer padding ke semua kolom
+for (int i = 0; i < jTable1.getColumnCount(); i++) {
+    jTable1.getColumnModel().getColumn(i).setCellRenderer(paddingRenderer);
+}
+
 
     // Hilangkan garis grid
     jTable1.setShowGrid(false);
@@ -260,12 +322,12 @@ private void initTable() {
     jTable1.getColumn("ID").setWidth(0);
     
         jTable1.getColumn("X").setPreferredWidth(30);
-         jTable1.getColumn("Kode").setPreferredWidth(100);
+    jTable1.getColumn("Kode").setPreferredWidth(200);
     jTable1.getColumn("Nama").setPreferredWidth(400);
-    jTable1.getColumn("Satuan").setPreferredWidth(50);
+    jTable1.getColumn("Satuan").setPreferredWidth(200);
     jTable1.getColumn("Qty").setPreferredWidth(50);
     jTable1.getColumn("Harga").setPreferredWidth(100);
-    jTable1.getColumn("Total").setPreferredWidth(120);
+    jTable1.getColumn("Total").setPreferredWidth(130);
 
 
 
@@ -310,16 +372,16 @@ jTable1.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
         jTable1.getColumnModel().getColumn(8).setCellRenderer(rightRenderer);
 }
 
-private void setupDiscEvents() {
-    txtDiscPersen.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-        public void insertUpdate(javax.swing.event.DocumentEvent e) { updateDiscTotal(); }
-        public void removeUpdate(javax.swing.event.DocumentEvent e) { updateDiscTotal(); }
-        public void changedUpdate(javax.swing.event.DocumentEvent e) { updateDiscTotal(); }
-    });
-}
+private boolean isUpdatingDisc = false;
+private boolean isFormatting = false;
+
 
 private void updateDiscTotal() {
+    if (isUpdatingDisc || isFormatting) return;
+
     try {
+        isUpdatingDisc = true;
+
         double persen = txtDiscPersen.getText().isEmpty() ? 0 : Double.parseDouble(txtDiscPersen.getText());
         double harga = parseAngka(txtHarga.getText());
         int qty = txtJumlah.getText().isEmpty() ? 0 : Integer.parseInt(txtJumlah.getText());
@@ -327,11 +389,64 @@ private void updateDiscTotal() {
         double total = harga * qty;
         double discTotal = (persen / 100) * total;
 
+        isFormatting = true;
         txtDiscTotal.setText(formatAngka(discTotal));
+        isFormatting = false;
+
     } catch (Exception e) {
-        txtDiscTotal.setText(formatAngka(0));
+        txtDiscTotal.setText("0");
+    } finally {
+        isUpdatingDisc = false;
     }
 }
+
+private void updateDiscPersen() {
+    if (isUpdatingDisc || isFormatting) return;
+
+    try {
+        isUpdatingDisc = true;
+
+        double discTotal = parseAngka(txtDiscTotal.getText());
+        double harga = parseAngka(txtHarga.getText());
+        int qty = txtJumlah.getText().isEmpty() ? 0 : Integer.parseInt(txtJumlah.getText());
+
+        double total = harga * qty;
+        if (total == 0) {
+            txtDiscPersen.setText("0");
+            return;
+        }
+
+        double persen = (discTotal / total) * 100;
+
+        isFormatting = true;
+        txtDiscPersen.setText(String.valueOf((int) persen));
+        isFormatting = false;
+
+    } catch (Exception e) {
+        txtDiscPersen.setText("0");
+    } finally {
+        isUpdatingDisc = false;
+    }
+}
+
+
+private void setupDiscEvents() {
+
+    // % berubah → Total mengikuti
+    txtDiscPersen.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+        public void insertUpdate(javax.swing.event.DocumentEvent e) { updateDiscTotal(); }
+        public void removeUpdate(javax.swing.event.DocumentEvent e) { updateDiscTotal(); }
+        public void changedUpdate(javax.swing.event.DocumentEvent e) { updateDiscTotal(); }
+    });
+
+    // Total berubah → % mengikuti
+    txtDiscTotal.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+        public void insertUpdate(javax.swing.event.DocumentEvent e) { updateDiscPersen(); }
+        public void removeUpdate(javax.swing.event.DocumentEvent e) { updateDiscPersen(); }
+        public void changedUpdate(javax.swing.event.DocumentEvent e) { updateDiscPersen(); }
+    });
+}
+
 
 
 private String formatAngka(double value) {
@@ -432,6 +547,7 @@ private double parseAngka(String value) {
         txtDiscPersen.setText("0");
         txtDiscTotal.setText("0");
     }
+  
 private void clearInputFields() {
    // txtNoFaktur.setText("");
     txtIDJual.setText("");
@@ -453,10 +569,14 @@ private void clearInputFields() {
     }
 
     // === TAMBAH ITEM KE TABLE ===
-    private void addItemFromInput() {
-            try {
-        if (txtIDJual.getText().isEmpty() || txtNama.getText().isEmpty() ||
-            txtJumlah.getText().isEmpty() || txtHarga.getText().isEmpty()) {
+private void addItemFromInput() {
+    try {
+        // Validasi
+        if (txtIDJual.getText().isEmpty() ||
+            txtNama.getText().isEmpty() ||
+            txtJumlah.getText().isEmpty() ||
+            txtHarga.getText().isEmpty()) 
+        {
             JOptionPane.showMessageDialog(this, "Semua field harus diisi!");
             return;
         }
@@ -474,7 +594,7 @@ private void clearInputFields() {
         double harga = parseAngka(txtHarga.getText());
 
         if (qty <= 0) {
-            JOptionPane.showMessageDialog(this, "Qty harus lebih dari 0");
+            JOptionPane.showMessageDialog(this, "Qty harus lebih dari 0!");
             return;
         }
 
@@ -483,41 +603,52 @@ private void clearInputFields() {
 
         DefaultTableModel model = (DefaultTableModel) jTable1.getModel();
 
-        // Merge item jika ID & satuan sama
-        for (int i = 0; i < jTable1.getRowCount(); i++) {
-            int existingId = Integer.parseInt(jTable1.getValueAt(i, 1).toString());
-            if (existingId == idItem && jTable1.getValueAt(i, 4).toString().equals(satuan)) {
-                int existingQty = Integer.parseInt(jTable1.getValueAt(i, 5).toString().replace(",", ""));
+        // ===============================
+        //   MERGE ITEM JIKA SUDAH ADA
+        // ===============================
+        for (int i = 0; i < model.getRowCount(); i++) {
+            int existingId = Integer.parseInt(model.getValueAt(i, 1).toString());
+            String existingSatuan = model.getValueAt(i, 4).toString();
+
+            if (existingId == idItem && existingSatuan.equals(satuan)) {
+
+                int existingQty = Integer.parseInt(model.getValueAt(i, 5).toString().replace(",", ""));
                 int newQty = existingQty + qty;
                 double newTotal = newQty * harga;
 
-                jTable1.setValueAt(formatAngka(newQty), i, 5);
-                jTable1.setValueAt(formatAngka(newTotal), i, 8);
+                model.setValueAt(formatAngka(newQty), i, 5); // update qty
+                model.setValueAt(formatAngka(newTotal), i, 8); // update total
+
+                // Clear setelah merge
+                clearInputFields();
                 updateSubtotal();
-                return;
+                return; // jangan tambah baris baru
             }
         }
 
-        // Tambah baris baru
+        // ===============================
+        //   BARIS BARU JIKA TIDAK ADA
+        // ===============================
         model.addRow(new Object[]{
-            "X",                 // 0
-            idItem,              // 1
-            kode,                // 2
-            nama,                // 3
-            satuan,              // 4
-            formatAngka(qty),    // 5
-            formatAngka(harga),  // 6
-            formatAngka(discTotal), // 7
-            formatAngka(total)   // 8
+            "X",                 // 0 tombol hapus
+            idItem,              // 1 IDItem
+            kode,                // 2 Kode
+            nama,                // 3 Nama
+            satuan,              // 4 Satuan
+            formatAngka(qty),    // 5 Qty
+            formatAngka(harga),  // 6 Harga
+            formatAngka(discTotal), // 7 Diskon
+            formatAngka(total)   // 8 Total
         });
 
         clearInputFields();
         updateSubtotal();
 
-    } catch (NumberFormatException e) {
-        JOptionPane.showMessageDialog(this, "Input tidak valid! Pastikan angka di Qty dan Harga.");
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Input tidak valid: " + e.getMessage());
     }
 }
+
     
 
     // === UPDATE HARGA BERDASARKAN SATUAN ===
@@ -1117,6 +1248,7 @@ private void printRaw(String data) throws Exception {
         jLabel10 = new javax.swing.JLabel();
         txtKodeItem = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
+        jTextField5 = new javax.swing.JTextField();
         jPanel7 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jTable1 = new javax.swing.JTable();
@@ -1125,7 +1257,6 @@ private void printRaw(String data) throws Exception {
         jLabel8 = new javax.swing.JLabel();
         jLabel11 = new javax.swing.JLabel();
         txtDokter = new javax.swing.JTextField();
-        jTextField5 = new javax.swing.JTextField();
         cmbJenis = new javax.swing.JComboBox<>();
         jLabel14 = new javax.swing.JLabel();
         btnBrowse = new javax.swing.JButton();
@@ -1276,8 +1407,11 @@ private void printRaw(String data) throws Exception {
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Transaksi Penjualan Tunai");
         setBackground(new java.awt.Color(255, 255, 255));
+        setPreferredSize(new java.awt.Dimension(1223, 631));
 
         jPanel5.setBackground(new java.awt.Color(255, 255, 255));
+        jPanel5.setMinimumSize(new java.awt.Dimension(1223, 631));
+        jPanel5.setPreferredSize(new java.awt.Dimension(1223, 631));
 
         jPanel1.setBackground(new java.awt.Color(0, 255, 204));
 
@@ -1426,9 +1560,9 @@ private void printRaw(String data) throws Exception {
                 .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 181, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(recordLabel)
-                .addGap(53, 53, 53)
+                .addGap(59, 59, 59)
                 .addComponent(cmbJenisTras, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(lblJatuhTempo, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(dtpJatuhTempo, javax.swing.GroupLayout.PREFERRED_SIZE, 141, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1445,7 +1579,7 @@ private void printRaw(String data) throws Exception {
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addGap(0, 7, Short.MAX_VALUE)
                         .addComponent(jToolBar1, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1501,6 +1635,7 @@ private void printRaw(String data) throws Exception {
         jPanel4Layout.setHorizontalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel4Layout.createSequentialGroup()
+                .addGap(22, 22, 22)
                 .addComponent(cmbAktif)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cmbPPN)
@@ -1512,7 +1647,7 @@ private void printRaw(String data) throws Exception {
                 .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnExit)
-                .addGap(24, 24, 24))
+                .addGap(307, 307, 307))
         );
         jPanel4Layout.setVerticalGroup(
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1623,6 +1758,8 @@ private void printRaw(String data) throws Exception {
         jLabel2.setText("Kode Barang :");
         jLabel2.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
+        jTextField5.setMinimumSize(new java.awt.Dimension(33, 22));
+
         javax.swing.GroupLayout jPanel9Layout = new javax.swing.GroupLayout(jPanel9);
         jPanel9.setLayout(jPanel9Layout);
         jPanel9Layout.setHorizontalGroup(
@@ -1642,11 +1779,13 @@ private void printRaw(String data) throws Exception {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(txtDiscPersen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(29, 29, 29)
+                .addComponent(txtDiscPersen, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
                 .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 26, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(txtDiscTotal, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(50, 50, 50)
+                .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel9Layout.setVerticalGroup(
@@ -1656,17 +1795,21 @@ private void printRaw(String data) throws Exception {
                 .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(txtDiscPersen, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel9Layout.createSequentialGroup()
-                        .addGap(2, 2, 2)
-                        .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(cmbSatuan, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                    .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel12, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(txtKodeItem, javax.swing.GroupLayout.DEFAULT_SIZE, 35, Short.MAX_VALUE)
                     .addComponent(txtJumlah, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(txtDiscTotal, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(txtDiscTotal, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel9Layout.createSequentialGroup()
+                        .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel9Layout.createSequentialGroup()
+                                .addGap(2, 2, 2)
+                                .addGroup(jPanel9Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                    .addComponent(cmbSatuan, javax.swing.GroupLayout.PREFERRED_SIZE, 32, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel12, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jTextField5, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
 
@@ -1676,27 +1819,25 @@ private void printRaw(String data) throws Exception {
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jPanel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(jPanel6Layout.createSequentialGroup()
-                .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel6Layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 438, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 902, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addComponent(lblSubtotal, javax.swing.GroupLayout.PREFERRED_SIZE, 669, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap())
+                .addContainerGap()
+                .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 625, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(154, 154, 154)
+                .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 123, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(178, 178, 178)
+                .addComponent(lblSubtotal)
+                .addContainerGap(276, Short.MAX_VALUE))
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel6Layout.createSequentialGroup()
                 .addComponent(jPanel9, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel6Layout.createSequentialGroup()
+                    .addGroup(jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(txtNama, javax.swing.GroupLayout.PREFERRED_SIZE, 41, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(txtHarga))
                     .addComponent(lblSubtotal, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 11, Short.MAX_VALUE))
         );
 
         jPanel7.setBackground(new java.awt.Color(255, 255, 255));
@@ -1757,8 +1898,6 @@ private void printRaw(String data) throws Exception {
             }
         });
 
-        jTextField5.setMinimumSize(new java.awt.Dimension(33, 22));
-
         cmbJenis.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Biasa", "Resep" }));
 
         jLabel14.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
@@ -1806,9 +1945,7 @@ private void printRaw(String data) throws Exception {
                 .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cmbJenis, javax.swing.GroupLayout.PREFERRED_SIZE, 97, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(15, 15, 15))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
             .addComponent(jPanel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1818,7 +1955,7 @@ private void printRaw(String data) throws Exception {
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(19, 19, 19)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -1827,13 +1964,12 @@ private void printRaw(String data) throws Exception {
                     .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(txtDokter, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(btnBrowseDokter, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(cmbJenis, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(jTextField5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnBrowse, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(txtNoFaktur, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(txtNoFaktur, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(cmbJenis, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel6, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
