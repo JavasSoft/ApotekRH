@@ -31,6 +31,8 @@ import dao.TjurnalitemDAO;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
 import javax.swing.BorderFactory;
@@ -126,6 +128,22 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
                 updateBayarVisibility();
                     });
             
+                    txtDokter.addMouseListener(new java.awt.event.MouseAdapter() {
+        @Override
+        public void mouseEntered(java.awt.event.MouseEvent e) {
+            System.out.println("MOUSE MASUK txtDokter");
+            System.out.println("txtDokter editable? " + txtDokter.isEditable());
+        }
+    });
+                    
+                    txtDokter.addMouseListener(new MouseAdapter() {
+    @Override
+    public void mouseClicked(MouseEvent evt) {
+        System.out.println("ClickCount = " + evt.getClickCount());
+    }
+});
+
+            
             txtDiscPersen.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
@@ -157,10 +175,7 @@ public class frmTransPenjualanTunai extends javax.swing.JFrame {
         }
     }
 });
-
-
             
-
     }
     
         private void btnALL() {
@@ -218,7 +233,7 @@ private void loadDataFromDatabase() {
     cmbJenis.addActionListener(e -> {
         String jenis = cmbJenis.getSelectedItem().toString();
         if (jenis.equalsIgnoreCase("Biasa")) {
-            txtDokter.setEnabled(false);
+            txtDokter.setEnabled(true);
             txtDokter.setText("");
         } else if (jenis.equalsIgnoreCase("Resep")) {
             txtDokter.setEnabled(true);
@@ -507,6 +522,8 @@ private double parseAngka(String value) {
         btnUbah.setEnabled(false);
         btnHapus.setEnabled(false);
         btnBrowse.setEnabled(false);
+        txtDokter.setEditable(true);
+        txtDokter.setEnabled(true);
         updateBayarVisibility();
         btnCancel.setEnabled(true);
         btnExit.setEnabled(true);
@@ -1825,7 +1842,7 @@ private void printRaw(String data) throws Exception {
                 .addComponent(txtHarga, javax.swing.GroupLayout.PREFERRED_SIZE, 123, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(178, 178, 178)
                 .addComponent(lblSubtotal)
-                .addContainerGap(276, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel6Layout.setVerticalGroup(
             jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1888,13 +1905,8 @@ private void printRaw(String data) throws Exception {
 
         txtDokter.setMinimumSize(new java.awt.Dimension(33, 22));
         txtDokter.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                txtDokterMouseClicked(evt);
-            }
-        });
-        txtDokter.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                txtDokterKeyPressed(evt);
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                txtDokterMousePressed(evt);
             }
         });
 
@@ -1955,7 +1967,7 @@ private void printRaw(String data) throws Exception {
             jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -2049,14 +2061,6 @@ private void printRaw(String data) throws Exception {
     private void txtDiscPersenKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtDiscPersenKeyReleased
         // TODO add your handling code here:
     }//GEN-LAST:event_txtDiscPersenKeyReleased
-
-    private void txtDokterMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtDokterMouseClicked
-             // TODO add your handling code here:
-         if (evt.getClickCount() == 2) {
-        // Membuka form lain
-        BrowseDokter dialog = new BrowseDokter(this, true, conn);
-        dialog.setVisible(true);}   // TODO add your handling code here:
-    }//GEN-LAST:event_txtDokterMouseClicked
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
         awal();//DO add your handling code here:
@@ -2159,13 +2163,21 @@ private void printRaw(String data) throws Exception {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtDiscPersenActionPerformed
 
-    private void txtDokterKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtDokterKeyPressed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtDokterKeyPressed
-
     private void btnBrowseDokterActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBrowseDokterActionPerformed
-        // TODO add your handling code here:
+            BrowseDokter dialog = new BrowseDokter(this, true, conn);
+            System.out.println("Conn null? " + (conn == null));
+            dialog.setVisible(true);// TODO add your handling code here:
+            
     }//GEN-LAST:event_btnBrowseDokterActionPerformed
+
+    private void txtDokterMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_txtDokterMousePressed
+            System.out.println("Pressed count = " + evt.getClickCount());
+
+    if (evt.getClickCount() == 2) {
+        BrowseDokter dialog = new BrowseDokter(this, true, conn);
+        dialog.setVisible(true);
+    }        // TODO add your handling code here:
+    }//GEN-LAST:event_txtDokterMousePressed
 
     /**
      * @param args the command line arguments
