@@ -96,7 +96,7 @@ private int totalPages = 1;      // Total halaman
 
     private void loadData() {
         dokterList = dokterDAO.getAllDokter();
-        updateTable(dokterList);
+    currentPage = 1;     
         applyDisplayLimit();
     }
     
@@ -114,13 +114,33 @@ private void applyDisplayLimit() {
 }
 
 private void updatePageData() {
+    // KOREKSI 2: Pastikan displayLimit positif sebelum menghitung startIndex
+    if (displayLimit <= 0) {
+        displayLimit = 10;
+    }
+    
+    // Hitung indeks awal
     int startIndex = (currentPage - 1) * displayLimit;
+    
+    // KOREKSI 3: Periksa jika startIndex negatif (seharusnya tidak jika displayLimit > 0 dan currentPage >= 1)
+    if (startIndex < 0) {
+        startIndex = 0; 
+    }
+    
     int endIndex = Math.min(startIndex + displayLimit, dokterList.size());
 
-    currentItemList = dokterList.subList(startIndex, endIndex);
+    // 🔴 KOREKSI 4: Tambahkan pengecekan ukuran list sebelum subList
+    if (startIndex > dokterList.size()) {
+        // Jika startIndex melebihi ukuran list (terjadi jika list kosong atau ada bug)
+        startIndex = 0;
+        endIndex = 0;
+    }
+    
+    // Ambil sublist yang akan ditampilkan
+    currentItemList = dokterList.subList(startIndex, endIndex); // Baris 120
 
-    // Update tampilan tabel
-//    updateTable(currentItemList);
+    // Tampilkan data yang sudah dipilah ke tabel
+    updateTable(currentItemList);
 
     // Update label halaman
     lblPage.setText(currentPage + "/" + totalPages);
